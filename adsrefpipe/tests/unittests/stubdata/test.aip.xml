@@ -1,0 +1,90 @@
+<ADSBIBCODE>2020TEST..........R</ADSBIBCODE>
+<citation id="r1">
+<ref>
+    <biother>
+        <biaugrp>
+            <biauth>
+                <bifname>G. A.</bifname>
+                <punct></punct>
+                <bilname>Smolenskii</bilname>
+            </biauth>
+            <punct>and</punct>
+            <biauth>
+                <bifname>V. A.</bifname>
+                <punct></punct>
+                <bilname>Ioffe</bilname>
+            </biauth>
+        </biaugrp>
+        <punct>,</punct>
+        <emph type="1">Communications de Colloque International de Magnetism de Grenoble</emph>
+        <punct>(</punct>
+        <othinfo>France), 2-6 Jullet, Communication No.1</othinfo>
+        <punct>(</punct>
+        <year>1958</year>
+        <punct>).</punct>
+    </biother>
+</ref>
+</citation>
+<citation id="r31">
+<ref>
+    <art>
+        <biaugrp>
+            <biauth>
+                <bifname>M. H.</bifname>
+                <punct></punct>
+                <bilname>Jansen</bilname>
+            </biauth>
+            <punct>and</punct>
+            <biauth>
+                <bifname>P.</bifname>
+                <punct></punct>
+                <bilname>Bak</bilname>
+            </biauth>
+        </biaugrp>
+        <punct>,</punct>
+        <journal>Phys. Rev. B</journal>
+        <punct></punct>
+        <vol>27</vol>
+        <punct>,</punct>
+        <pp>6853</pp>
+        <punct>.</punct>
+        <plink>
+            <linkkey type="dbkey">prb</linkkey>
+            <linkkey type="coden">PRBMDO</linkkey>
+            <linkkey type="issn">0163-1829</linkkey>
+            <linkkey type="doi">10.1103/PhysRevB.27.6853</linkkey>
+        </plink>
+    </art>
+</ref>
+</citation>
+<citation id="r30">
+<ref>
+    <art>
+        <biaugrp>
+            <biauth>
+                <bifname>&Kcy;.</bifname>
+                <punct></punct>
+                <bilname>Binder</bilname>
+            </biauth>
+            <punct>and</punct>
+            <biauth>
+                <bifname>D. P.</bifname>
+                <punct></punct>
+                <bilname>Landau</bilname>
+            </biauth>
+        </biaugrp>
+        <punct>,</punct>
+        <journal>Phys. Rev. B</journal>
+        <punct></punct>
+        <vol>21</vol>
+        <punct>,</punct>
+        <pp>1941</pp>
+        <punct>.</punct>
+        <plink>
+            <linkkey type="dbkey">prb</linkkey>
+            <linkkey type="coden">PRBMDO</linkkey>
+            <linkkey type="issn">0163-1829</linkkey>
+        </plink>
+    </art>
+</ref>
+</citation>

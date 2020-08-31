@@ -1,0 +1,576 @@
+<ADSBIBCODE>2020TEST..........R</ADSBIBCODE>
+<ce:bib-reference id="bib1">
+<ce:label>Ainsworth, 2016</ce:label>
+<sb:reference id="sref1">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>E.A.</ce:given-name>
+                <ce:surname>Ainsworth</ce:surname>
+            </sb:author>
+        </sb:authors>
+        <sb:title>
+            <sb:maintitle>Understanding and improving global crop response to ozone pollution</sb:maintitle>
+        </sb:title>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>Plant J.</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>90</sb:volume-nr>
+            </sb:series>
+            <sb:date>2016</sb:date>
+        </sb:issue>
+        <sb:pages>
+            <sb:first-page>886</sb:first-page>
+            <sb:last-page>897</sb:last-page>
+        </sb:pages>
+        <ce:doi>10.1111/tpj.13298</ce:doi>
+    </sb:host>
+</sb:reference>
+<ce:source-text id="srct0025">Ainsworth, EA. 2016. Understanding and improving global crop response to ozone pollution.
+    The Plant Journal 90: 886-897. DOI: 10.1111/tpj.13298
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib2">
+<ce:label>Ainsworth, 2016</ce:label>
+<sb:reference id="sref2">
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>Plant J.</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>90</sb:volume-nr>
+            </sb:series>
+            <sb:date>2016</sb:date>
+        </sb:issue>
+        <sb:pages>
+            <sb:first-page>886</sb:first-page>
+            <sb:last-page>897</sb:last-page>
+        </sb:pages>
+        <ce:doi>10.1111/tpj.13298</ce:doi>
+    </sb:host>
+</sb:reference>
+<ce:source-text id="srct0025">Ainsworth, EA. 2016. Understanding and improving global crop response to ozone pollution.
+    The Plant Journal 90: 886-897. DOI: 10.1111/tpj.13298
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib31">
+<ce:label>Boucher et al., 2013</ce:label>
+<sb:reference id="sref31">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>O.</ce:given-name>
+                <ce:surname>Boucher</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>D.</ce:given-name>
+                <ce:surname>Randall</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>P.</ce:given-name>
+                <ce:surname>Artaxo</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>G.</ce:given-name>
+                <ce:surname>Bretherton</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>P.</ce:given-name>
+                <ce:surname>Feingold</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>P.</ce:given-name>
+                <ce:surname>Forster</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>V.-M.</ce:given-name>
+                <ce:surname>Kerminen</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>Y.</ce:given-name>
+                <ce:surname>Kondo</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>H.</ce:given-name>
+                <ce:surname>Liao</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>U.</ce:given-name>
+                <ce:surname>Lohmann</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>P.</ce:given-name>
+                <ce:surname>Rasch</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>S.K.</ce:given-name>
+                <ce:surname>Satheesh</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>S.</ce:given-name>
+                <ce:surname>Sherwood</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>B.</ce:given-name>
+                <ce:surname>Stevens</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>X.Y.</ce:given-name>
+                <ce:surname>Zhang</ce:surname>
+            </sb:author>
+        </sb:authors>
+        <sb:title>
+            <sb:maintitle>Clouds and aerosols</sb:maintitle>
+        </sb:title>
+    </sb:contribution>
+    <sb:host>
+        <sb:edited-book>
+            <sb:book-series>
+                <sb:editors>
+                    <sb:editor>
+                        <ce:given-name>T.F.</ce:given-name>
+                        <ce:surname>Stocker</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>D.</ce:given-name>
+                        <ce:surname>Qin</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>G.-K.</ce:given-name>
+                        <ce:surname>Plattner</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>M.M.B.</ce:given-name>
+                        <ce:surname>Tignor</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>S.K.</ce:given-name>
+                        <ce:surname>Allen</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>J.</ce:given-name>
+                        <ce:surname>Boschung</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>A.</ce:given-name>
+                        <ce:surname>Nauels</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>Y.</ce:given-name>
+                        <ce:surname>Xia</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>V.</ce:given-name>
+                        <ce:surname>Bex</ce:surname>
+                    </sb:editor>
+                    <sb:editor>
+                        <ce:given-name>P.M.</ce:given-name>
+                        <ce:surname>Midgley</ce:surname>
+                    </sb:editor>
+                </sb:editors>
+                <sb:series>
+                    <sb:title>
+                        <sb:maintitle>Climate Change 2013: the Physical Science Basis</sb:maintitle>
+                    </sb:title>
+                    <sb:volume-nr>vols. 571&#x2013;657</sb:volume-nr>
+                </sb:series>
+            </sb:book-series>
+            <sb:date>2013</sb:date>
+            <sb:publisher>
+                <sb:name>U.S.A</sb:name>
+                <sb:location>Cambridge, U.K., and New York</sb:location>
+            </sb:publisher>
+        </sb:edited-book>
+    </sb:host>
+</sb:reference>
+<ce:source-text id="srct0175">Boucher, O., Randall, D., Artaxo, P., Bretherton, G., Feingold, P., Forster, P., Kerminen,
+    V.-M., Kondo, Y., Liao, H., Lohmann, U., Rasch, P., Satheesh, S.K., Sherwood, S., Stevens, B. and Zhang, X.Y.:
+    Clouds and Aerosols, in: Climate Change 2013: The Physical Science Basis, edited by Stocker, T. F, Qin, D.,
+    Plattner, G.-K., Tignor, M.M.B., Allen, S.K., Boschung, J., Nauels, A., Xia, Y., Bex, V., and Midgley, P.M.
+    Cambridge, U.K., and New York, U.S.A, 571-657, 2013
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib34">
+<ce:label>Kahnet et al., 2005</ce:label>
+<sb:reference id="sref34">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:surname>Kahnet</ce:surname>
+            </sb:author>
+            <sb:et-al/>
+        </sb:authors>
+        <sb:title>
+            <sb:maintitle>Multiangle Imaging Spectroradiometer (MISR) global aerosol optical depth validation based on 2
+                years of coincident Aerosol Robotic Network (AERONET) observations
+            </sb:maintitle>
+        </sb:title>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>J. Geophys. Res.</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>110</sb:volume-nr>
+            </sb:series>
+            <sb:issue-nr>D10</sb:issue-nr>
+            <sb:date>2005</sb:date>
+        </sb:issue>
+    </sb:host>
+</sb:reference>
+<ce:source-text id="srct0195">Kahnet et al. (2005), Multiangle Imaging Spectroradiometer (MISR) global aerosol optical
+    depth validation based on 2 years of coincident Aerosol Robotic Network (AERONET) observations. J. Geophys. Res.,
+    110(D10).
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib35">
+<ce:label>Karimipour and Ghandehari, 2013</ce:label>
+<sb:reference id="sref35">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:surname>Karimipour</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:surname>Ghandehari</ce:surname>
+            </sb:author>
+        </sb:authors>
+        <sb:title>
+            <sb:maintitle>Voronoi-based medial axis approximation from samples: issues and solutions</sb:maintitle>
+        </sb:title>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>Transactions on Computational Science</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>XX</sb:volume-nr>
+            </sb:series>
+            <sb:date>2013</sb:date>
+        </sb:issue>
+        <sb:pages>
+            <sb:first-page>138</sb:first-page>
+            <sb:last-page>157</sb:last-page>
+        </sb:pages>
+    </sb:host>
+    <sb:comment>Springer</sb:comment>
+</sb:reference>
+<ce:source-text id="srct0200">Karimipour, and Ghandehari (2013), Voronoi-based medial axis approximation from samples:
+    issues and solutions. Transactions on Computational Science XX. Springer, 138-157.
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib3">
+<ce:label>Cerri et al., 2017</ce:label>
+<sb:reference id="sref3">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>C.E.P.</ce:given-name>
+                <ce:surname>Cerri</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>X.</ce:given-name>
+                <ce:surname>You</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>M.R.</ce:given-name>
+                <ce:surname>Cherubin</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>C.S.</ce:given-name>
+                <ce:surname>Moreira</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>G.S.</ce:given-name>
+                <ce:surname>Raucci</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>B. de A.</ce:given-name>
+                <ce:surname>Castigioni</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>P.A.</ce:given-name>
+                <ce:surname>Alves</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>D.G.P.</ce:given-name>
+                <ce:surname>Cerri</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>F.F. de C.</ce:given-name>
+                <ce:surname>Mello</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>C.C.</ce:given-name>
+                <ce:surname>Cerri</ce:surname>
+            </sb:author>
+        </sb:authors>
+        <sb:title>
+            <sb:maintitle>Assessing the greenhouse gas emissions of Brazilian soybean biodiesel production
+            </sb:maintitle>
+        </sb:title>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>PloS One</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>12</sb:volume-nr>
+            </sb:series>
+            <sb:date>2017</sb:date>
+        </sb:issue>
+        <sb:article-number>e0176948</sb:article-number>
+        <ce:doi>10.1371/journal.pone.0176948</ce:doi>
+    </sb:host>
+</sb:reference>
+<ce:source-text id="srct0040">Cerri, C.E.P., You, X., Cherubin, M.R., Moreira, C.S., Raucci, G.S., Castigioni, B. de A.,
+    Alves, P.A., Cerri, D.G.P., Mello, F.F. de C., Cerri, C.C., 2017. Assessing the greenhouse gas emissions of
+    Brazilian soybean biodiesel production. PLOS ONE 12, e0176948. https://doi.org/10.1371/journal.pone.0176948
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib7">
+<ce:label>CARB, 2020</ce:label>
+<sb:reference id="sref7">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:surname>CARB</ce:surname>
+            </sb:author>
+        </sb:authors>
+        <sb:title>
+            <sb:maintitle>California map for local air district websites</sb:maintitle>
+        </sb:title>
+    </sb:contribution>
+    <sb:comment>Accessed</sb:comment>
+    <sb:host>
+        <sb:e-host>
+            <ce:inter-ref id="intref0025" xlink:href="https://ww3.arb.ca.gov/capcoa/dismap.htm" xlink:type="simple">
+                https://ww3.arb.ca.gov/capcoa/dismap.htm
+            </ce:inter-ref>
+            <sb:date>2020</sb:date>
+            <sb:date-accessed day="25" month="1" year="2020"/>
+        </sb:e-host>
+    </sb:host>
+</sb:reference>
+<ce:source-text id="srct0055">CARB (2020), California map for local air district websites. Accessed
+    https://ww3.arb.ca.gov/capcoa/dismap.htm (date accessed 25 Jan 2020).
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib1">
+<ce:label>Albert et al., 2017</ce:label>
+<sb:reference id="sref1">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>A.</ce:given-name>
+                <ce:surname>Albert</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>J.</ce:given-name>
+                <ce:surname>Kaur</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>M.C.</ce:given-name>
+                <ce:surname>Gonz&#225;lez</ce:surname>
+            </sb:author>
+        </sb:authors>
+        <sb:title>
+            <sb:maintitle>Using Convolutional Networks and Satellite Imagery to Identify Patterns in Urban Environments
+                at a Large Scale
+            </sb:maintitle>
+        </sb:title>
+    </sb:contribution>
+    <sb:host>
+        <sb:book>
+            <sb:date>2017</sb:date>
+        </sb:book>
+    </sb:host>
+    <sb:comment>arXiv:1704.02965</sb:comment>
+</sb:reference>
+<ce:source-text id="srct0030">Albert A., Kaur J., Gonzalez M.C., 2017. Using convolutional networks and satellite
+    imagery to identify patterns in urban environments at a large scale. arXiv:1704.02965.
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="b0155">
+<ce:label>[31]</ce:label>
+<sb:reference id="h0155">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>J.D.</ce:given-name>
+                <ce:surname>Baniecki</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>M.</ce:given-name>
+                <ce:surname>Ishii</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>K.</ce:given-name>
+                <ce:surname>Kurihara</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>K.</ce:given-name>
+                <ce:surname>Yamanaka</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>T.</ce:given-name>
+                <ce:surname>Yano</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>K.</ce:given-name>
+                <ce:surname>Shinozaki</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>T.</ce:given-name>
+                <ce:surname>Imada</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>K.</ce:given-name>
+                <ce:surname>Nozaki</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>N.</ce:given-name>
+                <ce:surname>Kin</ce:surname>
+            </sb:author>
+        </sb:authors>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>Phys. Rev. B: Condens. Matter Mater. Phys.</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>78</sb:volume-nr>
+            </sb:series>
+            <sb:date>2008</sb:date>
+        </sb:issue>
+    </sb:host>
+    <sb:comment>195415</sb:comment>
+</sb:reference>
+<ce:source-text id="stx150">J.D. Baniecki, M. Ishii, K. Kurihara, K. Yamanaka, T. Yano, K. Shinozaki, T. Imada, K.
+    Nozaki, N. Kin, Phys. Rev. B: Condens. Matter Mater. Phys. 78 (2008) 195415.
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="b0095">
+<ce:label>[19]</ce:label>
+<sb:reference id="h0095">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>K.</ce:given-name>
+                <ce:surname>Strasburger</ce:surname>
+            </sb:author>
+        </sb:authors>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>Phys. Rev. A</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>99</sb:volume-nr>
+            </sb:series>
+            <sb:date>2019</sb:date>
+        </sb:issue>
+    </sb:host>
+    <sb:comment>069901(E)</sb:comment>
+</sb:reference>
+<ce:source-text id="str105">K. Strasburger, Phys. Rev. A 99, 069901(E) (2019).</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="br0390">
+<ce:label>[39]</ce:label>
+<sb:reference id="bib576931s1">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>E.</ce:given-name>
+                <ce:surname>Witten</ce:surname>
+            </sb:author>
+        </sb:authors>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>J. Geom. Phys.</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>22</sb:volume-nr>
+            </sb:series>
+            <sb:date>1997</sb:date>
+        </sb:issue>
+        <sb:pages>
+            <sb:first-page>103</sb:first-page>
+        </sb:pages>
+    </sb:host>
+    <sb:host>
+        <sb:e-host>
+            <ce:inter-ref xlink:role="http://www.elsevier.com/xml/linking-roles/preprint"
+                          xlink:href="arxiv:hep-th/9610234" id="inf0300" xlink:type="simple">arXiv:hep-th/9610234
+            </ce:inter-ref>
+        </sb:e-host>
+    </sb:host>
+</sb:reference>
+</ce:bib-reference>
+<ce:bib-reference id="b0130">
+<ce:label>[26]</ce:label>
+<sb:reference id="h0130">
+    <sb:contribution langtype="en">
+        <sb:authors>
+            <sb:author>
+                <ce:given-name>R.B.</ce:given-name>
+                <ce:surname>Morgunov</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>M.</ce:given-name>
+                <ce:surname>Farle</ce:surname>
+            </sb:author>
+            <sb:author>
+                <ce:given-name>O.L.</ce:given-name>
+                <ce:surname>Kazakova</ce:surname>
+            </sb:author>
+        </sb:authors>
+    </sb:contribution>
+    <sb:host>
+        <sb:issue>
+            <sb:series>
+                <sb:title>
+                    <sb:maintitle>Zh. Eksp. Teor. Fiz.</sb:maintitle>
+                </sb:title>
+                <sb:volume-nr>134</sb:volume-nr>
+            </sb:series>
+            <sb:date>2008</sb:date>
+        </sb:issue>
+        <sb:pages>
+            <sb:first-page>141</sb:first-page>
+        </sb:pages>
+    </sb:host>
+    <sb:comment>[R.B. Morgunov, M. Farle, O.L. Kazakova, JETP 107 (2008) 113]</sb:comment>
+</sb:reference>
+<ce:source-text id="str135">R.B. Morgunov, M. Farle, O.L. Kazakova, Zh. Eksp. Teor. Fiz. 134 (2008) 141 [R.B. Morgunov,
+    M. Farle, O.L. Kazakova, JETP 107 (2008) 113].
+</ce:source-text>
+</ce:bib-reference>
+<ce:bib-reference id="bib009">
+<ce:other-ref>
+    <ce:textref>I. Kravchenko, et al., Updated limits on the ultra-high energy neutrino flux from the RICE experiment,
+        in: Proceedings of the 29th International Cosmic Ray Conference, Pune, 2005
+    </ce:textref>
+</ce:other-ref>
+<ce:other-ref>
+    <ce:textref>I. Kravchenko, et al., Using RICE data and GZK neutrino flux models to bound low scale gravity, in:
+        Proceedings of the 29th International Cosmic Ray Conference, Pune, 2005
+    </ce:textref>
+</ce:other-ref>
+<ce:other-ref>
+    <ce:textref>I. Kravchenko, et al., RICE limits on the diffuse ultra-high energy neutrino flux, in preparation
+    </ce:textref>
+</ce:other-ref>
+</ce:bib-reference>

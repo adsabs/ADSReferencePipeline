@@ -1,0 +1,134 @@
+<ADSBIBCODE>2020TEST..........R</ADSBIBCODE>
+<ref id="B1">
+<nlm-citation citation-type="web">
+    <collab>Facebook</collab>
+    <source>
+        <uri xlink:href="http://www.facebook.com/press/info.php?statistics">
+            http://www.facebook.com/press/info.php?statistics
+        </uri>
+    </source>
+    <year>2012</year>
+    <comment>February</comment>
+</nlm-citation>
+</ref>
+<ref id="B4">
+<nlm-citation citation-type="journal">
+    <person-group person-group-type="author">
+        <name>
+            <surname>Brin</surname>
+            <given-names>S</given-names>
+        </name>
+        <name>
+            <surname>Page</surname>
+            <given-names>L</given-names>
+        </name>
+    </person-group>
+    <article-title>The anatomy of a large-scale hypertextual web search engine</article-title>
+    <source>Comput Netw</source>
+    <year>1998</year>
+    <volume>30</volume>
+    <fpage>107</fpage>
+    <lpage>117</lpage>
+</nlm-citation>
+</ref>
+<ref id="B7">
+<nlm-citation citation-type="other">
+    <collab>U.S. Energy Information Administration</collab>
+    <source>Annual Energy Outlook 2011</source>
+    <year>2011</year>
+    <comment>(<ext-link ext-link-type="uri" xlink:href="www.eia.gov/forecasts/aeo/" xlink:show="new">
+        www.eia.gov/forecasts/aeo/</ext-link>)
+    </comment>
+</nlm-citation>
+</ref>
+<ref id="r11">
+<label>11</label>
+<mixed-citation publication-type="book" xlink:type="simple">
+    <person-group person-group-type="author">
+        <string-name name-style="western">
+            <given-names>J. M.</given-names>
+            <surname>Cervero</surname>
+        </string-name>
+    </person-group>
+    , <source>Exact Monopole Solution and Euclidean Yang–Mills Field</source> (<publisher-name>Harvard
+    University</publisher-name>, <year>1977</year>) <comment>preprint HUTP-77/A011</comment>;
+</mixed-citation>
+<mixed-citation publication-type="journal" xlink:type="simple">
+    <person-group person-group-type="author">
+        <string-name name-style="western">
+            <given-names>M. A.</given-names>
+            <surname>Lohe</surname>
+        </string-name>
+    </person-group>
+    ,
+    <source>Phys. Lett. B</source>
+    <volume>70</volume>, <fpage>325</fpage> (<year>1977</year>).
+    <pub-id pub-id-type="doi">10.1016/0370-2693(77)90669-4</pub-id>
+</mixed-citation>
+</ref>
+<ref id="B1i">
+<nlm-citation citation-type="book">
+    <person-group person-group-type="author">
+        <name>
+            <surname>Chaikin</surname>
+            <given-names>PM</given-names>
+        </name>
+        <name>
+            <surname>Lubensky</surname>
+            <given-names>TC</given-names>
+        </name>
+    </person-group>
+    <source>Principles of Condensed Matter Physics</source>
+    <year>2000</year>
+    <publisher-name>Cambridge Univ Press</publisher-name>
+</nlm-citation>
+</ref>
+<ref id="R5">
+<mixed-citation publication-type="other">
+    <string-name><surname>Knollmüller</surname>,
+        <given-names>J.</given-names>
+    </string-name>
+    , &amp;
+    <string-name><surname>Enßlin</surname>,
+        <given-names>T. A.</given-names>
+    </string-name>
+    <year>2019</year>, ArXiv preprint [<ext-link ext-link-type="uri" xlink:href="https://arxiv.org/abs/1901.11033">
+    arXiv:1901.11033</ext-link>]
+</mixed-citation>
+</ref>
+<ref id="R10">
+<label>10</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>J.</given-names>
+        <surname>Meija</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>T.B.</given-names>
+        <surname>Coplen</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Berglund</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>W.A.</given-names>
+        <surname>Brand</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>P.D.</given-names>
+        <surname>Bièvre</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Gröning</surname>
+    </string-name>
+    et al., <article-title>Atomic weights of the elements 2013</article-title>, <source>Pure Appl. Chem.</source>
+    <volume>88</volume>, <fpage>265</fpage> (<year>2016</year>)&amp;#13;
+</mixed-citation>
+</ref>
