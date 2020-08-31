@@ -1,0 +1,4 @@
+adsputils==v1.2.7
+alembic==0.9.1
+psycopg2==2.8.3
+requests==2.20.0
