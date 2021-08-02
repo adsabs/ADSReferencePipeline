@@ -120,19 +120,17 @@ class TestXMLParsers(unittest.TestCase):
     def test_handler(self):
         """ test handler method """
         handler = {
-            CrossReftoREFs: ['/proj/ads/references/sources/PLoSO/0007/10.1371_journal.pone.0048146.xref.xml'],
-            ELSEVIERtoREFs: ['/proj/ads/references/sources/AtmEn/0230/iss.elsevier.xml'],
-            JATStoREFs: ['/proj/ads/references/sources/NatSR/0009/iss36.jats.xml'],
-            IOPtoREFs: ['/proj/ads/references/sources/JPhCS/1085/iss4.iop.xml'],
-            SPRINGERtoREFs: ['/proj/ads/references/sources/JHEP/2019/iss06.springer.xml'],
-            APStoREFs: ['/proj/ads/references/sources/PhRvB/0081/2010PhRvB..81r4520P.ref.xml'],
-            NATUREtoREFs: ['/proj/ads/references/sources/Natur/0549/iss7672.nature.xml'],
-            AIPtoREFs: ['/proj/ads/references/sources/ApPhL/0116/iss22.jats.xml',
-                        '/proj/ads/references/sources/RScI/0091/2020RScI...91e3301A.aipft.xml',
-                        '/proj/ads/references/sources/JMP/0061/10.1063_5.0003252.xref.xml'],
-            WILEYtoREFs: ['/proj/ads/references/sources/JGR/0101/issD14.wiley2.xml'],
-            NLMtoREFs: ['/proj/ads/references/sources/PNAS/0109/iss17.nlm3.xml'],
-            AGUtoREFs: ['/proj/ads/references/sources/JGR/0101/issD14.agu.xml']
+            CrossReftoREFs: ['/PLoSO/0007/10.1371_journal.pone.0048146.xref.xml'],
+            ELSEVIERtoREFs: ['/AtmEn/0230/iss.elsevier.xml'],
+            JATStoREFs: ['/NatSR/0009/iss36.jats.xml'],
+            IOPtoREFs: ['/JPhCS/1085/iss4.iop.xml'],
+            SPRINGERtoREFs: ['/JHEP/2019/iss06.springer.xml'],
+            APStoREFs: ['/PhRvB/0081/2010PhRvB..81r4520P.ref.xml'],
+            NATUREtoREFs: ['/Natur/0549/iss7672.nature.xml'],
+            AIPtoREFs: ['/ApPhL/0102/iss7.aip.xml'],
+            WILEYtoREFs: ['/JGR/0101/issD14.wiley2.xml'],
+            NLMtoREFs: ['/PNAS/0109/iss17.nlm3.xml'],
+            AGUtoREFs: ['/JGR/0101/issD14.agu.xml']
         }
         for parser,filenames in handler.items():
             for filename in filenames:
@@ -140,8 +138,8 @@ class TestXMLParsers(unittest.TestCase):
                 self.assertEqual(parser, verify(filename))
 
         # no send couple of errors
-        self.assertEqual(verify('JGR/0101/issD14.agu.xml'), None)
-        self.assertEqual(verify('/proj/ads/references/sources/arXiv/2004/15000.raw'), None)
+        self.assertEqual(verify('/RScI/0091/2020RScI...91e3301A.aipft.xml'), None)
+        self.assertEqual(verify('/arXiv/2004/15000.raw'), None)
 
 
 if __name__ == '__main__':

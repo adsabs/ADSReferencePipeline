@@ -320,17 +320,13 @@ def roman2int(roman_value):
     return result
 
 
-arxiv_category = ['acc-phys', 'adap-org', 'alg-geom', 'ao-sci', 'astro-ph', 'atom-ph', 'bayes-an', 'chao-dyn',
-                  'chem-ph',
-                  'cmp-lg', 'comp-gas', 'cond-match_start', 'cs', 'dg-ga', 'funct-an', 'gr-qc', 'hep-ex', 'hep-lat',
-                  'hep-ph',
-                  'hep-th', 'math', 'math-ph', 'mtrl-th', 'nlin', 'nucl-ex', 'nucl-th', 'patt-sol', 'physics',
-                  'plasm-ph',
+arxiv_category = ['acc-phys', 'adap-org', 'alg-geom', 'ao-sci', 'astro-ph', 'atom-ph', 'bayes-an', 'chao-dyn','chem-ph',
+                  'cmp-lg', 'comp-gas', 'cond-mat', 'cs', 'dg-ga', 'funct-an', 'gr-qc', 'hep-ex', 'hep-lat', 'hep-ph',
+                  'hep-th', 'math', 'math-ph', 'mtrl-th', 'nlin', 'nucl-ex', 'nucl-th', 'patt-sol', 'physics', 'plasm-ph',
                   'q-alg', 'q-bio', 'quant-ph', 'solv-int', 'supr-con']
-re_arxiv_old_pattern = re.compile(r'\b(?:arXiv\W*)?(' + "|".join(arxiv_category) + r')(\.[A-Z]{2})?/(\d{7})(:?v\d+)?\b',
-                                  re.IGNORECASE)
+re_arxiv_old_pattern = re.compile(r'\b(?:arXiv\W*)?(' + "|".join(arxiv_category) + r')(\.[A-Z]{2})?/(\d{7})(:?v\d+)?\b', re.IGNORECASE)
 re_arxiv_new_pattern = re.compile(r'\b(?:(?:arXiv\s*\W?\s*)|(?:(?:' + "|".join(
-    arxiv_category) + r')\s*[:/]?\s*)|(?:http://.*?/abs/))(\d{4})\.(\d{4,5})(?:v\d+)?\b', re.IGNORECASE)
+    arxiv_category) + r')\s*[:/]?\s*)|(?:http://.*?/abs/)|(?:))(\d{4})\.(\d{4,5})(?:v\d+)?\b', re.IGNORECASE)
 
 
 def match_arxiv_id(ref_str):
@@ -347,12 +343,13 @@ def match_arxiv_id(ref_str):
         return match_start.group(1) + '.' + match_start.group(2)
 
 
-re_doi = re.compile(r'\bdoi:\s*(10\.\d{4,9}/\S+\w)', re.IGNORECASE)
-re_doi_xml = re.compile(r'<doi>(10\.\d{4,9}/\S+)</doi>', re.IGNORECASE)
-re_doi_url = re.compile(r'//(?:dx\.)doi\.org/(10\.\d{4,9}/\S+\w)', re.IGNORECASE)
+re_doi = re.compile(r'\bdoi:\s*(10\.[\d\.]{2,9}/\S+\w)', re.IGNORECASE)
+re_doi_xml = re.compile(r'<doi>(10\.[\d\.]{2,9}/\S+)</doi>', re.IGNORECASE)
+re_doi_url = re.compile(r'//(?:dx\.)?doi\.org/(10\.[\d\.]{2,9}/[^<\s\."]*)', re.IGNORECASE)
+
 # this is so we can catch cases such as the following:
 #    Pinter, T. et al (2013), PIMO, La Palma, Spain, 213-217, 10.5281/zenodo.53085
-re_doi_prm = re.compile(r'\b(10.\d{4,9}/\S+\w)', re.IGNORECASE)
+re_doi_prm = re.compile(r'\b(10.[\d\.]{2,9}/\S+\w)', re.IGNORECASE)
 
 
 def match_doi(ref_str):
@@ -382,15 +379,20 @@ def match_int(ref_str):
             return match.group(1)
     return ''
 
-re_year = re.compile(r'\((\d{4})\)')
+re_year = re.compile(r'\b[12][09]\d\d\b')
+re_year_parentheses = re.compile(r'\(.*([12][09]\d\d).*\)')
 
 def match_year(refstr):
     """
-    extracts a 4-digit year in parenthesis from an input string
-    """
-    match = re_year.search(refstr)
-    if not match:
-        return None
+    extracts a 4-digit year in an input string, if there is only one
+    if there arre more than one 4-digit year, see if one is in parentheses
 
-    year = match.group(1)
-    return year
+    """
+    match = list(set(re_year.findall(refstr)))
+    if len(match) == 1:
+        return match[0]
+    elif len(match) > 1:
+        match = re_year_parentheses.search(refstr)
+        if match:
+            return match.group(1)
+    return None

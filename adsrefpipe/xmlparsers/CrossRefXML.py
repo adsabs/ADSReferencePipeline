@@ -9,7 +9,7 @@ config.update(load_config())
 
 from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.xmlparsers.common import get_references, get_xml_block, format_authors, extract_tag, match_int, \
-    match_arxiv_id
+    match_doi, match_arxiv_id, match_year
 
 
 class CrossRefreference(XMLreference):
@@ -33,32 +33,71 @@ class CrossRefreference(XMLreference):
         """
         self.parsed = 0
 
-        self['year'] = match_int(self.xmlnode_nodecontents('cYear'))
-        self['volume'] = match_int(self.xmlnode_nodecontents('volume'))
-        self['issue'] = self.xmlnode_nodecontents('issue')
-        self['pages'] = self.xmlnode_nodecontents('first_page')
+        authors = self.parse_authors()
+        year = match_int(self.xmlnode_nodecontents('cYear'))
+        if not year:
+            year = match_year(str(self.reference_str))
+
+        volume = match_int(self.xmlnode_nodecontents('volume'))
+        issue = self.xmlnode_nodecontents('issue')
+        issn = self.xmlnode_nodecontents('issn')
+
+        page = self.xmlnode_nodecontents('first_page')
         try:
-            if self['pages'][-1] in map(chr, range(65, 91)):
-                self['pages'] = "%s%s" % (self['pages'][-1], self['pages'][:-1])
+            if page[-1] in map(chr, range(65, 91)):
+                page = "%s%s" % (page[-1], page[:-1])
         except:
             pass
-        self['page'], self['qualifier'] = self.parse_pages(self['pages'].replace(',', ''))
+
+        self['authors'] = authors
+        self['year'] = year
+
+        self['volume'] = volume
+
+        # not using these two, but keep them for possible future use
+        self['issue'] = issue
+        self['issn'] = issn
+
+        self['page'], self['qualifier'] = self.parse_pages(page.replace(',', ''))
         self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
 
-        journal = self.get_journal()
+        journal = self.parse_journal()
         if journal:
             self['jrlstr'] = journal
             if journal == 'Journal of Cosmology and Astroparticle Physics':
                 self['issue'] = "0" * (2 - len(self['issue'])) + self['issue']
                 self['jrlstr'] += " JCAP%s(%s)%s" % (self['issue'], self['year'], self['pages'])
                 self['jrlstr'] = journal
-        title = self.get_title()
+        title = self.parse_title()
         if title:
             self['ttlstr'] = title
 
-        self['issn'] = self.xmlnode_nodecontents('issn')
-        self['doi'] = self.xmlnode_nodecontents('doi')
+        doi = self.xmlnode_nodecontents('doi')
+        if not doi:
+            doi = match_doi(str(self.reference_str))
+        eprint = match_arxiv_id(str(self.reference_str))
 
+        if doi:
+            self['doi'] = doi
+        if eprint:
+            self['eprint'] = eprint
+
+        self['refstr'] = self.get_reference_str()
+
+        self['refplaintext'] = self.xmlnode_nodecontents('unstructured_citation').strip()
+        for one_set in self.re_unstructured:
+            self['refplaintext'] = one_set[0].sub(one_set[1], self['refplaintext'])
+
+        if not self['refstr'] and not self['refplaintext']:
+            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('citation')))
+
+        self.parsed = 1
+
+    def parse_authors(self):
+        """
+
+        :return:
+        """
         authors = self.xmlnode_nodescontents('author')
         new_authors = []
         for author in authors:
@@ -78,43 +117,10 @@ class CrossRefreference(XMLreference):
             else:
                 new_authors.append(self.re_author[0].sub(self.re_author[1], author))
         if len(new_authors) > 0:
-            self['authors'] = ', '.join(map(format_authors, authors))
-        else:
-            self['authors'] = ''
+            return ', '.join(map(format_authors, authors))
+        return ''
 
-        self['unstructured'] = self.xmlnode_nodecontents('unstructured_citation').strip()
-        for one_set in self.re_unstructured:
-            self['unstructured'] = one_set[0].sub(one_set[1], self['unstructured'])
-
-        if len(self['unstructured']) > 0:
-            self['refplaintext'] = self['refstr'] = self['unstructured']
-        else:
-            try:
-                # try to come up with a decent plainstring if all
-                # the default fields were parsed ok
-                self['refstr'] = ', '.join([self['authors'], self['year'], self['jrlstr'], self['volume'], self['pages']])
-            except KeyError:
-                self['doi'] = self['doi'].strip()
-                if len(self['doi']) > 0:
-                    self['refstr'] = 'doi:' + self['doi']
-                else:
-                    self['refstr'] = self.get_reference_str()
-
-        eprint = match_arxiv_id(str(self.reference_str))
-        if eprint:
-            self['eprint'] = eprint
-
-        self.parsed = 1
-
-    def get_reference_str(self):
-        """
-        # plaintext reference, as given in the XML reference
-
-        :return: 
-        """
-        return self.strip_tags(str(self.reference_str), change=' ')
-
-    def get_journal(self):
+    def parse_journal(self):
         """
         both journal_title and series_title tags are assigned to journal variable
 
@@ -132,7 +138,7 @@ class CrossRefreference(XMLreference):
             return journal
         return None
 
-    def get_title(self):
+    def parse_title(self):
         """
         both article_title and volume_title tags are assigned to title variable
 
@@ -162,7 +168,11 @@ def CrossReftoREFs(filename=None, buffer=None, unicode=None):
     for pair in pairs:
         bibcode = pair[0]
         buffer = pair[1]
+
+        references_bibcode = {'bibcode':bibcode, 'references':[]}
+
         block_references = get_xml_block(buffer, 'citation')
+
         for reference in block_references:
             if re_skip.search(re_linefeed.sub('', reference)):
                 continue
@@ -171,17 +181,17 @@ def CrossReftoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("CrossRefxml: parsing %s" % reference)
             try:
                 crossref_reference = CrossRefreference(reference)
-                references.append(crossref_reference.get_parsed_reference())
+                references_bibcode['references'].append(crossref_reference.get_parsed_reference())
             except ReferenceError as error_desc:
                 logger.error("CrossRefxml: error parsing reference: %s" %error_desc)
-                continue
 
-            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+        references.append(references_bibcode)
+        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
     return references
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse CrossRef references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
@@ -194,4 +204,4 @@ if __name__ == '__main__':
     if not args.filename and not args.buffer:
         print(CrossReftoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.ref.xml')))
     sys.exit(0)
-    # /proj/ads/references/sources/PLoSO/0007/10.1371_journal.pone.0048146.xref.xml
+    # /PLoSO/0007/10.1371_journal.pone.0048146.xref.xml

@@ -9,8 +9,7 @@ config = {}
 config.update(load_config())
 
 from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_int
-
+from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_int, match_doi
 
 class AGUreference(XMLreference):
 
@@ -19,6 +18,7 @@ class AGUreference(XMLreference):
         (re.compile(r'__amp__lt;'), '<'),
         (re.compile(r'__amp__gt;'), '>'),
     ]
+    re_xml_to_text = re.compile(r'<([A-Za-z_]*)\b[^>]*>(.*?)</\1>')
 
     def parse(self, prevref=None):
         """
@@ -59,23 +59,35 @@ class AGUreference(XMLreference):
             doi = one_set[0].sub(one_set[1], doi)
         if len(doi) > 0:
             self['doi'] = doi
+        else:
+            # attempt to extract it from refstr
+            doi = match_doi(self.reference_str.toxml())
+            if doi:
+                self['doi'] = doi
 
-        authors = self.xmlnode_nodescontents('first_author')
         self['authors'] = self.xmlnode_nodecontents('first_author')
 
-        # 8/25/2020 searched all source files and was not able to find a
-        # reference file with this tag put keeping it anyway
-        if self.xmlnode_nodecontents('unstructured_citation'):
-            self['refstr'] = self.xmlnode_nodecontents('unstructured_citation')
-        else:
-            # try to come up with a decent plain string if all
-            # the default fields were parsed ok
-            self['refstr'] = ' '.join([self['authors'], self['year'],
-                                       self['jrlstr'], self['volume'], self['pages']]).strip()
-            if len(self['refstr']) == 0 and self.get('doi', None):
-                self['refstr'] = self['doi']
+        self['refstr'] = self.get_reference_str()
+        if not self['refstr']:
+            self['refplaintext'] = self.parse_refplaintext()
 
         self.parsed = 1
+
+    def parse_refplaintext(self):
+        """
+
+        :return:
+        """
+        # 8/25/2020 searched all source files and was not able to find a
+        # reference file with this tag put keeping it anyway
+        refplaintext = self.xmlnode_nodecontents('unstructured_citation')
+        if refplaintext:
+            return refplaintext
+        nodes = self.re_xml_to_text.findall(self.xmlnode_nodecontents('citation', keepxml=1))
+        refplaintext = [node[1] for node in nodes if node[1].lower() != 'null']
+        if len(refplaintext) > 0:
+            return ', '.join(refplaintext)
+        return ''
 
 
 def AGUtoREFs(filename=None, buffer=None, unicode=None):
@@ -91,24 +103,27 @@ def AGUtoREFs(filename=None, buffer=None, unicode=None):
 
     for pair in pairs:
         bibcode = pair[0]
-        the_rest = pair[1]
-        block_references = get_xml_block(the_rest, 'citation')
+        buffer = pair[1]
+
+        references_bibcode = {'bibcode':bibcode, 'references':[]}
+
+        block_references = get_xml_block(buffer, 'citation')
 
         for reference in block_references:
             logger.debug("AGUxml: parsing %s" % reference)
             try:
                 agu_reference = AGUreference(reference)
-                references.append(agu_reference.get_parsed_reference())
+                references_bibcode['references'].append(agu_reference.get_parsed_reference())
             except ReferenceError as error_desc:
                 logger.error("AGUxml: error parsing reference: %s" %error_desc)
-                continue
 
+        references.append(references_bibcode)
         logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
     return references
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AGU references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')

@@ -3,7 +3,7 @@ import re
 import argparse
 
 from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_year
+from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_year, match_doi, match_arxiv_id
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('reference-xml')
@@ -15,6 +15,8 @@ class NATUREreference(XMLreference):
 
     re_etal = re.compile(r"([Ee][Tt][.\s]*[Aa][Ll][.\s]+)")
     re_volume_page = re.compile(r"(?P<volume>[A-Z]?\d+)[\s,]+((?P<fpage>[BHPL]?\d+)[-]*(?P<lpage>[BHPL]?\d*))")
+    re_volume = re.compile(r"[Vv]+ol[ume.]*(?P<volume>\d+)")
+    re_collabrations = re.compile(r"<reftxt>(?P<COLLAB>.*(Collaboration|Consortium|Group|Team).*)<atl>", re.IGNORECASE)
 
     def parse(self, prevref=None):
         """
@@ -27,7 +29,14 @@ class NATUREreference(XMLreference):
         theref = self.reference_str.toxml()
 
         authors = self.parse_authors(theref)
+        # see if there are collaborations
+        if not authors:
+            match = self.re_collabrations.search(theref)
+            if match:
+                authors = match.group('COLLAB').strip().rstrip('.')
         theref, title = extract_tag(theref, 'atl', foldcase=1)
+        if not title:
+            theref, title = extract_tag(theref, 'btl', foldcase=1)
         theref, journal = extract_tag(theref, 'jtl', foldcase=1)
         theref, year = extract_tag(theref, 'cd', foldcase=1, attr=1)
         # see if year is in plaintext
@@ -35,7 +44,7 @@ class NATUREreference(XMLreference):
             year = match_year(theref)
         volume, page = self.parse_volume_and_page(theref)
 
-        self.refstr = self.dexml(theref)
+        theref, doi = extract_tag(theref, 'refdoi', foldcase=1)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
@@ -47,8 +56,20 @@ class NATUREreference(XMLreference):
         self['page'], self['qualifier'] = self.parse_pages(page)
         self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
 
-        self['refstr'] = self.refstr
-        self['refplaintext'] = self.refstr
+        if not doi:
+            # attempt to extract doi from reference text
+            doi = match_doi(theref)
+            if doi:
+                self['doi'] = doi
+        # attempt to extract arxiv id from reference text
+        eprint = match_arxiv_id(theref)
+        if eprint:
+            self['eprint'] = eprint
+
+        self['refstr'] = self.get_reference_str()
+        self['refplaintext'] = self.dexml(theref)
+        if not self['refstr']:
+            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('reftxt')))
 
         self.parsed = 1
 
@@ -86,8 +107,11 @@ class NATUREreference(XMLreference):
         """
         match = self.re_volume_page.search(theref)
         if not match:
-            return None, None
-
+            match = self.re_volume.search(theref)
+            if not match:
+                return None, None
+            volume = match.group("volume")
+            return volume, None
         volume = match.group("volume")
         page = match.group("fpage")
         return volume, page
@@ -107,6 +131,9 @@ def NATUREtoREFs(filename=None, buffer=None, unicode=None):
     for pair in pairs:
         bibcode = pair[0]
         buffer = pair[1]
+
+        references_bibcode = {'bibcode':bibcode, 'references':[]}
+
         block_references = get_xml_block(buffer, '(reftxt|REFTXT)')
 
         for reference in block_references:
@@ -117,17 +144,18 @@ def NATUREtoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("NatureXML: parsing %s" % reference)
             try:
                 nature_reference = NATUREreference(reference)
-                references.append(nature_reference.get_parsed_reference())
+                references_bibcode['references'].append(nature_reference.get_parsed_reference())
             except ReferenceError as error_desc:
                 logger.error("NatureXML: error parsing reference: %s" %error_desc)
-                continue
 
+        references.append(references_bibcode)
         logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
     return references
 
 
-if __name__ == '__main__':
+re_xml_tags = re.compile(r"<([^\/>]+)[/]*>")
+if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Nature references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')

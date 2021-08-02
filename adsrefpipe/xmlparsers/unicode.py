@@ -8,6 +8,12 @@ try:
     from UserDict import UserDict
 except ImportError:
     from collections import UserDict
+import unicodedata
+
+from adsputils import setup_logging, load_config
+logger = setup_logging('reference-xml')
+config = {}
+config.update(load_config())
 
 RE_HEX = re.compile('^[0-9a-fA-F]+$')
 
@@ -120,6 +126,10 @@ class UnicodeHandler(UserDict):
 
     re_ampersand = re.compile(r'__amp__')
 
+    re_rsquo = re.compile(r'&rsquor?;')
+    re_backslash = re.compile(r'\\')
+    re_lower_upper_ls = re.compile(r'([Ll])/')
+
     def __init__(self, data_filename=None):
         """
         
@@ -211,7 +221,10 @@ class UnicodeHandler(UserDict):
             elif entno < 255:
                 return self.u2asc(chr(entno))
         except IndexError:
-            raise UnicodeHandlerError('Unknown numeric entity: %s' % match.group(0))
+            try:
+                return unicodedata.normalize('NFKD', chr(entno))
+            except OverflowError:
+                raise UnicodeHandlerError('Unknown numeric entity: %s' % match.group(0))
 
     def __sub_hexnumasc_entity(self, match):
         """
@@ -255,7 +268,8 @@ class UnicodeHandler(UserDict):
             ret = self[ent].ascii
             return ret
         else:
-            raise UnicodeHandlerError('Unknown named entity: %s' % match.group(0))
+            logger.error(UnicodeHandlerError('Unknown named entity: %s, replacing by WHITE SQUARE' % match.group(0)))
+            return self.unicode[9633].ascii
 
     def __toascii(self, char):
         """
@@ -271,7 +285,8 @@ class UnicodeHandler(UserDict):
         if self.unicode[ascii_value]:
             return self.unicode[ascii_value].ascii
         else:
-            raise UnicodeHandlerError('Unknown character code: %d' % ascii_value)
+            logger.error(UnicodeHandlerError('Unknown character code: %d, replacing by WHITE SQUARE' % ascii_value))
+            return self.unicode[9633].ascii
 
     def __toentity(self, char):
         """
@@ -291,6 +306,69 @@ class UnicodeHandler(UserDict):
         else:
             # Return a numeric entity.
             return '&#%d;' % ascii_value
+
+    def cleanall(self, str, cleanslash=0):
+        """
+        Deals with things like:
+            1./ accents with a slashes and converts them to entities.
+            Example: \', \`,\^
+
+            2./ Some 'missed' incomplete entities or &#x00b4; ( floating apostroph )
+            and the like.
+            Example: Milos&caron;evic -->  Milo&scaron;evic
+                    Marti&#00b4;nez  -->  Mart&iacute;nez
+
+            3./ Get rid of remaining numeric entities.
+            Converts them from an aproximation table or set to unknown.
+
+            4./ If option 'cleanslash' is set takes 'dangerous' radical action with
+            slashes. Gets rid of all of them. Also converts 'l/a' to '&lstrok;a'. Maybe cases
+            in which this is substituting too much?
+
+        :param str:
+        :param cleanslash:
+        :return:
+        """
+        retstr = self.re_accent.sub(self.__sub_accent,str)
+        retstr = self.re_missent.sub(self.__sub_missent,retstr)
+        retstr = self.re_morenum.sub(self.__sub_morenum,retstr)
+        # 11/5/02 AA - add translation of &rsquo; and &rsquor; into
+        #              single quote character
+        retstr = self.re_rsquo.sub("'",retstr)
+        if cleanslash:
+            retstr = self.re_backslash.sub('',retstr)
+            retstr = self.re_lower_upper_ls.sub('&\g<1>strok;',retstr)
+        return retstr
+
+    def __sub_accent(self, match):
+        """
+
+        :param match:
+        :return:
+        """
+        return "&%s%s;" % (match.group(1), self.accents[match.group(2)])
+
+    def __sub_missent(self, match):
+        """
+
+        :param match:
+        :return:
+        """
+        ent = "%s%s" % (match.group(1), self.missent[match.group(2)])
+        if ent in self.keys():
+            return "&%s;" % ent
+        else:
+            return "%s&%s;" % (match.group(1), self.missent[match.group(2)])
+
+    def __sub_morenum(self, match):
+        """
+
+        :param match:
+        :return:
+        """
+        return "&%s;" % (self.morenum[match.group(1)])
+
+
 
 class UnicodeChar:
     def __init__(self, fields):

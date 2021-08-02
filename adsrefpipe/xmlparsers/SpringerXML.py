@@ -3,7 +3,7 @@ import re
 import argparse
 
 from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, match_arxiv_id
+from adsrefpipe.xmlparsers.common import get_references, get_xml_block, match_doi, match_arxiv_id, match_year
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('reference-xml')
@@ -23,9 +23,14 @@ config.update(load_config())
 class SPRINGERreference(XMLreference):
 
     re_cleanup_unstructured = re.compile(r'\s*,?\s*and\s*')
-    re_unstructured = re.compile(r'(?P<authors>([A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2},\s+){1,})(?P<title>[^,]{20,}),(?P<journal>.*?),\s*(?P<year>\d{4})\b')
-    re_journal_astron_lett = re.compile(r'Astr(on)?\.?\s*Lett')
+    rec_field_unstructured = re.compile(r'(?P<authors>([A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2},\s+){1,})(?P<title>[^,]{20,}),(?P<journal>.*?),\s*(?P<year>\d{4})\b')
     re_external_ref = re.compile(r'<ExternalRef>.*?</ExternalRef>')
+    re_unstructured = [
+        re.compile(r'([^\[]*)'),
+        re.compile(r'\b(arXiv[:\s]*[\w\.]+)\b'),
+    ]
+    re_unstructured_url = re.compile(r'http\S+')
+    re_unstructured_num = re.compile(r'^(\s*\[[^\]].*\]\s*)(.*)$')
 
     def parse(self, prevref=None):
         """
@@ -36,54 +41,69 @@ class SPRINGERreference(XMLreference):
 
         self.parsed = 0
 
-        title = journal = ''
         authors = self.parse_authors()
         year = self.xmlnode_nodecontents('Year').strip()
+        if not year:
+            year = match_year(str(self.reference_str))
         volume = self.xmlnode_nodecontents('VolumeID').strip()
         pages = self.xmlnode_nodecontents('FirstPage').strip()
-        doi = self.parse_doi()
-        comments = self.xmlnode_nodecontents('BibComments')
-        refsrc = self.xmlnode_nodecontents('RefSource')
-        eprint = match_arxiv_id(refsrc)
 
-        refstr = self.xmlnode_textcontents('BibUnstructured')
-        refstr = self.re_external_ref.sub('',refstr)
         if self.reference_str.getElementsByTagName('BibArticle'):
             # parse article
             title = self.xmlnode_nodecontents('ArticleTitle')
             journal = self.xmlnode_nodecontents('JournalTitle')
+            doi = self.xmlnode_nodecontents('BibArticleDOI')
         elif self.reference_str.getElementsByTagName('BibChapter'):
             # parse chapter
             title = self.xmlnode_nodecontents('ChapterTitle')
-            journal = self.xmlnode_nodecontents('BookTitle')
+            if not title:
+                # if no chapter title, assign booktitle to title
+                title = self.xmlnode_nodecontents('BookTitle')
+                journal = self.xmlnode_nodecontents('SeriesTitle')
+            else:
+                journal = self.xmlnode_nodecontents('BookTitle')
+            doi = self.xmlnode_nodecontents('BibChapterDOI')
+            if not volume:
+                volume = self.xmlnode_nodecontents('NumberInSeries').strip()
         elif self.reference_str.getElementsByTagName('BibBook'):
             # parse book
-            journal = self.xmlnode_nodecontents('BookTitle')
+            title = self.xmlnode_nodecontents('BookTitle')
+            journal = None
+            doi = self.xmlnode_nodecontents('BibBookDOI')
+        elif self.reference_str.getElementsByTagName('BibIssue'):
+            journal = self.xmlnode_nodecontents('JournalTitle')
+            title = ''
+            doi = ''
         else:
-            title,year = self.parse_title_and_year(refstr)
+            journal = ''
+            title = ''
+            doi = ''
+
+        refstr = self.xmlnode_nodecontents('Citation')
+        if not doi:
+            doi = self.parse_doi(refstr)
+        eprint = self.parse_arXiv(refstr)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
-        self['year']    = year
+        self['year'] = year
         if journal:
-            self['jrlstr']  = journal.strip()
+            self['jrlstr'] = journal.strip()
         if title:
             self['ttlstr'] = title.strip()
-        self['volume']  = self.parse_volume(volume)
+        self['volume'] = self.parse_volume(volume)
         self['page'],self['qualifier'] = self.parse_pages(pages)
         self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
+
         if doi:
            self['doi'] = doi
         if eprint:
            self['eprint'] = eprint
 
-        # set plaintext representation of string
-        if comments and not self.re_journal_astron_lett.search(comments):
-            refstr = refstr.replace(comments, '')
-        refstr = refstr.replace('[]', '')
-        self.refstr = refstr
-
         self['refstr'] = self.get_reference_str()
+        self['refplaintext'] = self.parse_unstructured_field(self.xmlnode_nodecontents('BibUnstructured').strip())
+        if not self['refstr'] and not self['refplaintext']:
+            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -95,7 +115,14 @@ class SPRINGERreference(XMLreference):
         """
         elements = self.reference_str.getElementsByTagName('BibAuthorName')
         if not elements or len(elements) == 0:
-            return ''
+            # no author mentioned, see if it is collaboration
+            collabration = self.xmlnode_nodecontents('InstitutionalAuthorName').strip()
+            if collabration:
+                return collabration
+            # still no authors, see if there is editors
+            elements = self.reference_str.getElementsByTagName('BibEditorName')
+            if not elements or len(elements) == 0:
+                return ''
         authors = []
         for element in elements:
             try:
@@ -111,13 +138,12 @@ class SPRINGERreference(XMLreference):
             authors.append(name)
         return ', '.join(authors)
 
-            
-    def parse_doi(self):
+    def parse_doi(self, refstr):
         """
 
+        :param refstr:
         :return:
         """
-        elements = self.reference_str.getElementsByTagName('Occurrence')
         targets =  self.reference_str.getElementsByTagName('RefTarget')
         doi = None
         for t in targets:
@@ -125,21 +151,37 @@ class SPRINGERreference(XMLreference):
             if addr.startswith('https://doi.org/'):
                 doi = addr.replace('https://doi.org/','').strip()
                 break
-
+            elif addr.startswith('10.'):
+                doi = addr
+                break
         if doi:
             return doi
 
-        if not elements or len(elements) == 0:
-            return None
-        doi = None
-        
-        for element in elements:
-            if element and element.getAttribute('Type') and element.getAttribute('Type') == 'DOI':
-                try: 
-                    doi = element.getElementsByTagName('Handle')[0].childNodes[0].data
-                except:
-                    doi = None
-        return doi            
+        elements = self.reference_str.getElementsByTagName('Occurrence')
+        if elements and len(elements) > 0:
+            for element in elements:
+                if element and element.getAttribute('Type') and element.getAttribute('Type') == 'DOI':
+                    try:
+                        doi = element.getElementsByTagName('Handle')[0].childNodes[0].data
+                    except:
+                        doi = None
+        if doi:
+            return doi
+
+        return match_doi(refstr)
+
+    def parse_arXiv(self, refstr):
+        """
+
+        :return:
+        """
+        refsrc = self.xmlnode_nodescontents('RefSource')
+        for entry in refsrc:
+            eprint = match_arxiv_id(entry)
+            if eprint:
+                return eprint
+
+        return match_arxiv_id(refstr)
 
     def parse_title_and_year(self, refstr):
         """
@@ -148,21 +190,36 @@ class SPRINGERreference(XMLreference):
         """
 
         refstr = self.re_cleanup_unstructured.sub(', ', refstr, 1)
-        match = self.re_unstructured.match(refstr)
+        match = self.rec_field_unstructured.match(refstr)
         if match:
             year = match.group('year')
             title = match.group('title')
             return title,year
         return None,None
 
-    def get_reference_str(self):
+    def parse_unstructured_field(self, unstructured):
         """
 
+        :param unstructured:
         :return:
         """
-        return self.refstr
+        if unstructured:
+            # remove any numbering parts at the beginning of unstructured string if any
+            unstructured = self.re_unstructured_num.sub(r'\2', unstructured)
+            # remove any url from unstructured string if any
+            unstructured = self.re_unstructured_url.sub('', unstructured).strip()
+            if len(unstructured) > 0:
+                refplaintext = ''
+                for one_set in self.re_unstructured:
+                    matches = one_set.findall(unstructured)
+                    if len(matches) > 0 and len(matches[0]) > 0:
+                        refplaintext += matches[0]
+                refplaintext = refplaintext.strip()
+                if len(refplaintext) > 0:
+                    return refplaintext
+        return None
 
-    
+
 re_doi = re.compile(r'<Occurrence\ Type="DOI"><Handle>(?P<doi>.*?)</Handle></Occurrence>')
 
 def SPRINGERtoREFs(filename=None, buffer=None, unicode=None):
@@ -179,6 +236,9 @@ def SPRINGERtoREFs(filename=None, buffer=None, unicode=None):
     for pair in pairs:
         bibcode = pair[0]
         buffer = pair[1]
+
+        references_bibcode = {'bibcode':bibcode, 'references':[]}
+
         block_references = get_xml_block(buffer, 'Citation')
 
         for reference in block_references:
@@ -197,17 +257,17 @@ def SPRINGERtoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("SpringerXML: parsing %s" % reference)
             try:
                 springer_reference = SPRINGERreference(reference)
-                references.append(springer_reference.get_parsed_reference())
+                references_bibcode['references'].append(springer_reference.get_parsed_reference())
             except ReferenceError as error_desc:
                 logger.error("SPRINGERxml: error parsing reference: %s" %error_desc)
-                continue
 
+        references.append(references_bibcode)
         logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
     return references
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Springer references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')

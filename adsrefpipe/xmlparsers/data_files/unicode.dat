@@ -6,6 +6,7 @@
 "37"	"percent"	"%"	"\%"
 "37"	"percnt"	"%"	"\%"	P
 "38"	"amp"	"&"	"\&"	P
+"38"	"amp"	"amp"	"\&"	P
 "39"	"apos"	"'"	"'"	P
 "40"	"lpar"	"("	"("	P
 "40"	"parl0"	"("	"("
@@ -40,6 +41,7 @@
 "124"	"vert"	"|"	"|"
 "125"	"cubr0"	"}"	"\}"
 "125"	"rcub"	"}"	"\}"	P
+"126"   "tilde" " " "~" P
 "160"	"nbsp"	" "	"~"	S
 "161"	"iexcl"	"!"	"!`"	P
 "162"	"cent"	"c"	"\rlap/c"	P
@@ -553,6 +555,7 @@
 "8217"	"rsquor"	"'"	"'"
 "8217"	"rsquo"	"'"	"'"	P
 "8220"	"ldquo"	"``"	"``"	P
+"8221"	"rdquor"	"''"	"''"	P
 "8221"	"rdquo"	"''"	"''"	P
 "8224"	"dagger"	"&dagger;"	"$\dagger$"	P
 "8225"	"Dagger"	"&Dagger;"	"$\ddagger$"	P
@@ -825,6 +828,7 @@
 "8857"	"sun"	"&sun;"	"$\odot$"	P
 "8857"	"sun"	"&sun;"	"$\CircleDot$"
 "8857"	"sun"	"&sun;"	"$\sun$"
+"8857"	"oDot"	"&odot;"	"$\odot$"	P
 "8858"	"ocir"	"&ocir;"	"$\circledcirc$"	P
 "8858"	"target"	"&target;"	"$\circledcirc$"
 "8859"	"oast"	"*"	"$\circledast$"	P
@@ -966,3 +970,4 @@
 "10878"	"ges"	"=>"	"\geqslant"	P
 "10886"	"gap"	"&gap;"	"$\gtrapprox$"	P
 "10889"	"lap"	"&lap;"	"$\lessapprox$"	P
+"64257"	"filig"	"f"	"${\cal f}$"	L

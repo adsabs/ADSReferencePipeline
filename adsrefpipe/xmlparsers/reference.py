@@ -1,4 +1,5 @@
-import re, string
+import re
+from builtins import str
 
 try:
     from UserDict import UserDict
@@ -8,6 +9,7 @@ except ImportError:
 from adsrefpipe.xmlparsers.xmlFile import XmlString
 from adsrefpipe.xmlparsers.unicode import UnicodeHandler
 unicode_handler = UnicodeHandler()
+
 
 class ReferenceError(Exception):
     """
@@ -36,6 +38,7 @@ class Reference(UserDict):
         'issn': None,
         'eprint': None,
         'bbc': None,
+        'series': None,
     }
 
     field_mappings = [
@@ -50,16 +53,18 @@ class Reference(UserDict):
         ("arxiv", "eprint"),
         ("refstr", "refstr"),
         ("issn", "issn"),
-        ("refplaintext", "refplaintext")
+        ("refplaintext", "refplaintext"),
+        ("series", "series")
     ]
 
     re_remove_space = re.compile(r'\s')
     re_remove_extra_spaces = re.compile(r'\s+')
     re_match_digit = re.compile(r'(\d+)')
+    re_match_roman_numerals = re.compile(r'(^(?=[MDCLXVI])M*D?C{0,4}L?X{0,4}V?I{0,4}$)')
     re_match_non_digit = re.compile(r'\D+')
     re_hex_decode = re.compile(r'%[A-Fa-f0-9]{2}')
     re_remove_xml_tag = re.compile(r'<.*?>')
-    
+
     def __init__(self, reference_str, unicode=None):
         """
         
@@ -168,6 +173,10 @@ class Reference(UserDict):
             match = self.re_match_digit.search(volume)
             if match:
                 vol_num = match.group(1)
+            else:
+                match = self.re_match_roman_numerals.search(volume)
+                if match:
+                    vol_num = match.group(1)
 
         return vol_num
 
@@ -254,6 +263,14 @@ class XMLreference(Reference):
     This class creates a DOM tree (via XmlString) and then pulls out the
     appropriate fields to be used by the resolver by walking it.
     """
+
+    re_valid_refstr = [
+        re.compile(r'\w{3,}'),
+        re.compile(r'\b[12][09]\d\d\w?\b|\d+(st|nd|rd|th)+')
+    ]
+    re_unstructured_url = re.compile(r'http\S+')
+    re_extra_whitespace = re.compile(r"\s+")
+
     def __init__(self, reference_str, unicode=None):
         """
         simply forwards the request to the superclass with the
@@ -272,8 +289,8 @@ class XMLreference(Reference):
                 parsed = XmlString(reference_str)
             except KeyboardInterrupt:
                 raise
-            except:
-                raise ReferenceError("XMLreference: error parsing string %s\n" % reference_str)
+            except Exception as ex:
+                raise ReferenceError("XMLreference: error parsing string %s -- %s" %(reference_str,ex.args))
             reference_str = parsed
 
         Reference.__init__(self, reference_str, unicode)
@@ -298,25 +315,102 @@ class XMLreference(Reference):
         :return:
         """
         try:
-            return isinstance(obj, basestring)
+            return isinstance(obj, str)
         except NameError:
             return isinstance(obj, str)
 
+    # def get_reference_str(self):
+    #     """
+    #     returns what might be a good approximation to a plain
+    #     text reference string by simply concatenating all
+    #     text nodes into a string.
+    #
+    #     :return:
+    #     """
+    #     try:
+    #         contents = self.xmlnode_nodecontents(None)
+    #         if not contents: return ''
+    #         contents = self.re_remove_extra_spaces.sub(' ', contents)
+    #         return self.unicode.ent2asc(contents.strip())
+    #     except:
+    #         return ''
+
     def get_reference_str(self):
         """
-        returns what might be a good approximation to a plain
-        text reference string by simply concatenating all
-        text nodes into a string.
-        
-        :return: 
+        format and return the refstr from extracted fields
+        if necessary fields have not been parsed, return an empty string
+
+        :return:
         """
+        refstr = None
         try:
-            contents = self.xmlnode_nodecontents(None)
-            if not contents: return ''
-            contents = self.re_remove_extra_spaces.sub(' ', contents)
-            return self.unicode.ent2asc(contents.strip())
+            if self['authors'] and self['year']:
+                if self.get('jrlstr', None) and self.get('ttlstr', None) and (self.get('volume', None) or self.get('pages', None)):
+                    refstr = "%s, %s. %s, %s"%(self.get('authors', None), self.get('year', None), self.get('jrlstr', None), self.get('ttlstr', None))
+                    if self.get('volume', None):
+                        refstr += ", %s"%self.get('volume', None)
+                    if self.get('pages', None):
+                        refstr += ", %s" % self.get('pages', None)
+                    refstr += "."
+                elif self.get('jrlstr', None) and (self.get('volume', None) or self.get('pages', None)):
+                    refstr = "%s, %s. %s" % (self.get('authors', None), self.get('year', None), self.get('jrlstr', None))
+                    if self.get('volume', None):
+                        refstr += ", %s"%self.get('volume', None)
+                    if self.get('pages', None):
+                        refstr += ", %s" % self.get('pages', None)
+                    refstr += "."
+                # add doi/arxiv id down below, here we just make sure we have either of them.
+                elif self.get('jrlstr', None) and (self.get('doi', None) or self.get('eprint', None)):
+                    refstr = "%s, %s. %s." % (self.get('authors', None), self.get('year', None), self.get('jrlstr', None))
+                elif self.get('ttlstr', None):
+                    refstr = "%s, %s. %s" % (self.get('authors', None), self.get('year', None), self.get('ttlstr', None))
+                    if self.get('volume', None):
+                        refstr += ", %s"%self.get('volume', None)
+                    if self.get('pages', None):
+                        refstr += ", %s" % self.get('pages', None)
+                    refstr += "."
         except:
-            return ''
+            pass
+
+        # only include these in refstr, if we have the above fields
+        if refstr:
+            try:
+                if self['doi']:
+                    refstr += " doi:%s"%self['doi']
+            except:
+                pass
+
+            try:
+                if self['eprint']:
+                    if 'arxiv' not in self['eprint'].lower():
+                        refstr += " arXiv:%s"%self['eprint']
+                    else:
+                        refstr = " %s"%self['eprint']
+            except:
+                pass
+
+        # if no refstr, but there is doi or arxiv, concatenate all fields
+        if not refstr and (self.get('doi', None) or self.get('eprint', None)):
+            return ', '.join([self[field] for field in ['authors', 'year', 'jrlstr', 'ttlstr', 'volume', 'pages', 'doi', 'eprint'] if self.get(field, None)])
+
+        return refstr
+
+    def get_reference_plain_text(self, refstr):
+        """
+
+        :param refstr:
+        :return:
+        """
+        # remove any url from unstructured string if any
+        refstr = self.re_unstructured_url.sub('', refstr).strip()
+        valid = 0
+        for one_set in self.re_valid_refstr:
+            match = one_set.search(refstr)
+            if match:
+                valid += 1
+        if valid == len(self.re_valid_refstr):
+            return self.re_extra_whitespace.sub(' ', refstr)
+        return None
 
     def xmlnode_nodecontents(self, name, keepxml=0, attrs={}):
         """
@@ -466,3 +560,14 @@ class XMLreference(Reference):
         returns a poor man's ASCII version of the input XML string
         """
         return self.unicode.ent2asc(self.strip_tags(refstr)).strip()
+
+
+    def to_ascii(self, str):
+        """
+
+        :param str:
+        :return:
+        """
+        return self.unicode.ent2asc(self.unicode.u2asc(str))
+
+
