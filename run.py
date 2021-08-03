@@ -181,12 +181,6 @@ if __name__ == '__main__':
                         help='List of source_filenames separated by spaces')
 
     xml_references = subparsers.add_parser('XML', help='XML source references')
-    xml_references.add_argument('-p',
-                        '--parse',
-                        dest='parse_filename',
-                        action='store',
-                        required=False,
-                        help='Verify that the file can be parsed and references resolved')
     xml_references.add_argument('-s',
                         '--source_filenames',
                         dest='source_filenames',
@@ -205,6 +199,19 @@ if __name__ == '__main__':
                         default=[],
                         required=True,
                         help='List of source raw filenames separated by spaces')
+
+    xml_parser = subparsers.add_parser('PARSER', help='XML parser')
+    xml_parser.add_argument('-p',
+                        '--parse_filename',
+                        dest='parse_filename',
+                        action='store',
+                        help='Verify that the file can be parsed and references resolved')
+    xml_parser.add_argument('-r',
+                        '--parser_type',
+                        dest='parser_type',
+                        action='store',
+                        help='To list all source xml filenames resolved by a particular parser')
+
 
     dir_references = subparsers.add_parser('DIR', help='Process source references in specified directory with an optional cutoff date of modification')
     dir_references.add_argument('-p',
@@ -245,15 +252,23 @@ if __name__ == '__main__':
     elif args.action == 'XML':
         if args.source_filenames:
             tasks.task_process_reference_xml_file(args.source_filenames)
-        elif args.parse_filename:
-            name = Parser().get_name(args.source_filename)
-            if name:
-                print('Source file `%s` shall be parsed using `%s` parser.' % (args.source_filename, name))
-            else:
-                print('No parser yet to parse source file `%s`.' % args.source_filename)
     elif args.action == 'RAW':
         if args.source_filenames:
             tasks.task_process_reference_text_file(args.source_filenames)
+    elif args.action == 'PARSER':
+        if args.parse_filename:
+            name = Parser().get_name(args.parse_filename)
+            if name:
+                print('Source file `%s` shall be parsed using `%s` parser.' % (args.parse_filename, name))
+            else:
+                print('No parser yet to parse source file `%s`.' % args.parse_filename)
+        elif args.parser_type:
+            records = app.query_reference_tbl(parser_type=args.parser_type)
+            if not records:
+                print('No records found for parser %s.'%args.parser_type)
+            else:
+                for record in records:
+                    print(record['source_filename'])
     elif args.action == 'DIR':
         # if date has been specified, read it, otherwise we are going with everything, init above
         if args.since:

@@ -16,7 +16,7 @@ from sqlalchemy.sql import exists
 
 class ADSReferencePipelineCelery(ADSCelery):
 
-    def query_reference_tbl(self, bibcode_list=None, source_filename_list=None):
+    def query_reference_tbl(self, bibcode_list=None, source_filename_list=None, parser_type=None):
         """
         Queries reference table and returns results.
 
@@ -38,6 +38,9 @@ class ADSReferencePipelineCelery(ADSCelery):
                 elif source_filename_list:
                     rows = session.query(Reference).filter(Reference.source_filename.in_(source_filename_list)).all()
                     self.logger.info("Fetched records for source_filename = %s." % (source_filename_list))
+                elif parser_type:
+                    rows = session.query(Reference).filter(and_(Reference.parser == parser_type)).all()
+                    self.logger.info("Fetched records for parser = %s." % (parser_type))
                 else:
                     rows = session.query(Reference).limit(10).all()
                     self.logger.info("Fetched records for 10 records.")
@@ -50,6 +53,8 @@ class ADSReferencePipelineCelery(ADSCelery):
                         self.logger.error("No records found for bibcode = %s." % (bibcode_list))
                     elif source_filename_list:
                         self.logger.error("No records found for source_filename = %s." % (source_filename_list))
+                    elif parser_type:
+                        self.logger.error("No records found for parser = %s." % (parser_type))
                     else:
                         self.logger.error("No records found in table `Reference`.")
                     return None

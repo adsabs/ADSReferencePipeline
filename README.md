@@ -35,9 +35,9 @@ This pipeline is to process source reference files, if xml to parse them first a
 
     python run.py DIAGNOSTICS -b <list of bibcodes separated by spaces>
     python run.py DIAGNOSTICS -s <list of source filenames separated by spaces>
+    python run.py DIAGNOSTICS -b <list of bibcodes separated by spaces> -s <list of source filenames separated by spaces>
     
-note that if both list of bibcodes and source filenames are supplied, list of bibcodes is taken.
- If diagnostics is run without any parameters, count of records in each of the four tables, Reference, History, Resolved, and Compare are displayed.
+If diagnostics is run without any parameters, count of records in each of the four tables, Reference, History, Resolved, and Compare are displayed.
 
 #####To resolve text source files:
 
@@ -50,17 +50,24 @@ note that if both list of bibcodes and source filenames are supplied, list of bi
 
 
     python run.py XML -p <parse filename>
-    
-* List source files to be processed using the command
-
-
-    python run.py XML -s <list of source filenames separated by spaces>
- 
+     
 #####To resolve source files in a directory:
 * Specify the directory, the file extension to locate in that directory, and an optional cutoff time parameter, to consider only source files with modified date after the cutoff date
 
 
     python run.py DIR -p <source files path> -e <source files extension> <cutoff date (optional)>
+
+#####To query database for xml parser specifically:
+
+* Specify source files to see if pipeline has parser for it
+
+
+    python run.py PARSER -p <source filename>
+
+
+* Specific publisher type to get a list of source files processed
+
+    python run.py PARSER -p <publisher>
 
 
 ## Maintainers
