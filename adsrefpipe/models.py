@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from sqlalchemy import Integer, String, Column, ForeignKey, DateTime, func, Numeric
+from sqlalchemy import Integer, String, Column, ForeignKey, DateTime, func, Numeric, ForeignKeyConstraint
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -19,31 +19,83 @@ class Action(Base):
     status = Column(String, primary_key=True)
 
     def get_status_new(self):
+        """
+
+        :return:
+        """
         return 'initial'
 
     def get_status_exists(self):
+        """
+
+        :return:
+        """
         return 'retry'
+
+
+class Parser(Base):
+    """
+    lookup table `parser`
+    name is   `Text` (text parser),
+              `CrossRef` (xml CrossRef parser),
+              ...
+    """
+    __tablename__ = 'parser'
+    name = Column(String, primary_key=True)
+    extension = Column(String)
+
+    def get_name(self, source_filename):
+        """
+
+        :param source_filename:
+        :return:
+        """
+        if source_filename.endswith('.xref.xml'):
+            return 'CrossRef'
+        if source_filename.endswith('.elsevier.xml'):
+            return 'ELSEVIER'
+        if source_filename.endswith('.jats.xml'):
+            return 'JATS'
+        if source_filename.endswith('.iop.xml'):
+            return 'IOP'
+        if source_filename.endswith('.springer.xml'):
+            return 'SPRINGER'
+        if source_filename.endswith('.ref.xml'):
+            return 'APS'
+        if source_filename.endswith('.nature.xml'):
+            return 'NATURE'
+        if source_filename.endswith('.aip.xml'):
+            return 'AIP'
+        if source_filename.endswith('.wiley2.xml'):
+            return 'WILEY'
+        if source_filename.endswith('.nlm3.xml'):
+            return 'NLM'
+        if source_filename.endswith('.agu.xml'):
+            return 'AGU'
+        if source_filename.endswith('.raw'):
+            return 'Text'
+        return ''
 
 
 class Reference(Base):
     __tablename__ = 'reference'
     bibcode = Column(String, primary_key=True)
     source_filename = Column(String, primary_key=True)
-    source_create = Column(DateTime)
     resolved_filename = Column(String)
+    parser = Column(String, ForeignKey('parser.name'))
 
-    def __init__(self, bibcode, source_filename, source_create, resolved_filename):
+    def __init__(self, bibcode, source_filename, resolved_filename, parser):
         """
 
         :param bibcode:
         :param source_filename:
-        :param source_create:
         :param resolved_filename:
+        :param parser:
         """
         self.bibcode = bibcode
         self.source_filename = source_filename
-        self.source_create = source_create
         self.resolved_filename = resolved_filename
+        self.parser = parser
 
     def toJSON(self):
         """
@@ -52,15 +104,16 @@ class Reference(Base):
         return {
             'bibcode': self.bibcode,
             'source_filename': self.source_filename,
-            'source_create': self.source_create,
             'resolved_filename': self.resolved_filename,
+            'parser': self.parser,
         }
 
 class History(Base):
     __tablename__ = 'history'
+    __table_args__ = (ForeignKeyConstraint( ['bibcode', 'source_filename'], ['reference.bibcode', 'reference.source_filename']),)
     id = Column(Integer, primary_key=True)
-    bibcode = Column(String, ForeignKey('reference.bibcode'))
-    source_filename = Column(String, ForeignKey('reference.source_filename'))
+    bibcode = Column(String)
+    source_filename = Column(String)
     source_modified = Column(DateTime)
     status = Column(String, ForeignKey('action.status'))
     date = Column(DateTime, default=func.now())
@@ -175,77 +228,4 @@ class Compare(Base):
             'bibcode': self.bibcode,
             'score': self.score,
             'state': self.state,
-        }
-
-class Population(Base):
-    """
-    This table is to keep the count of matches/misses to setup confusion matrix
-
-    """
-    __tablename__ = 'population'
-    history_id = Column(Integer, ForeignKey('history.id'), primary_key=True)
-    date = Column(DateTime, default=func.now(), primary_key=True)
-    true_positive = Column(Integer)
-    true_negative = Column(Integer)
-    classic_match = Column(Integer)
-    service_match = Column(Numeric)
-
-    def __init__(self, history_id, date, true_positive, true_negative, classic_match, service_match):
-        """
-
-        :param history_id:
-        :param reference_str:
-        :param service_bibcode:
-        :param service_score:
-        :param classic_match:
-        :param classic_score:
-        :param state:
-        """
-        self.history_id = history_id
-        self.date = date
-        self.true_positive = true_positive
-        self.true_negative = true_negative
-        self.classic_match = classic_match
-        self.service_match = service_match
-
-    def toJSON(self):
-        """
-        :return: values formatted as python dict, if no values found returns empty structure, not None
-        """
-        return {
-            'history_id': self.history_id,
-            'date': self.date,
-            'true_positive': self.true_positive,
-            'true_negative': self.true_negative,
-            'classic_match': self.classic_match,
-            'service_match': self.service_match,
-        }
-
-class arXiv(Base):
-    """
-    This is temporary, was not created using alembic
-    want to popluated to be able to use for computing statistics, for example only use the resolved reference count
-    for certain class of arXiv bibcodes
-
-    """
-    __tablename__ = 'arxiv'
-    bibcode = Column(String, primary_key=True)
-    category = Column(String, primary_key=True)
-
-    def __init__(self, bibcode, category):
-        """
-
-        :param bibcode:
-        :param category:
-        """
-        self.bibcode = bibcode
-        self.category = category
-
-    def toJSON(self):
-        """
-        :return: values formatted as python dict, if no values found returns empty structure, not None
-        """
-        return {
-            'bibcode': self.bibcode,
-            'category': self.category,
         }

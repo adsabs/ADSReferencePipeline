@@ -4,9 +4,12 @@ if project_home not in sys.path:
     sys.path.insert(0, project_home)
 
 import unittest
+import datetime
 
 from adsrefpipe import app
-from adsrefpipe.models import Base, Action, Reference, History, Resolved, Compare
+from adsrefpipe.models import Base, Action, Parser, Reference, History, Resolved, Compare
+
+import traceback
 
 class test_database(unittest.TestCase):
 
@@ -28,12 +31,13 @@ class test_database(unittest.TestCase):
                 )
 
     def setUp(self):
+        self.test_dir = os.path.join(project_home, 'adsrefpipe/tests')
         unittest.TestCase.setUp(self)
         self.app = app.ADSReferencePipelineCelery('test', local_config={
             'SQLALCHEMY_URL': self.postgresql_url,
             'SQLALCHEMY_ECHO': False,
             'PROJ_HOME': project_home,
-            'TEST_DIR': os.path.join(project_home, 'adsrefpipe/tests'),
+            'TEST_DIR': self.test_dir,
         })
         Base.metadata.bind = self.app._session.get_bind()
         Base.metadata.create_all()
@@ -52,12 +56,17 @@ class test_database(unittest.TestCase):
         Add stub data
         :return:
         """
+        stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
+
         actions = ['initial', 'retry', 'delete']
 
+        parsers = ['AGU', 'AIP', 'APS', 'CrossRef', 'ELSEVIER', 'IOP',
+                   'JATS', 'NATURE', 'NLM', 'SPRINGER', 'Text', 'WILEY']
+
         reference = [
-            ('2020arXiv200400013L','/proj/ads/references/sources/arXiv/2004/00013.raw','2020-04-03 18:08:46','/proj/ads/references/retrieve/arXiv/2004/00013.raw.result'),
-            ('2020arXiv200400014K','/proj/ads/references/sources/arXiv/2004/00014.raw','2020-04-03 18:08:42','/proj/ads/references/retrieve/arXiv/2004/00014.raw.result'),
-            ('2020arXiv200400016L','/proj/ads/references/sources/arXiv/2004/00016.raw','2020-04-03 18:08:32','/proj/ads/references/retrieve/arXiv/2004/00016.raw.result')
+            ('2020arXiv200400013L',os.path.join(stubdata_dir,'00013.raw'),'00013.raw.result'),
+            ('2020arXiv200400014K',os.path.join(stubdata_dir,'00014.raw'),'00014.raw.result'),
+            ('2020arXiv200400016L',os.path.join(stubdata_dir,'00016.raw'),'00016.raw.result')
         ]
 
         history = [
@@ -100,12 +109,15 @@ class test_database(unittest.TestCase):
             for action in actions:
                 session.add(Action(status=action))
             session.commit()
+            for parser in parsers:
+                session.add(Parser(name=parser))
+            session.commit()
 
             for i, (a_reference,a_history) in enumerate(zip(reference,history)):
                 reference_record = Reference(bibcode=a_reference[0],
                                              source_filename=a_reference[1],
-                                             source_create=a_reference[2],
-                                             resolved_filename=a_reference[3])
+                                             resolved_filename=a_reference[2],
+                                             parser=Parser().get_name(a_reference[1]))
                 bibcode, source_filename = self.app.insert_reference_record(session, reference_record)
                 self.assertTrue(bibcode == a_reference[0])
                 self.assertTrue(source_filename == a_reference[1])
@@ -145,8 +157,131 @@ class test_database(unittest.TestCase):
 
         :return:
         """
-        self.assertTrue(0==1)
-        # self.add_stub_data()
+        self.add_stub_data()
+        stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
+        result_expected = [
+            {
+                'bibcode': '2020arXiv200400013L',
+                'source_filename': os.path.join(stubdata_dir,'00013.raw'),
+                'resolved_filename': '00013.raw.result',
+                'parser': 'Text',
+            }, {
+                'bibcode': '2020arXiv200400014K',
+                'source_filename': os.path.join(stubdata_dir,'00014.raw'),
+                'resolved_filename': '00014.raw.result',
+                'parser': 'Text',
+            }, {
+                'bibcode': '2020arXiv200400016L',
+                'source_filename': os.path.join(stubdata_dir,'00016.raw'),
+                'resolved_filename': '00016.raw.result',
+                'parser': 'Text',
+            }
+        ]
+
+        # test querying bibcodes
+        bibcodes = ['2020arXiv200400013L', '2020arXiv200400014K', '2020arXiv200400016L']
+        result_got = self.app.query_reference_tbl(bibcode_list=bibcodes)
+        self.assertTrue(result_expected == result_got)
+
+        # test querying filenames
+        filenames = [os.path.join(stubdata_dir,'00013.raw'),
+                     os.path.join(stubdata_dir,'00014.raw'),
+                     os.path.join(stubdata_dir,'00016.raw')]
+        result_got = self.app.query_reference_tbl(source_filename_list=filenames)
+        self.assertTrue(result_expected == result_got)
+
+        # test querying both bibcodes and filenames
+        result_got = self.app.query_reference_tbl(bibcode_list=bibcodes, source_filename_list=filenames)
+        self.assertTrue(result_expected == result_got)
+
+        # test if nothing is passed, which return 10 records max
+        result_got = self.app.query_reference_tbl()
+        self.assertTrue(result_expected == result_got)
+
+    def test_query_reference_tbl_when_non_exits(self):
+        """
+
+        :return:
+        """
+        self.add_stub_data()
+        stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
+
+        # test when bibcode does not exist
+        self.assertTrue(self.app.query_reference_tbl(bibcode_list=['2020arXiv200400015L']) == None)
+
+        # test when filename does not exist
+        self.assertTrue(self.app.query_reference_tbl(source_filename_list=os.path.join(stubdata_dir,'00015.raw')) == None)
+
+        # test when both bibcode and filename are passed and nothing is returned
+        self.assertTrue(self.app.query_reference_tbl(bibcode_list=['2020arXiv200400015L'],
+                                                     source_filename_list=os.path.join(stubdata_dir,'00013.raw')) == None)
+
+    def test_query_reference_tbl_when_empty(self):
+        """
+
+        :return:
+        """
+        self.assertTrue(self.app.query_reference_tbl() == None)
+
+
+    def test_insert_reference_record(self):
+        """
+
+        :return:
+        """
+        self.add_stub_data()
+        stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
+
+        # attempt to insert a record that already exists in db
+        # see that it is returned without it being inserted
+        with self.app.session_scope() as session:
+            count = self.app.get_count_reference_records(session)
+            reference_record = Reference(bibcode='2020arXiv200400013L',
+                                         source_filename=os.path.join(stubdata_dir,'00013.raw'),
+                                         resolved_filename='00013.raw.result',
+                                         parser='Text')
+            bibcode, source_filename = self.app.insert_reference_record(session, reference_record)
+            self.assertTrue(bibcode == '2020arXiv200400013L')
+            self.assertTrue(source_filename == os.path.join(stubdata_dir,'00013.raw'))
+            self.assertTrue(self.app.get_count_reference_records(session) == count)
+
+
+    def test_populate_tables(self):
+        """
+
+        :return:
+        """
+
+        stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
+        actions = ['initial', 'retry', 'delete']
+        parsers = ['AGU', 'AIP', 'APS', 'CrossRef', 'ELSEVIER', 'IOP',
+                   'JATS', 'NATURE', 'NLM', 'SPRINGER', 'Text', 'WILEY']
+        resolved = [
+            {
+                "score": "1.0",
+                "bibcode": "2011LRR....14....2U",
+                "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. "
+            },
+            {
+                "score": "1.0",
+                "bibcode": "2017RPPh...80l6902M",
+                "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923."
+            }
+        ]
+        with self.app.session_scope() as session:
+            for action in actions:
+                session.add(Action(status=action))
+            session.commit()
+            for parser in parsers:
+                session.add(Parser(name=parser))
+            session.commit()
+
+            result = self.app.populate_tables(bibcode='2020arXiv200400013L',
+                                     source_filename=os.path.join(stubdata_dir,'00013.raw'),
+                                     resolved=resolved,
+                                     classic_resolved_filename=os.path.join(stubdata_dir,'00013.raw.result'))
+            self.assertTrue(result == True)
+
 
 if __name__ == '__main__':
     unittest.main()

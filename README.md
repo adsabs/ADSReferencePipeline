@@ -7,7 +7,7 @@ reference resolver processing pipeline
 
 ## Short summary
 
-This pipeline ...
+This pipeline is to process source reference files, if xml to parse them first and then send to reference resolver to get matched with solr record. If reference source file is of type raw, it is sent to reference resolver to get parsed and matched there.
 
 
 ## Setup (recommended)
@@ -18,12 +18,49 @@ This pipeline ...
     $ pip install -r dev-requirements.txt
     $ vim local_config.py # edit, edit
 
+
 ### Config options for users
 * 
 
 
 ## Queues
 * 
+
+
+### Command lines:
+
+#####To run diagnostics:
+* Either supply list of bibcodes or list of source files
+
+
+    python run.py DIAGNOSTICS -b <list of bibcodes separated by spaces>
+    python run.py DIAGNOSTICS -s <list of source filenames separated by spaces>
+    
+note that if both list of bibcodes and source filenames are supplied, list of bibcodes is taken.
+ If diagnostics is run without any parameters, count of records in each of the four tables, Reference, History, Resolved, and Compare are displayed.
+
+#####To resolve text source files:
+
+* List source files to be processed using the command
+
+    python run.py RAW -s <list of source filenames separated by spaces>
+
+#####To resolve xml source files:
+* It can be verified if a publisher xml source file can be parsed so that the references can be resolved. To check this
+
+
+    python run.py XML -p <parse filename>
+    
+* List source files to be processed using the command
+
+
+    python run.py XML -s <list of source filenames separated by spaces>
+ 
+#####To resolve source files in a directory:
+* Specify the directory, the file extension to locate in that directory, and an optional cutoff time parameter, to consider only source files with modified date after the cutoff date
+
+
+    python run.py DIR -p <source files path> -e <source files extension> <cutoff date (optional)>
 
 
 ## Maintainers

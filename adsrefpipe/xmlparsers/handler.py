@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from adsrefpipe.models import Parser
 from adsrefpipe.xmlparsers.CrossRefXML import CrossReftoREFs
 from adsrefpipe.xmlparsers.ElsevierXML import ELSEVIERtoREFs
 from adsrefpipe.xmlparsers.JATSxml import JATStoREFs
@@ -18,26 +19,29 @@ def verify(filename):
     :param publisher:
     :return:
     """
-    if filename.endswith('.xref.xml'):
+    # get the parser name from db, based on filename,
+    # and then return the parser class
+    name = Parser().get_name(filename)
+    if name == 'CrossRef':
         return CrossReftoREFs
-    if filename.endswith('.elsevier.xml'):
+    if name == 'ELSEVIER':
         return ELSEVIERtoREFs
-    if filename.endswith('.jats.xml'):
+    if name == 'JATS':
         return JATStoREFs
-    if filename.endswith('.iop.xml'):
+    if name == 'IOP':
         return IOPtoREFs
-    if filename.endswith('.springer.xml'):
+    if name == 'SPRINGER':
         return SPRINGERtoREFs
-    if filename.endswith('.ref.xml'):
+    if name == 'APS':
         return APStoREFs
-    if filename.endswith('.nature.xml'):
+    if name == 'NATURE':
         return NATUREtoREFs
-    if  filename.endswith('.aip.xml'):
+    if  name == 'AIP':
         return AIPtoREFs
-    if filename.endswith('.wiley2.xml'):
+    if name == 'WILEY':
         return WILEYtoREFs
-    if filename.endswith('.nlm3.xml'):
+    if name == 'NLM':
         return NLMtoREFs
-    if filename.endswith('.agu.xml'):
+    if name == 'AGU':
         return AGUtoREFs
     return None
