@@ -1,4 +1,4 @@
-name: GitHub Actions CI
+name: GitHub Actions CI 
 
 on: [pull_request]
 env:
@@ -15,7 +15,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:9.6
+        image: postgres:12.7
         env:
           POSTGRES_DB: test
           POSTGRES_PASSWORD: postgres
@@ -41,8 +41,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade setuptools pip
-        pip install -U -r requirements.txt
-        pip install -U -r dev-requirements.txt
+        pip install -r requirements.txt
+        pip install -r dev-requirements.txt
 
     - name: Test with pytest
       run: |
