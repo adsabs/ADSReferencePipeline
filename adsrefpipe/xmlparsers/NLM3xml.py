@@ -167,7 +167,7 @@ def NLMtoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("NLMxml: parsing %s" % reference)
             try:
                 nlm_reference = NLMreference(reference)
-                references_bibcode['references'].append(nlm_reference.get_parsed_reference())
+                references_bibcode['references'].append({**nlm_reference.get_parsed_reference(), 'xml_reference':reference})
             except ReferenceError as error_desc:
                 logger.error("NLMxml: error parsing reference: %s" %error_desc)
 

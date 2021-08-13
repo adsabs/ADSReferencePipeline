@@ -333,7 +333,7 @@ def JATStoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("JATSxml: parsing %s" % reference)
             try:
                 jats_reference = JATSreference(reference)
-                references_bibcode['references'].append(jats_reference.get_parsed_reference())
+                references_bibcode['references'].append({**jats_reference.get_parsed_reference(), 'xml_reference':reference})
             except ReferenceError as error_desc:
                 logger.error("JATSxml: error parsing reference: %s" %error_desc)
 

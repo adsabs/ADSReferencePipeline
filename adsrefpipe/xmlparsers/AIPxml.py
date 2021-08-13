@@ -183,7 +183,7 @@ def AIPtoREFs(filename=None, buffer=None, unicode=None):
 
             try:
                 aip_reference = AIPreference(reference)
-                references_bibcode['references'].append(aip_reference.get_parsed_reference())
+                references_bibcode['references'].append({**aip_reference.get_parsed_reference(), 'xml_reference':reference})
             except ReferenceError as error_desc:
                 logger.error("APSxml: error parsing reference: %s" %error_desc)
 

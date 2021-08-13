@@ -81,7 +81,6 @@ def upgrade():
                     sa.ForeignKeyConstraint(('status',), ['action.status'], ),
                     sa.Column('date', sa.DateTime(), nullable=False),
                     sa.Column('total_ref', sa.Integer(), nullable=False),
-                    sa.Column('resolved_ref', sa.Integer(), nullable=False),
     )
 
     # CREATE TABLE "resolved" (
@@ -117,6 +116,19 @@ def upgrade():
                     sa.Column('state', sa.String(), nullable=False),
     )
 
+    # CREATE TABLE "xml" (
+    #   "history_id" integer,
+    #   "item_num" integer,
+    #   "reference" text,
+    #   Foreign KEY ("history_id", "item_num")
+    # );
+    op.create_table('xml',
+                    sa.Column('history_id', sa.Integer(), nullable=False),
+                    sa.Column('item_num', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(['history_id', 'item_num'], ['resolved.history_id','resolved.item_num'], ),
+                    sa.Column('reference', sa.String(), nullable=False),
+    )
+
     # temparary table to tell what is the class of arxiv bibcode for verification proposes only
     # created this table directly in postgres
     # CREATE TABLE "arxiv" (
@@ -125,7 +137,10 @@ def upgrade():
     #   PRIMARY KEY ("bibcode", "category")
     # );
 
+
+
 def downgrade():
+    op.drop_table('xml')
     op.drop_table('compare')
     op.drop_table('resolved')
     op.drop_table('history')

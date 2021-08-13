@@ -1,4 +1,3 @@
-from __future__ import absolute_import, unicode_literals
 from adsrefpipe import app as app_module
 from kombu import Queue
 
@@ -8,77 +7,107 @@ from adsputils import load_config
 config = {}
 config.update(load_config())
 
-from adsrefpipe.utils import read_reference_text_file, resolve_text_references, resolve_xml_references
+from adsrefpipe.utils import read_reference_text_file, resolve_references, ReferenceType, ReprocessQueryType
 from adsrefpipe.xmlparsers.handler import verify
 
 
-# TODO first off grab the backend url from config and also see how does celery init this
 app = app_module.ADSReferencePipelineCelery('reference-pipeline',
                                             proj_home=os.path.realpath(os.path.join(os.path.dirname(__file__), '../')),
-                                            backend='redis://localhost:6379/0')
+                                            local_config=globals().get('local_config', {}),
+                                            backend=config['REDIS_BACKEND'])
 
 app.conf.CELERY_QUEUES = (
-    Queue('process_text', app.exchange, routing_key='process_text'),
-    Queue('process_xml', app.exchange, routing_key='process_xml'),
+    Queue('process_references', app.exchange, routing_key='process_references'),
+    Queue('reprocess_subset_references', app.exchange, routing_key='reprocess_subset_references')
 )
 
 logger = app.logger
 
 POPULATE_COMPARE = True
 
-@app.task(queue='process_text')
-def task_process_reference_text_file(source_files):
+@app.task(queue='process_references')
+def task_process_reference_file(reference_filename):
     """
 
-    :param source_files: source filenames
+    :param reference_filename:
     :return:
     """
-    num_references = config['REFERENCE_PIPELINE_MAX_NUM_REFERENCES']
+    # first figure out which parser to call
+    name = app.get_parser_name(reference_filename)
 
-    for source_file in source_files:
+    # it is a text file
+    if name == 'Text':
+        type = ReferenceType.text
         # read from source file the bibcode and references
-        bibcode, references = read_reference_text_file(source_file)
+        # it shall be parsed on the side of service, so nothing more to do
+        bibcode, references = read_reference_text_file(reference_filename)
         if bibcode and len(references) > 0:
-            for batch in range(0, len(references), num_references):
-                # send references to reference_service one batch at a time
-                references_batch = references[batch: batch+num_references]
-                resolved = resolve_text_references(references_batch)
-                if not resolved:
-                    return False
-                # if resolved successfully continue to populate tables
-                # also write to compare table if the flag is set
-                classic_resolved_filename = source_file.replace('sources', 'resolved') + '.result' if POPULATE_COMPARE else None
-                status = app.populate_tables(bibcode, source_file, resolved, classic_resolved_filename)
-                if not status:
-                    return False
-            return True
+            # have it in the same sturcture as xml so that the same code can be applied
+            results = [{'bibcode': bibcode, 'references': references}]
+        else:
+            logger.error("Unable to parse %s." %reference_filename)
+            return False
 
+    # it is an xml file
+    else:
+        try:
+            type = ReferenceType.xml
+            # figure out which xml parser to call
+            parser = verify(name)
+            # read from source file the bibcode and references already tagged
+            results = parser(reference_filename)
+        except:
+            logger.error("Unable to parse %s." %reference_filename)
+            return False
 
-@app.task(queue='process_xml')
-def task_process_reference_xml_file(source_files):
+    num_references = config['REFERENCE_PIPELINE_MAX_NUM_REFERENCES']
+    for result in results:
+        references = result['references']
+        # save the initial records in the database,
+        # this is going to be useful since it allows us to be able to tell if
+        # anything went wrong with the service that we did not get back the results
+        status, references = app.populate_tables_new_precede(type, result['bibcode'], reference_filename, name, references)
+        if not status:
+            return False
+        resolved = []
+        for batch in range(0, len(references), num_references):
+            # send references to reference_service one batch at a time
+            references_batch = references[batch: batch+num_references]
+            # accumulate them to be inserted to db in once chunk
+            resolved_batch = resolve_references(type, references_batch)
+            if not resolved_batch:
+                return False
+            resolved += resolved_batch
+        classic_resolved_filename = reference_filename.replace('sources', 'resolved') + '.result' if POPULATE_COMPARE else None
+        status = app.populate_tables_succeed(resolved, result['bibcode'], classic_resolved_filename)
+        if not status:
+            return False
+    return True
+
+@app.task(queue='reprocess_subset_references')
+def task_reprocess_subset_references(record):
     """
 
-    :param source_file: source filename
+    :param records:
     :return:
     """
-    num_references = config['REFERENCE_PIPELINE_MAX_NUM_REFERENCES']
+    reference_filename = record['source_filename']
+    type = ReferenceType.text if record['parser'] == 'Text' else ReferenceType.xml
+    status, references = app.populate_tables_retry_precede(type, record['source_bibcode'], reference_filename,
+                                                           record['source_modified'], record['references'])
+    if not status:
+        return False
+    resolved = []
 
-    for source_file in source_files:
-        # first figure out which parser to call
-        parser = verify(source_file)
-        # read from source file the bibcode and references already tagged
-        results = parser(source_file)
-        for result in results:
-            references = result['references']
-            for batch in range(0, len(references), num_references):
-                references_batch = references[batch: batch+num_references]
-                resolved = resolve_xml_references(references_batch)
-                if not resolved:
-                    return False
-                # if resolved successfully continue to populate tables
-                # also write to compare table if the flag is set
-                classic_resolved_filename = source_file.replace('sources', 'resolved') + '.result' if POPULATE_COMPARE else None
-                status = app.populate_tables(result['bibcode'], source_file, resolved, classic_resolved_filename)
-                if not status:
-                    return False
-    return True
+    num_references = config['REFERENCE_PIPELINE_MAX_NUM_REFERENCES']
+    for batch in range(0, len(references), num_references):
+        # send references to reference_service one batch at a time
+        references_batch = references[batch: batch+num_references]
+        # accumulate them to be inserted to db in once chunk
+        resolved += resolve_references(type, references_batch)
+        if not resolved:
+            return False
+    classic_resolved_filename = reference_filename.replace('sources', 'resolved') + '.result' if POPULATE_COMPARE else None
+    return app.populate_tables_succeed(resolved, record['source_bibcode'], classic_resolved_filename)
+
+

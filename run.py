@@ -2,21 +2,21 @@
 import os, fnmatch
 
 from adsputils import setup_logging, get_date
+from datetime import timedelta
 
-import celery
 import argparse
 import threading
 
-# update state from diff to match after verifiying from solr
-# this is temporary for test purposes only
-from adsrefpipe.models import Compare
-
 from adsrefpipe import tasks
-from adsrefpipe.utils import get_date_modified_struct_time
+from adsrefpipe.utils import get_date_modified_struct_time, ReprocessQueryType
 from adsrefpipe.models import Parser
+
+
 
 app = tasks.app
 logger = setup_logging('run.py')
+
+
 
 def run_diagnostics(bibcodes, source_filenames):
     """
@@ -31,7 +31,6 @@ def run_diagnostics(bibcodes, source_filenames):
         return
     # if no bibcode or source_filenames supplied, list the num records in each table
     print(app.get_count_records())
-
 
 
 def get_source_filenames(source_file_path, file_extension, cutoff_date):
@@ -49,112 +48,72 @@ def get_source_filenames(source_file_path, file_extension, cutoff_date):
                     list_files.append(filename)
     return list_files
 
-def check_queue(task_id_list):
-    """
-    every few seconds check the task_id_list
-    if there has been a failure, requeue
 
-    :param task_id_list:
+def check_queue(queued_tasks):
+    """
+    every few seconds check the tasks to see if it was processed
+
+    :param queued_tasks:
     :return:
     """
-    # verify that all tasks got processed successfully
-    # if not, attempt max_retry before quiting
-    for file, task_id, num_retry in task_id_list[:]:
-        # grab the AsyncResult
-        result = app.AsyncResult(task_id)
-        print('......result=', file, result.state, result.result)
-        if result.state == "SUCCESS":
-            if result.result:
-                # successfully processed
-                task_id_list.remove((file, task_id, num_retry))
-            else:
-                # retry
-                print('......try again=', file, num_retry)
-                task_id_list.remove((file, task_id, num_retry))
-                if num_retry > 1:
-                    # generate a new task id, since if the same id is used celery gets confused
-                    task_id = celery.uuid()
-                    task_id_list.append((file, task_id, num_retry - 1))
-                    tasks.task_process_reference_file.apply_async(args=[file], task_id=task_id)
-    if len(task_id_list) > 0:
-        threading.Timer(10, check_queue, (task_id_list,)).start()
+    def output_message(message):
+        """
 
-def queue_files(files):
+        :param message:
+        :return:
+        """
+        logger.info(message)
+        print(message)
+
+
+    to_queue_tasks = []
+    # check to see when/if the queued tasks got processed successfully
+    for queued_task in queued_tasks:
+        if queued_task['results'].state == "SUCCESS" and queued_task['results'].result:
+            if 'filename' in queued_task:
+                output_message("reference file %s successfully processed."%queued_task['filename'])
+            elif 'reprocess' in queued_task:
+                record = queued_task['reprocess']
+                output_message("reprocessed %d reference(s) from source file %s successfully processed." %(len(record['references']), record['source_filename']))
+        else:
+            # to check again in few seconds
+            to_queue_tasks.append(queued_task)
+    if len(to_queue_tasks) > 0:
+        output_message('%d/%d task remains for processing.'%(len(to_queue_tasks),len(queued_tasks)))
+        threading.Timer(10, check_queue, (to_queue_tasks,)).start()
+    else:
+        output_message('All tasks processed successfully.')
+
+
+def queue_files(filenames):
     """
     queue all the requested files
 
     :param files:
     :return:
     """
-    task_id_list = []
-    max_retry = 3
+    queued_tasks = []
+    for filename in filenames:
+        results = tasks.task_process_reference_file.delay(filename)
+        queued_tasks.append({'filename':filename, 'results':results})
+    check_queue(queued_tasks)
 
-    for file in files:
-        task_id = celery.uuid()
-        tasks.task_process_reference_file.apply_async(args=[file], task_id=task_id)
-        task_id_list.append((file, task_id, max_retry))
 
-    check_queue(task_id_list)
+def queue_reprocess(reprocess_type, score_cutoff=0, match_bibcode='', cutoff_date=None):
+    """
 
-# def populate_tmp_arxiv_table():
-#     """
-#     this function reads the csv file containing list of bibcode and arxiv category
-#     and populates temporary arxiv table
-#
-#     :return:
-#     """
-#     filename = os.getcwd() + "/arxiv_classes_2.csv"
-#     with open(filename) as f:
-#         reader = csv.reader(f, delimiter=",")
-#         next(reader, None)
-#         arxiv_list = []
-#         for line in reader:
-#             arxiv_record = arXiv(bibcode=line[0], category=line[1])
-#             arxiv_list.append(arxiv_record)
-#         if len(arxiv_list) > 0:
-#             with app.session_scope() as session:
-#                 try:
-#                     session.bulk_save_objects(arxiv_list)
-#                     session.flush()
-#                     logger.debug("Added `arXiv` records successfully.")
-#                     return True
-#                 except:
-#                     logger.error("Attempt to add `arXiv` records failed.")
-#                     return False
-#
-# def update_compare_tmp_diff_to_match():
-#     """
-#
-#     :return:
-#     """
-#     filename = os.getcwd() + "/diff_to_match.csv"
-#     with open(filename) as f:
-#         reader = csv.reader(f, delimiter=",")
-#         next(reader, None)
-#         with app.session_scope() as session:
-#             record = session.query(Compare).filter(and_(Compare.bibcode == bibcode)).all()
-#                 user.firstname, user.lastname = user.name.split(' ')
-#
-#             session.execute(update(Compare).where(
-#                 Status.c.id == st.id).values(resource_root=rn))
-#             result = session.execute(Compare.update().where(Compare.c.ID == 20).values(USERNAME='k9'))
-#
-#             session.update().where(account.c.name == op.inline_literal('account 1')).\ \
-#                 values({'name': op.inline_literal('account 2')})
-#         )
-#         for line in reader:
-#             bibcode_duo.append(())
-#             arxiv_list.append(arxiv_record)
-#         if len(arxiv_list) > 0:
-#             with app.session_scope() as session:
-#                 try:
-#                     session.bulk_save_objects(arxiv_list)
-#                     session.flush()
-#                     logger.debug("Added `arXiv` records successfully.")
-#                     return True
-#                 except:
-#                     logger.error("Attempt to add `arXiv` records failed.")
-#                     return False
+    :param reprocess_type:
+    :param param:
+    :param cutoff_date:
+    :return:
+    """
+    queued_tasks = []
+    records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, cutoff_date)
+    for record in records:
+        results = tasks.task_reprocess_subset_references.delay(record)
+        queued_tasks.append({'reprocess':record, 'results':results})
+    check_queue(queued_tasks)
+
 
 if __name__ == '__main__':
 
@@ -169,7 +128,6 @@ if __name__ == '__main__':
                         action='store',
                         nargs='+',
                         default=[],
-                        required=False,
                         help='List of bibcodes separated by spaces')
     diagnostics.add_argument('-s',
                         '--source_filenames',
@@ -177,91 +135,131 @@ if __name__ == '__main__':
                         action='store',
                         nargs='+',
                         default=[],
-                        required=False,
                         help='List of source_filenames separated by spaces')
-
-    xml_references = subparsers.add_parser('XML', help='XML source references')
-    xml_references.add_argument('-s',
-                        '--source_filenames',
-                        dest='source_filenames',
-                        action='store',
-                        nargs='+',
-                        default=[],
-                        required=True,
-                        help='List of source xml filenames separated by spaces')
-
-    raw_references = subparsers.add_parser('RAW', help='RAW source references')
-    raw_references.add_argument('-s',
-                        '--source_filenames',
-                        dest='source_filenames',
-                        action='store',
-                        nargs='+',
-                        default=[],
-                        required=True,
-                        help='List of source raw filenames separated by spaces')
-
-    xml_parser = subparsers.add_parser('PARSER', help='XML parser')
-    xml_parser.add_argument('-p',
+    diagnostics.add_argument('-p',
                         '--parse_filename',
                         dest='parse_filename',
                         action='store',
+                        default=None,
                         help='Verify that the file can be parsed and references resolved')
-    xml_parser.add_argument('-r',
-                        '--parser_type',
-                        dest='parser_type',
+
+    resolve_references = subparsers.add_parser('RESOLVE', help='Resolve references')
+    resolve_references.add_argument('-s',
+                        '--source_filenames',
+                        dest='source_filenames',
                         action='store',
-                        help='To list all source xml filenames resolved by a particular parser')
-
-
-    dir_references = subparsers.add_parser('DIR', help='Process source references in specified directory with an optional cutoff date of modification')
-    dir_references.add_argument('-p',
+                        nargs='+',
+                        default=[],
+                        help='List of source file names (either xml or raw) separated by spaces')
+    resolve_references.add_argument('-p',
                         '--path',
                         dest='path',
                         action='store',
                         default=None,
-                        required=True,
                         help='Path of source files for resolving')
-    dir_references.add_argument('-e',
+    resolve_references.add_argument('-e',
                         '--extension',
                         dest='extension',
                         action='store',
                         default=None,
-                        required=True,
                         help='Extension of files to locate in the path directory')
-    dir_references.add_argument('-s',
-                        '--since',
-                        dest='since',
+    resolve_references.add_argument('-d',
+                        '--days',
+                        dest='days',
                         action='store',
                         default=None,
-                        required=False,
-                        help='Starting date for resolving')
+                        help='Resolve only those that are this many days old')
+    resolve_references.add_argument('-c',
+                        '--confidence',
+                        dest='confidence',
+                        action='store',
+                        default=None,
+                        help='Reprocess resolved records confidence score lower than this value')
+    resolve_references.add_argument('-b',
+                        '--bibstem',
+                        dest='bibstem',
+                        action='store',
+                        default=None,
+                        help='Reprocess resolved records having this bibstem')
+    resolve_references.add_argument('-y',
+                        '--year',
+                        dest='year',
+                        action='store',
+                        default=None,
+                        help='Reprocess resolved records having this year')
+    resolve_references.add_argument('-f',
+                        '--fail',
+                        dest='fail',
+                        action='store_true',
+                        help='Reprocess records that failed to get resolved')
 
-    #TODO: add more command for querying db
+    stats_output = subparsers.add_parser('STATS', help='Print out statistics of the reference source file')
+    stats_output.add_argument('-s',
+                        '--source_filename',
+                        dest='source_filename',
+                        action='store',
+                        default=None,
+                        required=True,
+                        help='Statistics of source reference file, comparing classic and service reference resolvering')
+    stats_output.add_argument('-p',
+                        '--parser_type',
+                        dest='parser_type',
+                        action='store',
+                        default=None,
+                        required=True,
+                        help='To list all source xml filenames resolved by a particular parser')
 
     args = parser.parse_args()
 
-    # either pass in the list of bibcodes, or list of filenames to query db on
-    # if neither is supplied 10 random records are returned
     if args.action == 'DIAGNOSTICS':
-        if args.bibcodes:
-            run_diagnostics(args.bibcodes, None)
-        elif args.source_filenames:
-            run_diagnostics(None, args.source_filenames)
-        else:
-            run_diagnostics(None, None)
-    elif args.action == 'XML':
-        if args.source_filenames:
-            tasks.task_process_reference_xml_file(args.source_filenames)
-    elif args.action == 'RAW':
-        if args.source_filenames:
-            tasks.task_process_reference_text_file(args.source_filenames)
-    elif args.action == 'PARSER':
         if args.parse_filename:
             name = Parser().get_name(args.parse_filename)
             if name:
                 print('Source file `%s` shall be parsed using `%s` parser.' % (args.parse_filename, name))
             else:
                 print('No parser yet to parse source file `%s`.' % args.parse_filename)
+        # either pass in the list of bibcodes, or list of filenames to query db on
+        # if neither bibcode nor filenames are supplied, number of records for the tables are displayed
+        else:
+            run_diagnostics(args.bibcodes, args.source_filenames)
+
+    elif args.action == 'RESOLVE':
+        if args.source_filenames:
+            queue_files(args.source_filenames)
+        elif args.path or args.extension:
+            if not args.extension:
+                print('Both path and extension are required params. Provide extention by -e <extension of files to locate in the path directory>.')
+            elif not args.path:
+                print('Both path and extension are required params. Provide path by -p <path of source files for resolving>.')
+            else:
+                # if days has been specified, read it and only consider files with date from today-days,
+                # otherwise we are going with everything
+                if args.days:
+                    cutoff_date = get_date() - timedelta(days=int(args.days))
+                else:
+                    cutoff_date = get_date('1972')
+                source_filenames = get_source_filenames(args.path, args.extension, cutoff_date.timetuple())
+                if len(source_filenames) > 0:
+                    queue_files(source_filenames)
+        elif args.confidence:
+            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.score, score_cutoff=float(args.confidence), cutoff_date=cutoff_date)
+        elif args.bibstem:
+            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.bibstem, match_bibcode=args.bibstem, cutoff_date=cutoff_date)
+        elif args.year:
+            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.year, match_bibcode=args.bibstem, cutoff_date=cutoff_date)
+        elif args.fail:
+            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.failed, cutoff_date=cutoff_date)
+
+
+    # TODO: do we need more command for querying db
+
+    elif args.action == 'STATS':
+        if args.source_filename:
+            print(app.get_stats_compare(args.source_filename))
         elif args.parser_type:
             records = app.query_reference_tbl(parser_type=args.parser_type)
             if not records:
@@ -269,12 +267,3 @@ if __name__ == '__main__':
             else:
                 for record in records:
                     print(record['source_filename'])
-    elif args.action == 'DIR':
-        # if date has been specified, read it, otherwise we are going with everything, init above
-        if args.since:
-            cutoff_date = get_date(args.since)
-        else:
-            cutoff_date = get_date('1972')
-        source_filenames = get_source_filenames(args.path, args.extension, cutoff_date.timetuple())
-        # if len(source_filenames) > 0:
-        #     queue_files(source_filenames)

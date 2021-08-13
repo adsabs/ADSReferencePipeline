@@ -101,9 +101,10 @@ class SPRINGERreference(XMLreference):
            self['eprint'] = eprint
 
         self['refstr'] = self.get_reference_str()
-        self['refplaintext'] = self.parse_unstructured_field(self.xmlnode_nodecontents('BibUnstructured').strip())
-        if not self['refstr'] and not self['refplaintext']:
-            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
+        if not self['refstr']:
+            self['refplaintext'] = self.parse_unstructured_field(self.xmlnode_nodecontents('BibUnstructured').strip())
+            if not not self['refplaintext']:
+                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -257,7 +258,7 @@ def SPRINGERtoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("SpringerXML: parsing %s" % reference)
             try:
                 springer_reference = SPRINGERreference(reference)
-                references_bibcode['references'].append(springer_reference.get_parsed_reference())
+                references_bibcode['references'].append({**springer_reference.get_parsed_reference(), 'xml_reference':reference})
             except ReferenceError as error_desc:
                 logger.error("SPRINGERxml: error parsing reference: %s" %error_desc)
 

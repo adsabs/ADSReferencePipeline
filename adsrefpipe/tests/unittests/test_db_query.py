@@ -127,8 +127,7 @@ class test_database(unittest.TestCase):
                                          source_modified=a_history[0],
                                          status=Action().get_status_new(),
                                          date=a_history[1],
-                                         total_ref=a_history[2],
-                                         resolved_ref=a_history[3])
+                                         total_ref=a_history[2])
                 history_id = self.app.insert_history_record(session, history_record)
                 self.assertTrue(history_id != -1)
 

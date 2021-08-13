@@ -16,6 +16,15 @@ config.update(load_config())
 
 DATE_FORMAT = "%d-%02d-%02d %02d:%02d:%02d"
 
+
+class ReferenceType:
+    text, xml = range(2)
+
+
+class ReprocessQueryType:
+    score, bibstem, year, failed = range(4)
+
+
 def get_date_created(filename):
     """
 
@@ -112,65 +121,58 @@ def fix_inheritance(cur_refstr, prev_refstr):
     return cur_refstr
 
 
-def resolve_text_references(references):
+def resolve_references(type, references):
     """
     send a request to reference service
 
+    :param type: text or xml
     :param references: list of references
     :return:
     """
-    url = config['REFERENCE_PIPELINE_SERVICE_TEXT_URL']
-    payload = {'reference': references}
+    if type == ReferenceType.text:
+        str_references,ids = map(list, zip(*[ref.values() for ref in references]))
+        url = config['REFERENCE_PIPELINE_SERVICE_TEXT_URL']
+        payload = {'reference': str_references, 'id': ids}
+    elif type == ReferenceType.xml:
+        url = config['REFERENCE_PIPELINE_SERVICE_XML_URL']
+        payload = {'parsed_reference': references}
+    else:
+        logger.error('Unrecognizable reference type `%s`.'%type)
+        return None
+
     headers = {'Content-type': 'application/json',
                'Accept': 'application/json',
                'Authorization': 'Bearer ' + config['REFERENCE_PIPELINE_ADSWS_API_TOKEN']}
-
     r = requests.post(url=url, data=json.dumps(payload), headers=headers)
     if (r.status_code == 200):
         resolved = json.loads(r.content)['resolved']
         logger.debug('Resolved %d references successfully.' % (len(resolved)))
         return resolved
 
-    logger.error('Attempt at resolving %d text references failed with status code %s.' % (len(references), r.status_code))
+    logger.error('Attempt at resolving %d %s references failed with status code %s.' % (len(references), type, r.status_code))
     return None
 
 
-def resolve_xml_references(references):
-    """
-    send a request to reference service
-
-    :param references: list of parsed references
-    :return:
-    """
-    url = config['REFERENCE_PIPELINE_SERVICE_XML_URL']
-    payload = {'parsed_reference': references}
-    headers = {'Content-type': 'application/json',
-               'Accept': 'application/json',
-               'Authorization': 'Bearer ' + config['REFERENCE_PIPELINE_ADSWS_API_TOKEN']}
-
-    r = requests.post(url=url, data=json.dumps(payload), headers=headers)
-    if (r.status_code == 200):
-        resolved = json.loads(r.content)['resolved']
-        logger.debug('Resolved %d references successfully.' % (len(resolved)))
-        return resolved
-
-    logger.error('Attempt at resolving %d xml references failed with status code %s.' % (len(references), r.status_code))
-    return None
-
-
-def read_classic_resolved_file(filename):
+def read_classic_resolved_file(source_bibcode, filename):
     """
     read classic resolved file
 
-    :param filename: 
-    :return: 
+    :param source_bibcode:
+    :param filename:
+    :return:
     """
     try:
         resolved = []
-        with open(filename, 'r') as f:
-            reader = f.readlines()
-            for line in reader[1:]:
-                resolved.append(line)
+        found = False
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                if found:
+                    if line.startswith('---<'):
+                        break
+                    resolved.append(line)
+                else:
+                    if line.startswith('---<') and line[4:-5] == source_bibcode:
+                        found = True
         logger.debug('Read %d references from classic resolved file %s successfully.' % (len(resolved), filename))
         return resolved
     except:
@@ -204,15 +206,16 @@ def get_compare_state(service_bibcode, classic_bibcode, classic_score):
             return 'NEW'
         return 'NONE'
 
-def compare_classic_and_service(service, classic_filename):
+def compare_classic_and_service(service, source_bibcode, classic_filename):
     """
     compare the result of service and classic resolved references
 
     :param service: resolved references from service, in dict structure
+    :param source_bibcode:
     :param classic: resolved references from classic, string format
     :return:
     """
-    classic = read_classic_resolved_file(classic_filename)
+    classic = read_classic_resolved_file(source_bibcode, classic_filename)
     if not classic:
         return None
 
@@ -227,10 +230,10 @@ def compare_classic_and_service(service, classic_filename):
             compare.append((i+1, classic_bibcode, classic_score, state))
     else:
         for i, s in enumerate(service):
-            service_reference = s.get('refstring', '').strip()
+            service_reference = s.get('refstring', '')
             # just in case reference is enumerated, remove the enumeration
             service_reference = service_reference[service_reference.find(']') + 1:] if service_reference.startswith(' [') else service_reference
-            service_bibcode = s.get('bibcode', None)
+            service_bibcode = s.get('bibcode', '')
             for c in classic:
                 classic_reference = c[24:-1].strip()
                 classic_bibcode = c[2:21]

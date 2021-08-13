@@ -7,6 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class Action(Base):
     """
     lookup table `action`
@@ -25,7 +26,7 @@ class Action(Base):
         """
         return 'initial'
 
-    def get_status_exists(self):
+    def get_status_retry(self):
         """
 
         :return:
@@ -42,39 +43,15 @@ class Parser(Base):
     """
     __tablename__ = 'parser'
     name = Column(String, primary_key=True)
-    extension = Column(String)
+    source_extension = Column(String)
 
-    def get_name(self, source_filename):
+    def get_name(self):
         """
 
         :param source_filename:
         :return:
         """
-        if source_filename.endswith('.xref.xml'):
-            return 'CrossRef'
-        if source_filename.endswith('.elsevier.xml'):
-            return 'ELSEVIER'
-        if source_filename.endswith('.jats.xml'):
-            return 'JATS'
-        if source_filename.endswith('.iop.xml'):
-            return 'IOP'
-        if source_filename.endswith('.springer.xml'):
-            return 'SPRINGER'
-        if source_filename.endswith('.ref.xml'):
-            return 'APS'
-        if source_filename.endswith('.nature.xml'):
-            return 'NATURE'
-        if source_filename.endswith('.aip.xml'):
-            return 'AIP'
-        if source_filename.endswith('.wiley2.xml'):
-            return 'WILEY'
-        if source_filename.endswith('.nlm3.xml'):
-            return 'NLM'
-        if source_filename.endswith('.agu.xml'):
-            return 'AGU'
-        if source_filename.endswith('.raw'):
-            return 'Text'
-        return ''
+        return self.name
 
 
 class Reference(Base):
@@ -108,6 +85,7 @@ class Reference(Base):
             'parser': self.parser,
         }
 
+
 class History(Base):
     __tablename__ = 'history'
     __table_args__ = (ForeignKeyConstraint( ['bibcode', 'source_filename'], ['reference.bibcode', 'reference.source_filename']),)
@@ -118,9 +96,8 @@ class History(Base):
     status = Column(String, ForeignKey('action.status'))
     date = Column(DateTime, default=func.now())
     total_ref = Column(Integer)
-    resolved_ref = Column(Integer)
 
-    def __init__(self, bibcode, source_filename, source_modified, status, date, total_ref, resolved_ref):
+    def __init__(self, bibcode, source_filename, source_modified, status, date, total_ref):
         """
 
         :param bibcode:
@@ -129,7 +106,6 @@ class History(Base):
         :param status:
         :param date:
         :param total_ref:
-        :param resolved_ref:
         """
         self.bibcode = bibcode
         self.source_filename = source_filename
@@ -137,7 +113,6 @@ class History(Base):
         self.status = status
         self.date = date
         self.total_ref = total_ref
-        self.resolved_ref = resolved_ref
 
     def toJSON(self):
         """
@@ -150,7 +125,6 @@ class History(Base):
             'status': self.status,
             'date': self.date,
             'total_ref' : self.total_ref,
-            'resolved_ref': self.resolved_ref,
         }
 
 
@@ -188,6 +162,7 @@ class Resolved(Base):
             'score': self.score,
             'item_num': self.item_num
         }
+
 
 class Compare(Base):
     """
@@ -228,4 +203,36 @@ class Compare(Base):
             'bibcode': self.bibcode,
             'score': self.score,
             'state': self.state,
+        }
+
+
+class XML(Base):
+    """
+    This table is for saving xml references for reprocessing if need to
+
+    """
+    __tablename__ = 'xml'
+    history_id = Column(Integer, ForeignKey('history.id'), primary_key=True)
+    item_num = Column(Integer, primary_key=True)
+    reference = Column(String)
+
+    def __init__(self, history_id, item_num, reference):
+        """
+
+        :param history_id:
+        :param item_num:
+        :param reference:
+        """
+        self.history_id = history_id
+        self.item_num = item_num
+        self.reference = reference
+
+    def toJSON(self):
+        """
+        :return: values formatted as python dict, if no values found returns empty structure, not None
+        """
+        return {
+            'history_id': self.history_id,
+            'item_num': self.item_num,
+            'reference': self.reference,
         }

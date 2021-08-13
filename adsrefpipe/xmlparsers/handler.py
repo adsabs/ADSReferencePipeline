@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from adsrefpipe.models import Parser
 from adsrefpipe.xmlparsers.CrossRefXML import CrossReftoREFs
 from adsrefpipe.xmlparsers.ElsevierXML import ELSEVIERtoREFs
 from adsrefpipe.xmlparsers.JATSxml import JATStoREFs
@@ -13,35 +12,33 @@ from adsrefpipe.xmlparsers.WileyXML import WILEYtoREFs
 from adsrefpipe.xmlparsers.NLM3xml import NLMtoREFs
 from adsrefpipe.xmlparsers.AGUxml import AGUtoREFs
 
-def verify(filename):
+def verify(parser_name):
     """
 
-    :param publisher:
+    :param parser_name: parser name from db
     :return:
     """
-    # get the parser name from db, based on filename,
-    # and then return the parser class
-    name = Parser().get_name(filename)
-    if name == 'CrossRef':
+    # based on parser name return the parser class, if it is an xml
+    if parser_name == 'CrossRef':
         return CrossReftoREFs
-    if name == 'ELSEVIER':
+    if parser_name == 'ELSEVIER':
         return ELSEVIERtoREFs
-    if name == 'JATS':
+    if parser_name == 'JATS':
         return JATStoREFs
-    if name == 'IOP':
+    if parser_name == 'IOP':
         return IOPtoREFs
-    if name == 'SPRINGER':
+    if parser_name == 'SPRINGER':
         return SPRINGERtoREFs
-    if name == 'APS':
+    if parser_name == 'APS':
         return APStoREFs
-    if name == 'NATURE':
+    if parser_name == 'NATURE':
         return NATUREtoREFs
-    if  name == 'AIP':
+    if  parser_name == 'AIP':
         return AIPtoREFs
-    if name == 'WILEY':
+    if parser_name == 'WILEY':
         return WILEYtoREFs
-    if name == 'NLM':
+    if parser_name == 'NLM':
         return NLMtoREFs
-    if name == 'AGU':
+    if parser_name == 'AGU':
         return AGUtoREFs
     return None

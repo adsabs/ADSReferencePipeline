@@ -131,10 +131,11 @@ class ELSEVIERreference(XMLreference):
             self['page'] = issue[1:]
 
         self['refstr'] = self.get_reference_str()
-        self['refplaintext'] = self.xmlnode_nodecontents('textref').strip()
-        # no reference text, see if it can be extracted from the reference xml
-        if not self['refstr'] and not self['refplaintext']:
-            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('reference')))
+        if not self['refstr']:
+            self['refplaintext'] = self.xmlnode_nodecontents('textref').strip()
+            # no reference text, see if it can be extracted from the reference xml
+            if not self['refplaintext']:
+                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('reference')))
 
         self.parsed = 1
 
@@ -214,7 +215,7 @@ def ELSEVIERtoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("ElsevierXML: parsing %s" % reference)
             try:
                 elsevier_reference = ELSEVIERreference(reference)
-                references_bibcode['references'].append(elsevier_reference.get_parsed_reference())
+                references_bibcode['references'].append({**elsevier_reference.get_parsed_reference(), 'xml_reference':reference})
             except ReferenceError as error_desc:
                 logger.error("ELSEVIERxml:  error parsing reference: %s" %error_desc)
 

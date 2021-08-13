@@ -83,13 +83,12 @@ class CrossRefreference(XMLreference):
             self['eprint'] = eprint
 
         self['refstr'] = self.get_reference_str()
-
-        self['refplaintext'] = self.xmlnode_nodecontents('unstructured_citation').strip()
-        for one_set in self.re_unstructured:
-            self['refplaintext'] = one_set[0].sub(one_set[1], self['refplaintext'])
-
-        if not self['refstr'] and not self['refplaintext']:
-            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('citation')))
+        if not self['refstr']:
+            self['refplaintext'] = self.xmlnode_nodecontents('unstructured_citation').strip()
+            for one_set in self.re_unstructured:
+                self['refplaintext'] = one_set[0].sub(one_set[1], self['refplaintext'])
+            if not self['refplaintext']:
+                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('citation')))
 
         self.parsed = 1
 
@@ -181,7 +180,7 @@ def CrossReftoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("CrossRefxml: parsing %s" % reference)
             try:
                 crossref_reference = CrossRefreference(reference)
-                references_bibcode['references'].append(crossref_reference.get_parsed_reference())
+                references_bibcode['references'].append({**crossref_reference.get_parsed_reference(), 'v':reference})
             except ReferenceError as error_desc:
                 logger.error("CrossRefxml: error parsing reference: %s" %error_desc)
 

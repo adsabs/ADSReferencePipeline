@@ -67,9 +67,10 @@ class NATUREreference(XMLreference):
             self['eprint'] = eprint
 
         self['refstr'] = self.get_reference_str()
-        self['refplaintext'] = self.dexml(theref)
         if not self['refstr']:
-            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('reftxt')))
+            self['refplaintext'] = self.dexml(theref)
+            if not self['refplaintext']:
+                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('reftxt')))
 
         self.parsed = 1
 
@@ -144,7 +145,7 @@ def NATUREtoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("NatureXML: parsing %s" % reference)
             try:
                 nature_reference = NATUREreference(reference)
-                references_bibcode['references'].append(nature_reference.get_parsed_reference())
+                references_bibcode['references'].append({**nature_reference.get_parsed_reference(), 'xml_reference':reference})
             except ReferenceError as error_desc:
                 logger.error("NatureXML: error parsing reference: %s" %error_desc)
 
