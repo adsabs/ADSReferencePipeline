@@ -8,14 +8,28 @@ import datetime
 
 from adsrefpipe import app
 from adsrefpipe.models import Base, Action, Parser, Reference, History, Resolved, Compare
+from adsrefpipe.utils import ReferenceType, ReprocessQueryType
+from adsrefpipe.xmlparsers.CrossRefXML import CrossReftoREFs
+from adsrefpipe.xmlparsers.ElsevierXML import ELSEVIERtoREFs
+from adsrefpipe.xmlparsers.JATSxml import JATStoREFs
+from adsrefpipe.xmlparsers.IOPxml import IOPtoREFs
+from adsrefpipe.xmlparsers.SpringerXML import SPRINGERtoREFs
+from adsrefpipe.xmlparsers.APSxml import APStoREFs
+from adsrefpipe.xmlparsers.NatureXML import NATUREtoREFs
+from adsrefpipe.xmlparsers.AIPxml import AIPtoREFs
+from adsrefpipe.xmlparsers.WileyXML import WILEYtoREFs
+from adsrefpipe.xmlparsers.NLM3xml import NLMtoREFs
+from adsrefpipe.xmlparsers.AGUxml import AGUtoREFs, AGUreference
+from adsrefpipe.xmlparsers.handler import verify
 
-import traceback
 
 class test_database(unittest.TestCase):
 
     """
     Tests the application's methods
     """
+
+    maxDiff = None
 
     postgresql_url_dict = {
         'port': 5432,
@@ -52,16 +66,16 @@ class test_database(unittest.TestCase):
         assert self.app.conf.get('SQLALCHEMY_URL') == self.postgresql_url
 
     def add_stub_data(self):
-        """
-        Add stub data
-        :return:
-        """
+        """ Add stub data """
         stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
 
         actions = ['initial', 'retry', 'delete']
 
-        parsers = ['AGU', 'AIP', 'APS', 'CrossRef', 'ELSEVIER', 'IOP',
-                   'JATS', 'NATURE', 'NLM', 'SPRINGER', 'Text', 'WILEY']
+        parsers = [
+            ('AGU', '.agu.xml'), ('AIP', '.aip.xml'), ('APS', '.ref.xml'), ('CrossRef', '.xref.xml'),
+            ('ELSEVIER', '.elsevier.xml'), ('IOP', '.iop.xml'), ('JATS', '.jats.xml'), ('NATURE', '.nature.xml'),
+            ('NLM', '.nlm3.xml'), ('SPRINGER', '.springer.xml'), ('Text', '.raw'), ('WILEY', '.wiley2.xml')
+        ]
 
         reference = [
             ('2020arXiv200400013L',os.path.join(stubdata_dir,'00013.raw'),'00013.raw.result'),
@@ -110,14 +124,14 @@ class test_database(unittest.TestCase):
                 session.add(Action(status=action))
             session.commit()
             for parser in parsers:
-                session.add(Parser(name=parser))
+                session.add(Parser(name=parser[0], source_extension=parser[1]))
             session.commit()
 
             for i, (a_reference,a_history) in enumerate(zip(reference,history)):
                 reference_record = Reference(bibcode=a_reference[0],
                                              source_filename=a_reference[1],
                                              resolved_filename=a_reference[2],
-                                             parser=Parser().get_name(a_reference[1]))
+                                             parser=self.app.get_parser_name(a_reference[1]))
                 bibcode, source_filename = self.app.insert_reference_record(session, reference_record)
                 self.assertTrue(bibcode == a_reference[0])
                 self.assertTrue(source_filename == a_reference[1])
@@ -152,10 +166,7 @@ class test_database(unittest.TestCase):
                 self.assertTrue(success == True)
 
     def test_query_reference_tbl(self):
-        """
-
-        :return:
-        """
+        """ test querying reference table """
         self.add_stub_data()
         stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
         result_expected = [
@@ -198,10 +209,7 @@ class test_database(unittest.TestCase):
         self.assertTrue(result_expected == result_got)
 
     def test_query_reference_tbl_when_non_exits(self):
-        """
-
-        :return:
-        """
+        """ verify non existence reference record """
         self.add_stub_data()
         stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
 
@@ -216,18 +224,11 @@ class test_database(unittest.TestCase):
                                                      source_filename_list=os.path.join(stubdata_dir,'00013.raw')) == None)
 
     def test_query_reference_tbl_when_empty(self):
-        """
-
-        :return:
-        """
+        """ verify reference table being empty """
         self.assertTrue(self.app.query_reference_tbl() == None)
 
-
     def test_insert_reference_record(self):
-        """
-
-        :return:
-        """
+        """ test inserting reference record """
         self.add_stub_data()
         stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
 
@@ -244,27 +245,35 @@ class test_database(unittest.TestCase):
             self.assertTrue(source_filename == os.path.join(stubdata_dir,'00013.raw'))
             self.assertTrue(self.app.get_count_reference_records(session) == count)
 
-
     def test_populate_tables(self):
-        """
-
-        :return:
-        """
-
+        """ test populating all tables """
         stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
         actions = ['initial', 'retry', 'delete']
-        parsers = ['AGU', 'AIP', 'APS', 'CrossRef', 'ELSEVIER', 'IOP',
-                   'JATS', 'NATURE', 'NLM', 'SPRINGER', 'Text', 'WILEY']
+        parsers = [
+            ('AGU', '.agu.xml'), ('AIP', '.aip.xml'), ('APS', '.ref.xml'), ('CrossRef', '.xref.xml'),
+            ('ELSEVIER', '.elsevier.xml'), ('IOP', '.iop.xml'), ('JATS', '.jats.xml'), ('NATURE', '.nature.xml'),
+            ('NLM', '.nlm3.xml'), ('SPRINGER', '.springer.xml'), ('Text', '.raw'), ('WILEY', '.wiley2.xml')
+        ]
+        references = [
+            "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
+            "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923."
+        ]
+        references_and_ids = [
+            {'reference': 'J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ', 'id': 'H1I1'},
+            {'reference': 'C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.', 'id': 'H1I2'}
+        ]
         resolved = [
             {
                 "score": "1.0",
                 "bibcode": "2011LRR....14....2U",
-                "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. "
+                "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
+                "id": "H1I1"
             },
             {
                 "score": "1.0",
                 "bibcode": "2017RPPh...80l6902M",
-                "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923."
+                "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
+                "id": "H1I2",
             }
         ]
         with self.app.session_scope() as session:
@@ -272,14 +281,108 @@ class test_database(unittest.TestCase):
                 session.add(Action(status=action))
             session.commit()
             for parser in parsers:
-                session.add(Parser(name=parser))
+                session.add(Parser(name=parser[0], source_extension=parser[1]))
             session.commit()
 
-            result = self.app.populate_tables(bibcode='2020arXiv200400013L',
-                                     source_filename=os.path.join(stubdata_dir,'00013.raw'),
-                                     resolved=resolved,
-                                     classic_resolved_filename=os.path.join(stubdata_dir,'00013.raw.result'))
-            self.assertTrue(result == True)
+            status, references = self.app.populate_tables_initial_precede(
+                type=ReferenceType.text,
+                source_bibcode='2020arXiv200400013L',
+                source_filename=os.path.join(stubdata_dir,'00013.raw'),
+                parser_name='Text',
+                references=references)
+            self.assertTrue(status == True)
+            self.assertTrue(references == references_and_ids)
+            status = self.app.populate_tables_succeed(
+                resolved=resolved,
+                source_bibcode='2020arXiv200400013L',
+                classic_resolved_filename=os.path.join(stubdata_dir, '00013.raw.result'))
+            self.assertTrue(status == True)
+
+    def test_parser(self):
+        """ test getting parser name method """
+        self.add_stub_data()
+        parser = {
+            'CrossRef': ['/PLoSO/0007/10.1371_journal.pone.0048146.xref.xml', CrossReftoREFs],
+            'ELSEVIER': ['/AtmEn/0230/iss.elsevier.xml', ELSEVIERtoREFs],
+            'JATS': ['/NatSR/0009/iss36.jats.xml', JATStoREFs],
+            'IOP': ['/JPhCS/1085/iss4.iop.xml', IOPtoREFs],
+            'SPRINGER': ['/JHEP/2019/iss06.springer.xml', SPRINGERtoREFs],
+            'APS': ['/PhRvB/0081/2010PhRvB..81r4520P.ref.xml', APStoREFs],
+            'NATURE': ['/Natur/0549/iss7672.nature.xml', NATUREtoREFs],
+            'AIP': ['/ApPhL/0102/iss7.aip.xml', AIPtoREFs],
+            'WILEY': ['/JGR/0101/issD14.wiley2.xml', WILEYtoREFs],
+            'NLM': ['/PNAS/0109/iss17.nlm3.xml', NLMtoREFs],
+            'AGU': ['/JGR/0101/issD14.agu.xml', AGUtoREFs],
+            'Text': ['/arXiv/2011/00324.raw', None]
+        }
+        for name,info in parser.items():
+            self.assertEqual(name, self.app.get_parser_name(info[0]))
+            self.assertEqual(info[1], verify(name))
+        # now verify couple of errors
+        self.assertEqual(self.app.get_parser_name('/RScI/0091/2020RScI...91e3301A.aipft.xml'), None)
+        self.assertEqual(self.app.get_parser_name('/arXiv/2004/15000.1raw'), None)
+        return
+
+    def test_stats_compare(self):
+        """ test the display of statistics comparing classic and new resolver """
+        self.add_stub_data()
+        result_expected = "" \
+            "+----------------------+----------------------+----------------------+----------------------+-------+-------+-------+-------+-------+\n" \
+            "|   service_bibcode    |   classic_bibcode    |  service_confidence  |    classic_score     | match | miss  |  new  | newu  | diff  |\n" \
+            "+======================+======================+======================+======================+=======+=======+=======+=======+=======+\n" \
+            "| 2011LRR....14....2U  | 2010arXiv1009.5514U  |         1.0          |          1           |       |       |       |       | DIFF  |\n" \
+            "+----------------------+----------------------+----------------------+----------------------+-------+-------+-------+-------+-------+\n" \
+            "| 2017RPPh...80l6902M  | 2017arXiv170902923M  |         1.0          |          1           |       |       |       |       | DIFF  |\n" \
+            "+----------------------+----------------------+----------------------+----------------------+-------+-------+-------+-------+-------+"
+        result_got = self.app.get_stats_compare(source_filename=os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
+        self.assertEqual(result_got, result_expected)
+
+
+    def test_reprocess_references(self):
+        """ test reprocessing references """
+        self.add_stub_data()
+        result_expected_year = [
+            {'source_bibcode': '2020arXiv200400014K',
+             'source_filename': os.path.join(project_home, 'adsrefpipe/tests', 'unittests/stubdata/00014.raw'),
+             'source_modified': datetime.datetime(2020, 4, 3, 18, 8, 42),
+             'parser': 'Text',
+             'references': [{'item_num': 2, 'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]}
+        ]
+        result_expected_bibstem = [
+            {'source_bibcode': '2020arXiv200400014K',
+             'source_filename': os.path.join(project_home, 'adsrefpipe/tests', 'unittests/stubdata/00014.raw'),
+             'source_modified': datetime.datetime(2020, 4, 3, 18, 8, 42),
+             'parser': 'Text',
+             'references': [{'item_num': 2, 'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
+            },
+            {'source_bibcode': '2020arXiv200400016L',
+             'source_filename': os.path.join(project_home, 'adsrefpipe/tests', 'unittests/stubdata/00016.raw'),
+             'source_modified': datetime.datetime(2020, 4, 3, 18, 8, 32),
+             'parser': 'Text',
+             'references': [{'item_num': 2, 'refstr': 'Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 '}]
+            }
+        ]
+        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.year, match_bibcode='2019'), result_expected_year)
+        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.bibstem, match_bibcode='A&A..'), result_expected_bibstem)
+
+        references_and_ids_year = [
+            {'id': 'H4I1', 'reference': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}
+        ]
+        status, references = self.app.populate_tables_retry_precede(
+            type=ReferenceType.text,
+            source_bibcode=result_expected_year[0]['source_bibcode'],
+            source_filename=result_expected_year[0]['source_filename'],
+            source_modified=result_expected_year[0]['source_modified'],
+            references=[ref['refstr'] for ref in result_expected_year[0]['references']])
+        self.assertTrue(status == True)
+        self.assertTrue(references == references_and_ids_year)
+
+        current_num_records = '' \
+                'Currently there are 3 records in `Reference` table, which holds reference files information.\n' \
+                'Currently there are 4 records in `History` table, which holds file level information for resolved run.\n' \
+                'Currently there are 7 records in `Resolved` table, which holds reference level information for resolved run.\n' \
+                'Currently there are 6 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
+        self.assertTrue(self.app.get_count_records() == current_num_records)
 
 
 if __name__ == '__main__':

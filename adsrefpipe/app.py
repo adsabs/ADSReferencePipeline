@@ -163,7 +163,7 @@ class ADSReferencePipelineCelery(ADSCelery):
         :return:
         """
         try:
-            session.bulk_update_mappings(Resolved, resolved_list)
+            session.bulk_update_mappings(Resolved, [r.toJSON() for r in resolved_list])
             session.flush()
             self.logger.debug("Added `Resolved` records successfully.")
             return True
@@ -202,81 +202,6 @@ class ADSReferencePipelineCelery(ADSCelery):
         except SQLAlchemyError as e:
             self.logger.error("Attempt to add `XML` records failed: %s." % str(e.args))
             return False
-
-    def populate_tables_new_precede(self, type, bibcode, source_filename, parser_name, references):
-        """
-
-        :param type:
-        :param bibcode:
-        :param source_filename:
-        :param parser_name:
-        :param references:
-        :return:
-        """
-        with self.session_scope() as session:
-            success = False
-
-            reference_record = Reference(bibcode=bibcode,
-                                         source_filename=source_filename,
-                                         resolved_filename=get_resolved_filename(source_filename),
-                                         parser=parser_name)
-            bibcode, source_filename = self.insert_reference_record(session, reference_record)
-            if bibcode and source_filename:
-                history_record = History(bibcode=bibcode,
-                                         source_filename=source_filename,
-                                         source_modified=get_date_modified(source_filename),
-                                         status=Action().get_status_new(),
-                                         date=get_date_now(),
-                                         total_ref=len(references))
-                history_id = self.insert_history_record(session, history_record)
-                if history_id != -1:
-                    resolved_records, xml_records, references = self.populate_resolved_records_precede(type, references, history_id)
-                    success = self.insert_resolved_records(session, resolved_records)
-                    if success and xml_records:
-                        self.insert_xml_records(session, xml_records)
-            if success:
-                session.commit()
-                self.logger.info("Source file %s for bibcode %s with %d references, processed successfully." % (source_filename, bibcode, len(references)))
-            else:
-                session.rollback()
-                self.logger.info("Source file %s information failed to get added to database." % (source_filename))
-
-        return success, references
-
-    def populate_tables_retry_precede(self, type, bibcode, source_filename, source_modified, references):
-        """
-
-        :param type:
-        :param bibcode:
-        :param source_filename:
-        :param source_modified:
-        :param parser_name:
-        :param references:
-        :return:
-        """
-        with self.session_scope() as session:
-            success = False
-
-            history_record = History(bibcode=bibcode,
-                                     source_filename=source_filename,
-                                     source_modified=source_modified,
-                                     status=Action().get_status_retry(),
-                                     date=get_date_now(),
-                                     total_ref=len(references))
-            history_id = self.insert_history_record(session, history_record)
-            if history_id != -1:
-                resolved_records, xml_records, references = self.populate_resolved_records_precede(type, references, history_id)
-                success = self.insert_resolved_records(session, resolved_records)
-                if success and xml_records:
-                    success = self.insert_xml_records(session, xml_records)
-            if success:
-                session.commit()
-                self.logger.info("Source file %s for bibcode %s with %d references, for reprocessing added successfully." % (source_filename, bibcode, len(references)))
-            else:
-                session.rollback()
-                self.logger.info("Source file %s information for reprocessing failed to get added to database." % (source_filename))
-
-        return success, references
 
     def populate_resolved_records_precede(self, type, references, history_id):
         """
@@ -325,6 +250,81 @@ class ADSReferencePipelineCelery(ADSCelery):
 
         return None, None, None
 
+    def populate_tables_initial_precede(self, type, source_bibcode, source_filename, parser_name, references):
+        """
+
+        :param type:
+        :param source_bibcode:
+        :param source_filename:
+        :param parser_name:
+        :param references:
+        :return:
+        """
+        with self.session_scope() as session:
+            success = False
+
+            reference_record = Reference(bibcode=source_bibcode,
+                                         source_filename=source_filename,
+                                         resolved_filename=get_resolved_filename(source_filename),
+                                         parser=parser_name)
+            bibcode, filename = self.insert_reference_record(session, reference_record)
+            if bibcode and filename:
+                history_record = History(bibcode=bibcode,
+                                         source_filename=source_filename,
+                                         source_modified=get_date_modified(source_filename),
+                                         status=Action().get_status_new(),
+                                         date=get_date_now(),
+                                         total_ref=len(references))
+                history_id = self.insert_history_record(session, history_record)
+                if history_id != -1:
+                    resolved_records, xml_records, references = self.populate_resolved_records_precede(type, references, history_id)
+                    success = self.insert_resolved_records(session, resolved_records)
+                    if success and xml_records:
+                        success = self.insert_xml_records(session, xml_records)
+            if success:
+                session.commit()
+                self.logger.info("Source file %s for bibcode %s with %d references, processed successfully." % (source_filename, source_bibcode, len(references)))
+            else:
+                session.rollback()
+                self.logger.info("Source file %s information failed to get added to database." % (source_filename))
+
+        return success, references
+
+    def populate_tables_retry_precede(self, type, source_bibcode, source_filename, source_modified, references):
+        """
+
+        :param type:
+        :param bibcode:
+        :param source_filename:
+        :param source_modified:
+        :param parser_name:
+        :param references:
+        :return:
+        """
+        with self.session_scope() as session:
+            success = False
+            history_record = History(bibcode=source_bibcode,
+                                     source_filename=source_filename,
+                                     source_modified=source_modified,
+                                     status=Action().get_status_retry(),
+                                     date=get_date_now(),
+                                     total_ref=len(references))
+            history_id = self.insert_history_record(session, history_record)
+            if history_id != -1:
+                resolved_records, xml_records, references = self.populate_resolved_records_precede(type, references, history_id)
+                if resolved_records:
+                    success = self.insert_resolved_records(session, resolved_records)
+                    if success and xml_records:
+                        success = self.insert_xml_records(session, xml_records)
+            if success:
+                session.commit()
+                self.logger.info("Source file %s for bibcode %s with %d references, for reprocessing added successfully." % (source_filename, source_bibcode, len(references)))
+            else:
+                session.rollback()
+                self.logger.info("Source file %s information for reprocessing failed to get added to database." % (source_filename))
+
+        return success, references
+
     def populate_tables_succeed(self, resolved, source_bibcode, classic_resolved_filename):
         """
 
@@ -348,11 +348,11 @@ class ADSReferencePipelineCelery(ADSCelery):
                 match = self.RE_PARSE_ID.match(ref['id'])
                 history_id = int(match.group('history_id'))
                 item_num = int(match.group('item_num'))
-                resolved_record = {"history_id" : history_id,
-                                   "item_num" : item_num,
-                                   "reference_str" : ref.get('refstring', None) or self.EMPTY_XML_REFERENCE_STR,
-                                   "bibcode" : ref.get('bibcode', None),
-                                   "score" : ref.get('score', None)}
+                resolved_record = Resolved(history_id=history_id,
+                                           item_num=item_num,
+                                           reference_str=ref.get('refstring', None) or self.EMPTY_XML_REFERENCE_STR,
+                                           bibcode=ref.get('bibcode', None),
+                                           score=ref.get('score', None))
                 resolved_records.append(resolved_record)
                 if resolved_classic:
                     compare_record = Compare(history_id=history_id,
@@ -499,9 +499,9 @@ class ADSReferencePipelineCelery(ADSCelery):
                     "FROM reference as f, history as h, (%s) as r LEFT JOIN xml as x ON " \
                     "r.history_id = x.history_id and r.item_num = x.item_num " \
                     "WHERE f.bibcode = h.bibcode AND f.source_filename = h.source_filename AND h.id = r.history_id AND %s " \
-                    "ORDER BY r.history_id, r.item_num;"%resolved_view
+                    "ORDER BY r.history_id, r.item_num;"%(resolved_view, collection)
             with self.session_scope() as session:
-                rows = session.execute(query%collection)
+                rows = session.execute(query)
                 if rows.rowcount > 0:
                     result = {}
                     history_id = -1

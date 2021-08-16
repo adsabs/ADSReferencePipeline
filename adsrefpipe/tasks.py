@@ -4,17 +4,16 @@ from kombu import Queue
 import os
 
 from adsputils import load_config
-config = {}
-config.update(load_config())
 
 from adsrefpipe.utils import read_reference_text_file, resolve_references, ReferenceType, ReprocessQueryType
 from adsrefpipe.xmlparsers.handler import verify
 
-
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+config = load_config(proj_home=proj_home)
 app = app_module.ADSReferencePipelineCelery('reference-pipeline',
-                                            proj_home=os.path.realpath(os.path.join(os.path.dirname(__file__), '../')),
+                                            proj_home=proj_home,
                                             local_config=globals().get('local_config', {}),
-                                            backend=config['REDIS_BACKEND'])
+                                            backend=config.get('REDIS_BACKEND'))
 
 app.conf.CELERY_QUEUES = (
     Queue('process_references', app.exchange, routing_key='process_references'),
@@ -22,8 +21,6 @@ app.conf.CELERY_QUEUES = (
 )
 
 logger = app.logger
-
-POPULATE_COMPARE = True
 
 @app.task(queue='process_references')
 def task_process_reference_file(reference_filename):
@@ -66,7 +63,7 @@ def task_process_reference_file(reference_filename):
         # save the initial records in the database,
         # this is going to be useful since it allows us to be able to tell if
         # anything went wrong with the service that we did not get back the results
-        status, references = app.populate_tables_new_precede(type, result['bibcode'], reference_filename, name, references)
+        status, references = app.populate_tables_initial_precede(type, result['bibcode'], reference_filename, name, references)
         if not status:
             return False
         resolved = []
@@ -78,7 +75,7 @@ def task_process_reference_file(reference_filename):
             if not resolved_batch:
                 return False
             resolved += resolved_batch
-        classic_resolved_filename = reference_filename.replace('sources', 'resolved') + '.result' if POPULATE_COMPARE else None
+        classic_resolved_filename = reference_filename.replace('sources', 'resolved') + '.result' if config['COMPARE_CLASSIC'] else None
         status = app.populate_tables_succeed(resolved, result['bibcode'], classic_resolved_filename)
         if not status:
             return False
@@ -93,8 +90,11 @@ def task_reprocess_subset_references(record):
     """
     reference_filename = record['source_filename']
     type = ReferenceType.text if record['parser'] == 'Text' else ReferenceType.xml
-    status, references = app.populate_tables_retry_precede(type, record['source_bibcode'], reference_filename,
-                                                           record['source_modified'], record['references'])
+    status, references = app.populate_tables_retry_precede(type,
+                                                           record['source_bibcode'],
+                                                           reference_filename,
+                                                           record['source_modified'],
+                                                           [ref['refstr'] for ref in record['references']])
     if not status:
         return False
     resolved = []
@@ -107,7 +107,7 @@ def task_reprocess_subset_references(record):
         resolved += resolve_references(type, references_batch)
         if not resolved:
             return False
-    classic_resolved_filename = reference_filename.replace('sources', 'resolved') + '.result' if POPULATE_COMPARE else None
+    classic_resolved_filename = reference_filename.replace('sources', 'resolved') + '.result' if config['COMPARE_CLASSIC'] else None
     return app.populate_tables_succeed(resolved, record['source_bibcode'], classic_resolved_filename)
 
 

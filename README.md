@@ -31,43 +31,74 @@ This pipeline is to process source reference files, if xml to parse them first a
 
 #####To run diagnostics:
 * Either supply list of bibcodes or list of source files
-
-
+    ```
     python run.py DIAGNOSTICS -b <list of bibcodes separated by spaces>
     python run.py DIAGNOSTICS -s <list of source filenames separated by spaces>
     python run.py DIAGNOSTICS -b <list of bibcodes separated by spaces> -s <list of source filenames separated by spaces>
+    ```
+
+* To check if a source files can be processed by the pipeline (parser is included), use the command
+    ```
+    python run.py DIAGNOSTICS -p <source filename>
+    ```
     
 If diagnostics is run without any parameters, count of records in each of the four tables, Reference, History, Resolved, and Compare are displayed.
 
-#####To resolve text source files:
+#####To resolve references:
 
-* List source files to be processed using the command
+* There are six options:
 
-    python run.py RAW -s <list of source filenames separated by spaces>
+    1. Specify source files to be processed, regardless of source file format (ie, raw, any flavor xml), use the command
+        ```
+        python run.py RESOLVE -s <list of source filenames separated by spaces>
+        ```
 
-#####To resolve xml source files:
-* It can be verified if a publisher xml source file can be parsed so that the references can be resolved. To check this
+    2. Specify a directory, and file extension, to recursively search all sub directories for this type of reference file, and queue them all for processing, use the command
+        ```
+        python run.py RESOLVE -p <source files path> -e <source files extension>
+        ```
 
+    3. To reprocess existing references based on confidence cutoff value, use the command
+        ```
+        python run.py RESOLVE -c <confidence cutoff>
+        ```
+        where all the references with this score lower than this shall be queued for reprocessing.
+        
+    4. To reprocess existing references based on resolved bibcode's bibstem, use the command
+        ```
+        python run.py RESOLVE -b <resolved reference bibstem>
+        ```
+        where all the references having this bibstem shall be queued for reprocessing.
 
-    python run.py XML -p <parse filename>
-     
-#####To resolve source files in a directory:
-* Specify the directory, the file extension to locate in that directory, and an optional cutoff time parameter, to consider only source files with modified date after the cutoff date
+    5. To reprocess existing references based on resolved bibcode's year, use the command
+        ```
+        python run.py RESOLVE -y <resolved reference year>
+        ```
+        where all the references having this year shall be queued for reprocessing.
+        
+    6. To reprocess existing references that were queued but for some reason they were not able to get resolved (ie, service issue), use the command
+        ```
+        python run.py RESOLVE -f
+        ```
+        where any reference that were queued but not resolved shall be reprocessed.
 
+    Note that there is an optional parameter that can be combined with cases numbers 2 - 5, to filter references on time. Include the parameter
+    
+        -d <days>
+    to filter on time. For the case of command #2, this parameter is applied to source file, if timestamp of the file is later than specified past many days, the file shall be queued for processing. For the case of commands numbers 3 - 5 the time is applied to when the references where run last, if they were processed in the past specified days, they shall be queue for reprocessing. 
 
-    python run.py DIR -p <source files path> -e <source files extension> <cutoff date (optional)>
+#####To query database:
 
-#####To query database for xml parser specifically:
+* To get a list of source files processed from a specified publisher, use the command 
+    ```
+    python run.py STATS -p <publisher>
+    ```
 
-* Specify source files to see if pipeline has parser for it
-
-
-    python run.py PARSER -p <source filename>
-
-
-* Specific publisher type to get a list of source files processed
-
-    python run.py PARSER -p <publisher>
+* To see the result of resolved records for specific file/bibcode, use the command
+    ```
+    python run.py STATS -s <source filename>
+    python run.py STATS -b <bibcode>
+    ```
 
 
 ## Maintainers

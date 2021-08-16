@@ -1,4 +1,4 @@
-
+import sys
 import os, fnmatch
 
 from adsputils import setup_logging, get_date
@@ -110,6 +110,8 @@ def queue_reprocess(reprocess_type, score_cutoff=0, match_bibcode='', cutoff_dat
     queued_tasks = []
     records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, cutoff_date)
     for record in records:
+        tasks.task_reprocess_subset_references(record)
+        return
         results = tasks.task_reprocess_subset_references.delay(record)
         queued_tasks.append({'reprocess':record, 'results':results})
     check_queue(queued_tasks)
@@ -202,12 +204,12 @@ if __name__ == '__main__':
                         required=True,
                         help='Statistics of source reference file, comparing classic and service reference resolvering')
     stats_output.add_argument('-p',
-                        '--parser_type',
-                        dest='parser_type',
+                        '--publisher',
+                        dest='publisher',
                         action='store',
                         default=None,
                         required=True,
-                        help='To list all source xml filenames resolved by a particular parser')
+                        help='To list all source filenames resolved from a specific publisher')
 
     args = parser.parse_args()
 
@@ -260,10 +262,12 @@ if __name__ == '__main__':
     elif args.action == 'STATS':
         if args.source_filename:
             print(app.get_stats_compare(args.source_filename))
-        elif args.parser_type:
-            records = app.query_reference_tbl(parser_type=args.parser_type)
+        elif args.publisher:
+            records = app.query_reference_tbl(parser_type=args.publisher)
             if not records:
-                print('No records found for parser %s.'%args.parser_type)
+                print('No records found for parser %s.'%args.publisher)
             else:
                 for record in records:
                     print(record['source_filename'])
+
+    sys.exit(0)

@@ -76,10 +76,10 @@ def upgrade():
                     sa.Column('bibcode', sa.String(), nullable=False),
                     sa.Column('source_filename', sa.String(), nullable=False),
                     sa.ForeignKeyConstraint(['bibcode', 'source_filename'], ['reference.bibcode','reference.source_filename'], ),
-                    sa.Column('source_modified', sa.DateTime(), nullable=False),
+                    sa.Column('source_modified', sa.DateTime(timezone=True), nullable=False),
                     sa.Column('status', sa.String(), nullable=False),
                     sa.ForeignKeyConstraint(('status',), ['action.status'], ),
-                    sa.Column('date', sa.DateTime(), nullable=False),
+                    sa.Column('date', sa.DateTime(timezone=True), nullable=False),
                     sa.Column('total_ref', sa.Integer(), nullable=False),
     )
 

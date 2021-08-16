@@ -180,7 +180,7 @@ def CrossReftoREFs(filename=None, buffer=None, unicode=None):
             logger.debug("CrossRefxml: parsing %s" % reference)
             try:
                 crossref_reference = CrossRefreference(reference)
-                references_bibcode['references'].append({**crossref_reference.get_parsed_reference(), 'v':reference})
+                references_bibcode['references'].append({**crossref_reference.get_parsed_reference(), 'xml_reference':reference})
             except ReferenceError as error_desc:
                 logger.error("CrossRefxml: error parsing reference: %s" %error_desc)
 

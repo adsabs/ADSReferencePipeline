@@ -26,3 +26,7 @@ CELERY_INCLUDE = ['adsrefpipe.tasks']
 CELERY_BROKER = 'pyamqp://'
 # for result backend
 REDIS_BACKEND = "redis://localhost:6379/0"
+
+
+# true if to compare the resolved records with classic
+COMPARE_CLASSIC = False

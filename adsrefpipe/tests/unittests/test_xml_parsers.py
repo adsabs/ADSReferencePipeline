@@ -19,7 +19,7 @@ from adsrefpipe.xmlparsers.NLM3xml import NLMtoREFs
 from adsrefpipe.xmlparsers.AGUxml import AGUtoREFs, AGUreference
 
 from adsrefpipe.xmlparsers.reference import Reference, ReferenceError, XMLreference
-from adsrefpipe.xmlparsers.handler import verify
+
 
 class TestXMLParsers(unittest.TestCase):
 
@@ -115,31 +115,6 @@ class TestXMLParsers(unittest.TestCase):
         """ test calling url decode method of XMLreference"""
         reference = AGUreference('<empty/>')
         self.assertEqual(reference.url_decode('%AF'), '¯')
-
-
-    def test_handler(self):
-        """ test handler method """
-        handler = {
-            CrossReftoREFs: ['/PLoSO/0007/10.1371_journal.pone.0048146.xref.xml'],
-            ELSEVIERtoREFs: ['/AtmEn/0230/iss.elsevier.xml'],
-            JATStoREFs: ['/NatSR/0009/iss36.jats.xml'],
-            IOPtoREFs: ['/JPhCS/1085/iss4.iop.xml'],
-            SPRINGERtoREFs: ['/JHEP/2019/iss06.springer.xml'],
-            APStoREFs: ['/PhRvB/0081/2010PhRvB..81r4520P.ref.xml'],
-            NATUREtoREFs: ['/Natur/0549/iss7672.nature.xml'],
-            AIPtoREFs: ['/ApPhL/0102/iss7.aip.xml'],
-            WILEYtoREFs: ['/JGR/0101/issD14.wiley2.xml'],
-            NLMtoREFs: ['/PNAS/0109/iss17.nlm3.xml'],
-            AGUtoREFs: ['/JGR/0101/issD14.agu.xml']
-        }
-        for parser,filenames in handler.items():
-            for filename in filenames:
-                print(filename,parser,verify(filename))
-                self.assertEqual(parser, verify(filename))
-
-        # no send couple of errors
-        self.assertEqual(verify('/RScI/0091/2020RScI...91e3301A.aipft.xml'), None)
-        self.assertEqual(verify('/arXiv/2004/15000.raw'), None)
 
 
 if __name__ == '__main__':

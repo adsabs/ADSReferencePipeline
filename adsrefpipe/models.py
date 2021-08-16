@@ -45,6 +45,15 @@ class Parser(Base):
     name = Column(String, primary_key=True)
     source_extension = Column(String)
 
+    def __init__(self, name, source_extension):
+        """
+
+        :param name:
+        :param source_extension:
+        """
+        self.name = name
+        self.source_extension = source_extension
+
     def get_name(self):
         """
 
@@ -52,6 +61,15 @@ class Parser(Base):
         :return:
         """
         return self.name
+
+    def toJSON(self):
+        """
+        :return: values formatted as python dict, if no values found returns empty structure, not None
+        """
+        return {
+            'name': self.name,
+            'source_extension': self.source_extension,
+        }
 
 
 class Reference(Base):
