@@ -12,7 +12,7 @@ REFERENCE_PIPELINE_SERVICE_XML_URL = 'http://0.0.0.0:5000/xml'
 REFERENCE_PIPELINE_MAX_NUM_REFERENCES = 16
 
 # db config
-SQLALCHEMY_URL = 'url to db'
+SQLALCHEMY_URL = 'postgresql+psycopg2://postgres:postgres@localhost:5432/postgres'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ECHO = False
 
