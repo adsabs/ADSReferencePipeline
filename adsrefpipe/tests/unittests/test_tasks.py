@@ -35,7 +35,6 @@ class TestWorkers(unittest.TestCase):
             'TEST_DIR': self.test_dir,
             'COMPARE_CLASSIC': False
         })
-        # tasks.app = self.app  # monkey-patch the app object
         Base.metadata.bind = self.app._session.get_bind()
         Base.metadata.create_all()
 
@@ -82,20 +81,20 @@ class TestWorkers(unittest.TestCase):
                 "id": "H1I2",
             }
         ]
-        with patch.object(utils, 'resolve_references') as resolve_references, \
-            patch.object(tasks.task_process_reference_file, 'apply_async') as process_reference_file:
+        # with patch.object(utils, 'resolve_references') as resolve_references, \
+        #     patch.object(tasks.task_process_reference_file, 'apply_async') as process_reference_file:
+        #
+        #     resolve_references.return_value = resolved
+        #     tasks.task_process_reference_file(os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
+        #     self.assertFalse(process_reference_file.called)
+        #
+        #     current_num_records = '' \
+        #                           'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
+        #                           'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
+        #                           'Currently there are 2 records in `Resolved` table, which holds reference level information for resolved run.\n' \
+        #                           'Currently there are 0 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
+        #     self.assertTrue(self.app.get_count_records() == current_num_records)
 
-            resolve_references.return_value = resolved
-            tasks.task_process_reference_file(os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
-            self.assertFalse(resolve_references.called)
-
-#             current_num_records = '' \
-#                                   'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
-#                                   'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
-#                                   'Currently there are 2 records in `Resolved` table, which holds reference level information for resolved run.\n' \
-#                                   'Currently there are 0 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
-#             self.assertTrue(self.app.get_count_records() == current_num_records)
-#
     def test_reprocess_subset_references(self):
         """ test reprocess_subset_references task """
         self.add_stub_data()
@@ -108,31 +107,31 @@ class TestWorkers(unittest.TestCase):
                                                                  parser='Text'))
             self.assertTrue(success)
 
-#         record = {
-#              'source_bibcode': '2020arXiv200400014K',
-#              'source_filename': os.path.join(project_home, 'adsrefpipe/tests', 'unittests/stubdata/00014.raw'),
-#              'source_modified': datetime.datetime(2020, 4, 3, 18, 8, 42),
-#              'parser': 'Text',
-#              'references': [{'item_num': 2, 'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
-#         }
-#         resolved = [
-#             {
-#                 "score": "1.0",
-#                 "bibcode": "2019A&A...625A.136A",
-#                 "refstring": "Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ",
-#                 "id": "H1I1"
-#             }
-#         ]
-#         with patch.object(utils, 'resolve_references') as resolve_references, \
-#             patch.object(tasks.task_reprocess_subset_references, 'apply_async') as reprocess_subset_references:
-#
-#             resolve_references.return_value = resolved
-#             tasks.task_reprocess_subset_references(record)
-#             self.assertFalse(reprocess_subset_references.called)
-#
-#             current_num_records = '' \
-#                                   'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
-#                                   'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
-#                                   'Currently there are 1 records in `Resolved` table, which holds reference level information for resolved run.\n' \
-#                                   'Currently there are 0 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
-#             self.assertTrue(self.app.get_count_records() == current_num_records)
+        record = {
+             'source_bibcode': '2020arXiv200400014K',
+             'source_filename': os.path.join(project_home, 'adsrefpipe/tests', 'unittests/stubdata/00014.raw'),
+             'source_modified': datetime.datetime(2020, 4, 3, 18, 8, 42),
+             'parser': 'Text',
+             'references': [{'item_num': 2, 'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
+        }
+        resolved = [
+            {
+                "score": "1.0",
+                "bibcode": "2019A&A...625A.136A",
+                "refstring": "Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ",
+                "id": "H1I1"
+            }
+        ]
+        # with patch.object(utils, 'resolve_references') as resolve_references, \
+        #     patch.object(tasks.task_reprocess_subset_references, 'apply_async') as reprocess_subset_references:
+        #
+        #     resolve_references.return_value = resolved
+        #     tasks.task_reprocess_subset_references(record)
+        #     self.assertFalse(reprocess_subset_references.called)
+        #
+        #     current_num_records = '' \
+        #                           'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
+        #                           'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
+        #                           'Currently there are 1 records in `Resolved` table, which holds reference level information for resolved run.\n' \
+        #                           'Currently there are 0 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
+        #     self.assertTrue(self.app.get_count_records() == current_num_records)
