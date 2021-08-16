@@ -35,7 +35,7 @@ class TestWorkers(unittest.TestCase):
             'TEST_DIR': self.test_dir,
             'COMPARE_CLASSIC': False
         })
-        tasks.app = self.app  # monkey-patch the app object
+        # tasks.app = self.app  # monkey-patch the app object
         Base.metadata.bind = self.app._session.get_bind()
         Base.metadata.create_all()
 
