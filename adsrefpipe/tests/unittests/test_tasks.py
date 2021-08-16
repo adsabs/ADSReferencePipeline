@@ -68,27 +68,27 @@ class TestWorkers(unittest.TestCase):
     def test_process_references(self):
         """ test process_references task """
         self.add_stub_data()
-#         resolved = [
-#             {
-#                 "score": "1.0",
-#                 "bibcode": "2011LRR....14....2U",
-#                 "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
-#                 "id": "H1I1"
-#             },
-#             {
-#                 "score": "1.0",
-#                 "bibcode": "2017RPPh...80l6902M",
-#                 "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
-#                 "id": "H1I2",
-#             }
-#         ]
-#         with patch.object(utils, 'resolve_references') as resolve_references, \
-#             patch.object(tasks.task_process_reference_file, 'apply_async') as process_reference_file:
-#
-#             resolve_references.return_value = resolved
-#             tasks.task_process_reference_file(os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
-#             self.assertFalse(resolve_references.called)
-#
+        resolved = [
+            {
+                "score": "1.0",
+                "bibcode": "2011LRR....14....2U",
+                "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
+                "id": "H1I1"
+            },
+            {
+                "score": "1.0",
+                "bibcode": "2017RPPh...80l6902M",
+                "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
+                "id": "H1I2",
+            }
+        ]
+        with patch.object(utils, 'resolve_references') as resolve_references, \
+            patch.object(tasks.task_process_reference_file, 'apply_async') as process_reference_file:
+
+            resolve_references.return_value = resolved
+            tasks.task_process_reference_file(os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
+            self.assertFalse(resolve_references.called)
+
 #             current_num_records = '' \
 #                                   'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
 #                                   'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
