@@ -35,6 +35,7 @@ class TestWorkers(unittest.TestCase):
             'TEST_DIR': self.test_dir,
             'COMPARE_CLASSIC': False
         })
+        tasks.app = self.app # monkey-patch the app object
         Base.metadata.bind = self.app._session.get_bind()
         Base.metadata.create_all()
 
@@ -81,13 +82,10 @@ class TestWorkers(unittest.TestCase):
                 "id": "H1I2",
             }
         ]
-        with patch.object(utils, 'resolve_references') as resolve_references, \
-            patch.object(tasks.task_process_reference_file, 'apply_async') as process_reference_file:
 
-            resolve_references.return_value = resolved
+        with patch.object(utils, 'resolve_references') as mock_resolve_references:
+            mock_resolve_references.return_value = resolved
             tasks.task_process_reference_file(os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
-            self.assertFalse(process_reference_file.called)
-
             current_num_records = '' \
                                   'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
                                   'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
@@ -122,16 +120,16 @@ class TestWorkers(unittest.TestCase):
                 "id": "H1I1"
             }
         ]
-        with patch.object(utils, 'resolve_references') as resolve_references, \
-            patch.object(tasks.task_reprocess_subset_references, 'apply_async') as reprocess_subset_references:
-
-            resolve_references.return_value = resolved
+        with patch.object(utils, 'resolve_references') as mock_resolve_references:
+            mock_resolve_references.return_value = resolved
             tasks.task_reprocess_subset_references(record)
-            self.assertFalse(reprocess_subset_references.called)
-
             current_num_records = '' \
                                   'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
                                   'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
                                   'Currently there are 1 records in `Resolved` table, which holds reference level information for resolved run.\n' \
                                   'Currently there are 0 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
             self.assertTrue(self.app.get_count_records() == current_num_records)
+
+
+if __name__ == '__main__':
+    unittest.main()

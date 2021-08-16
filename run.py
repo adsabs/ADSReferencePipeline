@@ -145,65 +145,65 @@ if __name__ == '__main__':
                         default=None,
                         help='Verify that the file can be parsed and references resolved')
 
-    resolve_references = subparsers.add_parser('RESOLVE', help='Resolve references')
-    resolve_references.add_argument('-s',
+    resolve = subparsers.add_parser('RESOLVE', help='Resolve references')
+    resolve.add_argument('-s',
                         '--source_filenames',
                         dest='source_filenames',
                         action='store',
                         nargs='+',
                         default=[],
                         help='List of source file names (either xml or raw) separated by spaces')
-    resolve_references.add_argument('-p',
+    resolve.add_argument('-p',
                         '--path',
                         dest='path',
                         action='store',
                         default=None,
                         help='Path of source files for resolving')
-    resolve_references.add_argument('-e',
+    resolve.add_argument('-e',
                         '--extension',
                         dest='extension',
                         action='store',
                         default=None,
                         help='Extension of files to locate in the path directory')
-    resolve_references.add_argument('-d',
+    resolve.add_argument('-d',
                         '--days',
                         dest='days',
                         action='store',
                         default=None,
                         help='Resolve only those that are this many days old')
-    resolve_references.add_argument('-c',
+    resolve.add_argument('-c',
                         '--confidence',
                         dest='confidence',
                         action='store',
                         default=None,
                         help='Reprocess resolved records confidence score lower than this value')
-    resolve_references.add_argument('-b',
+    resolve.add_argument('-b',
                         '--bibstem',
                         dest='bibstem',
                         action='store',
                         default=None,
                         help='Reprocess resolved records having this bibstem')
-    resolve_references.add_argument('-y',
+    resolve.add_argument('-y',
                         '--year',
                         dest='year',
                         action='store',
                         default=None,
                         help='Reprocess resolved records having this year')
-    resolve_references.add_argument('-f',
+    resolve.add_argument('-f',
                         '--fail',
                         dest='fail',
                         action='store_true',
                         help='Reprocess records that failed to get resolved')
 
-    stats_output = subparsers.add_parser('STATS', help='Print out statistics of the reference source file')
-    stats_output.add_argument('-s',
+    stats = subparsers.add_parser('STATS', help='Print out statistics of the reference source file')
+    stats.add_argument('-s',
                         '--source_filename',
                         dest='source_filename',
                         action='store',
                         default=None,
                         required=True,
                         help='Statistics of source reference file, comparing classic and service reference resolvering')
-    stats_output.add_argument('-p',
+    stats.add_argument('-p',
                         '--publisher',
                         dest='publisher',
                         action='store',
