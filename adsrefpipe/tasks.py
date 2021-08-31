@@ -53,6 +53,8 @@ def task_process_reference_file(reference_filename):
             parser = verify(name)
             # read from source file the bibcode and references already tagged
             results = parser(reference_filename)
+            if len(results) == 0:
+                raise
         except:
             logger.error("Unable to parse %s." %reference_filename)
             return False
@@ -94,7 +96,7 @@ def task_reprocess_subset_references(record):
                                                            record['source_bibcode'],
                                                            reference_filename,
                                                            record['source_modified'],
-                                                           [ref['refstr'] for ref in record['references']])
+                                                           record['references'])
     if not status:
         return False
     resolved = []

@@ -203,7 +203,7 @@ class ADSReferencePipelineCelery(ADSCelery):
             self.logger.error("Attempt to add `XML` records failed: %s." % str(e.args))
             return False
 
-    def populate_resolved_records_precede(self, type, references, history_id):
+    def populate_resolved_records_precede(self, type, references, history_id, item_nums=None):
         """
         insert resolved records before sending them to service to be matched
         if we have xml references, then insert populate the xml table as well
@@ -211,40 +211,43 @@ class ADSReferencePipelineCelery(ADSCelery):
         :param type:
         :param references:
         :param history_id:
+        :param item_nums:
         :return:
         """
+        if not item_nums:
+            item_nums = list(range(1, len(references)+1))
         if type == ReferenceType.text:
             resolved_records = []
             updated_references = []
-            for i, ref in enumerate(references):
+            for item_num, ref in zip(item_nums, references):
                 resolved_record = Resolved(history_id=history_id,
-                                           item_num=i + 1,
+                                           item_num=item_num,
                                            reference_str=ref,
                                            bibcode='0000',
                                            score=-1)
                 resolved_records.append(resolved_record)
                 # add the id for later to update the record with resolved values
-                updated_references.append({'reference':ref, 'id': 'H%dI%d' % (history_id, i + 1)})
+                updated_references.append({'reference':ref, 'id': 'H%dI%d' % (history_id, item_num)})
             return resolved_records, None, updated_references
 
         if type == ReferenceType.xml:
             resolved_records = []
             xml_records = []
-            for i, ref in enumerate(references):
+            for item_num, ref in zip(item_nums, references):
                 resolved_record = Resolved(history_id=history_id,
-                                           item_num=i + 1,
+                                           item_num=item_num,
                                            reference_str=ref.get('refstr', None) or
                                                          ref.get('refplaintext', None) or
                                                          self.EMPTY_XML_REFERENCE_STR,
                                            bibcode='0000',
                                            score=-1)
                 xml_record = XML(history_id=history_id,
-                                 item_num=i + 1,
+                                 item_num=item_num,
                                  reference=ref.get('xml_reference', None))
                 resolved_records.append(resolved_record)
                 xml_records.append(xml_record)
                 # add the id and remove xml_reference that is now in database
-                ref['id'] = 'H%dI%d' % (history_id, i + 1)
+                ref['id'] = 'H%dI%d' % (history_id, item_num)
                 del ref['xml_reference']
             return resolved_records, xml_records, references
 
@@ -290,7 +293,7 @@ class ADSReferencePipelineCelery(ADSCelery):
 
         return success, references
 
-    def populate_tables_retry_precede(self, type, source_bibcode, source_filename, source_modified, references):
+    def populate_tables_retry_precede(self, type, source_bibcode, source_filename, source_modified, retry_records):
         """
 
         :param type:
@@ -308,10 +311,12 @@ class ADSReferencePipelineCelery(ADSCelery):
                                      source_modified=source_modified,
                                      status=Action().get_status_retry(),
                                      date=get_date_now(),
-                                     total_ref=len(references))
+                                     total_ref=len(retry_records))
             history_id = self.insert_history_record(session, history_record)
             if history_id != -1:
-                resolved_records, xml_records, references = self.populate_resolved_records_precede(type, references, history_id)
+                references = [ref['refstr'] for ref in retry_records]
+                item_nums = [ref['item_num'] for ref in retry_records]
+                resolved_records, xml_records, references = self.populate_resolved_records_precede(type, references, history_id, item_nums)
                 if resolved_records:
                     success = self.insert_resolved_records(session, resolved_records)
                     if success and xml_records:
@@ -421,62 +426,106 @@ class ADSReferencePipelineCelery(ADSCelery):
 
         :return:
         """
-        results = ''
         with self.session_scope() as session:
-            results += "Currently there are %d records in `Reference` table, which holds reference files information.\n" % self.get_count_reference_records(session)
-            results += "Currently there are %d records in `History` table, which holds file level information for resolved run.\n" % self.get_count_history_records(session)
-            results += "Currently there are %d records in `Resolved` table, which holds reference level information for resolved run.\n" % self.get_count_resolved_records(session)
-            results += "Currently there are %d records in `Compare` table, which holds comparison of new and classic resolved run.\n" % self.get_count_compare_records(session)
-        return results
+            results = {
+                'Reference':self.get_count_reference_records(session),
+                'History':self.get_count_history_records(session),
+                'Resolved':self.get_count_resolved_records(session),
+                'Compare':self.get_count_compare_records(session)
+            }
+            return results
 
-    def get_stats_compare(self, source_filename):
+    def get_reference_source_info_reprocessing(self, collection):
+        """
+        returns the reference source information for reprocessing references
+        
+        :param collection:
+        :return:
+        """
+        query = "SELECT DISTINCT ON (h.source_filename, h.bibcode) h.source_filename, h.bibcode " \
+                "FROM history AS h, resolved AS r " \
+                "WHERE h.id = r.history_id AND %s " \
+                "GROUP BY h.bibcode, h.source_filename"
+        with self.session_scope() as session:
+            results = session.execute(query % collection)
+            if results.rowcount > 0:
+                bibcodes = []
+                filenames = []
+                for result in results:
+                    bibcodes.append(result.bibcode)
+                    filenames.append(result.source_filename)
+                return '|'.join(bibcodes), '|'.join(filenames)
+        return '', ''
+
+    def resolved_records_reference_source_query(self, bibcodes, filenames):
+        """
+        given reference source (bibcodes and filenames), return query that would return
+        all resolved records, if we have reprocessed records, return the last records for those
+        
+        :param bibcodes: 
+        :param filenames: 
+        :return: 
+        """
+        return "SELECT DISTINCT ON (h.bibcode, h.source_filename, r.item_num) MAX(h.id) AS history_id, " \
+               "r.item_num, r.reference_str, r.bibcode, r.score, h.bibcode as source " \
+               "FROM history AS h, resolved AS r " \
+               "WHERE h.id = r.history_id AND h.bibcode ~ '(%s)' AND h.source_filename ~ '(%s)' " \
+               "GROUP BY h.bibcode, h.source_filename, r.item_num, r.reference_str, r.bibcode, r.score"%\
+               (bibcodes or '', filenames or '')
+
+    def get_stats_compare(self, source_bibcode, source_filename):
         """
 
+        :param source_bibcode:
         :param source_filename:
         :return:
         """
-        query = "SELECT r.bibcode as service_bibcode, c.bibcode as classic_bibcode, " \
-                       "r.score as service_confidence, c.score as classic_score, " \
+        resolved_records = self.resolved_records_reference_source_query(source_bibcode, source_filename)
+        query = "SELECT r.reference_str as refstr, r.bibcode as service_bibcode, c.bibcode as classic_bibcode, " \
+                       "r.score as service_conf, c.score as classic_score, " \
                        "MAX(CASE WHEN c.state = 'MATCH' THEN state END) AS MATCH, " \
                        "MAX(CASE WHEN c.state = 'MISS' THEN state END) AS MISS, " \
                        "MAX(CASE WHEN c.state = 'NEW' THEN state END) AS NEW, " \
                        "MAX(CASE WHEN c.state = 'NEWU' THEN state END) AS NEWU, " \
                        "MAX(CASE WHEN c.state = 'DIFF' THEN state END) AS DIFF " \
-                "FROM resolved as r, compare as c, history as h " \
-                "WHERE r.history_id = c.history_id AND r.item_num = c.item_num and " \
-                      "r.history_id = h.id AND h.source_filename = '%s' " \
-                "GROUP BY r.bibcode, c.bibcode, r.score, c.score"
+                "FROM (%s) as r LEFT JOIN compare as c ON r.history_id = c.history_id AND r.item_num = c.item_num, "\
+                "history as h " \
+                "GROUP BY r.bibcode, c.bibcode, r.score, c.score, refstr"
 
         with self.session_scope() as session:
-            results = session.execute(query%source_filename)
+            results = session.execute(query%resolved_records)
             if results.rowcount > 0:
                 # Texttable functionality is here https://pypi.org/project/texttable/
                 table = Texttable()
-                table.set_cols_width([20,20,20,20,5,5,5,5,5])
-                table.set_cols_dtype(['t']*9)
-                table.set_cols_align(['c']*9)
+                table.set_cols_width([60,19,19,15,15,5,5,5,5,5])
+                table.set_cols_dtype(['t']*10)
+                table.set_cols_align(['l']+['c']*9)
                 table.header(results.keys())
+                num_resolved = 0
                 for result in results:
+                    if not result.service_bibcode.startswith('.'):
+                        num_resolved += 1
                     row = []
                     for item in result:
                         if not item: item = ''
                         row.append(item)
                     table.add_row(row)
-                return table.draw()
+                return table.draw(), results.rowcount, num_resolved
         return 'Unable to fetch data for reference source file `%s` from database!'%source_filename
 
-    def get_reprocess_records(self, type, score_cutoff=0.75, match_bibcode='', cutoff_date=None):
+    def get_reprocess_records(self, type, score_cutoff, match_bibcode, date_cutoff):
         """
 
         :param type:
         :param score_cutoff:
-        :param match:
+        :param match_bibcode:
+        :param date_cutoff:
         :return:
         """
         results = []
 
         if type == ReprocessQueryType.score:
-            collection = "r.score < %d"%score_cutoff
+            collection = "r.score < %.2f"%score_cutoff
         elif type == ReprocessQueryType.bibstem and len(match_bibcode):
             collection = "r.bibcode LIKE '____%s__________'"%match_bibcode
         elif type == ReprocessQueryType.year and len(match_bibcode):
@@ -487,45 +536,43 @@ class ADSReferencePipelineCelery(ADSCelery):
             collection = None
 
         if collection:
-            if cutoff_date:
-                collection += " AND h.date >= '%s'"%cutoff_date
-            resolved_view = "SELECT DISTINCT ON (h.bibcode, h.source_filename, r.item_num) MAX(h.id) as history_id, " \
-                            "r.item_num, r.reference_str, r.bibcode, r.score, h.bibcode as source " \
-                            "FROM history as h, resolved as r " \
-                            "WHERE h.id = r.history_id " \
-                            "GROUP BY h.bibcode, h.source_filename, r.item_num, r.reference_str, r.bibcode, r.score"
-            query = "SELECT r.history_id, r.item_num, r.reference_str as refstr, x.reference as xml_reference, " \
-                    "f.bibcode as source_bibcode, f.source_filename, h.source_modified, f.parser " \
-                    "FROM reference as f, history as h, (%s) as r LEFT JOIN xml as x ON " \
-                    "r.history_id = x.history_id and r.item_num = x.item_num " \
-                    "WHERE f.bibcode = h.bibcode AND f.source_filename = h.source_filename AND h.id = r.history_id AND %s " \
-                    "ORDER BY r.history_id, r.item_num;"%(resolved_view, collection)
-            with self.session_scope() as session:
-                rows = session.execute(query)
-                if rows.rowcount > 0:
-                    result = {}
-                    history_id = -1
-                    for row in rows:
-                        if row.history_id != history_id:
-                            if result:
-                                results.append(result)
-                                result = {}
-                            history_id = row.history_id
-                            result['source_bibcode'] = row.source_bibcode
-                            result['source_filename'] = row.source_filename
-                            result['source_modified'] = row.source_modified
-                            result['parser'] = row.parser
-                            if row.xml_reference:
-                                result['references'] = [{'item_num': row.item_num, 'refstr': row.refstr, 'xml_reference': row.xml_reference}]
-                            else:
-                                result['references'] = [{'item_num': row.item_num, 'refstr': row.refstr}]
+            if date_cutoff:
+                collection += " AND h.date >= '%s'"%date_cutoff
+            bibcode, filename = self.get_reference_source_info_reprocessing(collection)
+            if bibcode and filename:
+                resolved_records = self.resolved_records_reference_source_query(bibcode, filename)
+                query = "SELECT r.history_id, r.item_num, r.reference_str as refstr, x.reference as xml_reference, " \
+                        "f.bibcode as source_bibcode, f.source_filename, h.source_modified, f.parser " \
+                        "FROM reference as f, history as h, (%s) as r LEFT JOIN xml as x ON " \
+                        "r.history_id = x.history_id and r.item_num = x.item_num " \
+                        "WHERE f.bibcode = h.bibcode AND f.source_filename = h.source_filename AND h.id = r.history_id AND %s " \
+                        "ORDER BY r.history_id, r.item_num;"%(resolved_records, collection)
+                with self.session_scope() as session:
+                    rows = session.execute(query)
+                    if rows.rowcount > 0:
+                        result = {}
+                        history_id = -1
+                        for row in rows:
+                            if row.history_id != history_id:
+                                if result:
+                                    results.append(result)
+                                    result = {}
+                                history_id = row.history_id
+                                result['source_bibcode'] = row.source_bibcode
+                                result['source_filename'] = row.source_filename
+                                result['source_modified'] = row.source_modified
+                                result['parser'] = row.parser
+                                if row.xml_reference:
+                                    result['references'] = [{'item_num': row.item_num, 'refstr': row.refstr, 'xml_reference': row.xml_reference}]
+                                else:
+                                    result['references'] = [{'item_num': row.item_num, 'refstr': row.refstr}]
 
-                        else:
-                            if row.xml_reference:
-                                result['references'] += [{'item_num': row.item_num, 'refstr': row.refstr, 'xml_reference': row.xml_reference}]
                             else:
-                                result['references'] += [{'item_num': row.item_num, 'refstr': row.refstr}]
-                # last batch, if any
-                if result:
-                    results.append(result)
+                                if row.xml_reference:
+                                    result['references'] += [{'item_num': row.item_num, 'refstr': row.refstr, 'xml_reference': row.xml_reference}]
+                                else:
+                                    result['references'] += [{'item_num': row.item_num, 'refstr': row.refstr}]
+                    # last batch, if any
+                    if result:
+                        results.append(result)
         return results

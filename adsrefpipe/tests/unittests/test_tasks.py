@@ -86,12 +86,7 @@ class TestWorkers(unittest.TestCase):
         with patch.object(utils, 'resolve_references') as mock_resolve_references:
             mock_resolve_references.return_value = resolved
             tasks.task_process_reference_file(os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
-            current_num_records = '' \
-                                  'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
-                                  'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
-                                  'Currently there are 2 records in `Resolved` table, which holds reference level information for resolved run.\n' \
-                                  'Currently there are 0 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
-            self.assertTrue(self.app.get_count_records() == current_num_records)
+            self.assertTrue(self.app.get_count_records() == {'Reference':1, 'History':1, 'Resolved':2, 'Compare':0})
 
     def test_reprocess_subset_references(self):
         """ test reprocess_subset_references task """
@@ -123,12 +118,7 @@ class TestWorkers(unittest.TestCase):
         with patch.object(utils, 'resolve_references') as mock_resolve_references:
             mock_resolve_references.return_value = resolved
             tasks.task_reprocess_subset_references(record)
-            current_num_records = '' \
-                                  'Currently there are 1 records in `Reference` table, which holds reference files information.\n' \
-                                  'Currently there are 1 records in `History` table, which holds file level information for resolved run.\n' \
-                                  'Currently there are 1 records in `Resolved` table, which holds reference level information for resolved run.\n' \
-                                  'Currently there are 0 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
-            self.assertTrue(self.app.get_count_records() == current_num_records)
+            self.assertTrue(self.app.get_count_records() == {'Reference':1, 'History':1, 'Resolved':1, 'Compare':0})
 
 
 if __name__ == '__main__':

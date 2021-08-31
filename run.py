@@ -1,8 +1,8 @@
 import sys
 import os, fnmatch
 
-from adsputils import setup_logging, get_date
-from datetime import timedelta
+from adsputils import setup_logging, load_config, get_date
+from datetime import datetime, timedelta
 
 import argparse
 import threading
@@ -11,6 +11,9 @@ from adsrefpipe import tasks
 from adsrefpipe.utils import get_date_modified_struct_time, ReprocessQueryType
 from adsrefpipe.models import Parser
 
+
+proj_home = os.path.realpath(os.path.dirname(__file__))
+config = load_config(proj_home=proj_home)
 
 
 app = tasks.app
@@ -21,22 +24,20 @@ logger = setup_logging('run.py')
 def run_diagnostics(bibcodes, source_filenames):
     """
     Show information about what we have in our storage.
+
     :param: bibcodes - list of bibcodes
     :param: source_filenames - list of source filenames
     """
-    if bibcodes or source_filenames:
-        results = app.query_reference_tbl(bibcodes, source_filenames)
-        for result in results:
-            print(result)
-        return
-    # if no bibcode or source_filenames supplied, list the num records in each table
-    print(app.get_count_records())
+    results = app.query_reference_tbl(bibcodes, source_filenames)
+    for result in results:
+        print(result)
+    return
 
 
-def get_source_filenames(source_file_path, file_extension, cutoff_date):
+def get_source_filenames(source_file_path, file_extension, date_cutoff):
     """
     :param source_file_path:
-    :param cutoff_date: if modified date is after this date
+    :param date_cutoff: if modified date is after this date
     :return: list of files in the directory with modified date after the cutoff, if any
     """
     list_files = []
@@ -44,7 +45,7 @@ def get_source_filenames(source_file_path, file_extension, cutoff_date):
         for basename in files:
             if fnmatch.fnmatch(basename, file_extension):
                 filename = os.path.join(root, basename)
-                if get_date_modified_struct_time(filename) >= cutoff_date:
+                if get_date_modified_struct_time(filename) >= date_cutoff:
                     list_files.append(filename)
     return list_files
 
@@ -69,20 +70,24 @@ def check_queue(queued_tasks):
     to_queue_tasks = []
     # check to see when/if the queued tasks got processed successfully
     for queued_task in queued_tasks:
-        if queued_task['results'].state == "SUCCESS" and queued_task['results'].result:
+        if queued_task['results'].state == 'SUCCESS' and queued_task['results'].result:
             if 'filename' in queued_task:
-                output_message("reference file %s successfully processed."%queued_task['filename'])
+                output_message("Reference file %s successfully processed."%queued_task['filename'])
             elif 'reprocess' in queued_task:
                 record = queued_task['reprocess']
-                output_message("reprocessed %d reference(s) from source file %s successfully processed." %(len(record['references']), record['source_filename']))
+                output_message("Reprocessed %d reference(s) from source file %s successfully processed." %(len(record['references']), record['source_filename']))
         else:
-            # to check again in few seconds
+            # queue the task to check it again in few seconds, if it has not been too long
+            if queued_task['results'].date_done:
+                if (queued_task['results'].date_done - datetime.now()).seconds > config['TASK_PROCESS_TIME']:
+                    output_message("Reference file %s was not processed in allotted time! Removed from verification queue." % queued_task['filename'])
+                    continue
             to_queue_tasks.append(queued_task)
     if len(to_queue_tasks) > 0:
         output_message('%d/%d task remains for processing.'%(len(to_queue_tasks),len(queued_tasks)))
-        threading.Timer(10, check_queue, (to_queue_tasks,)).start()
+        threading.Timer(config['QUEUE_AUDIT_INTERVAL'], check_queue, (to_queue_tasks,)).start()
     else:
-        output_message('All tasks processed successfully.')
+        output_message('All tasks consumed.')
 
 
 def queue_files(filenames):
@@ -99,16 +104,16 @@ def queue_files(filenames):
     check_queue(queued_tasks)
 
 
-def queue_reprocess(reprocess_type, score_cutoff=0, match_bibcode='', cutoff_date=None):
+def queue_reprocess(reprocess_type, score_cutoff=0, match_bibcode='', date_cutoff=None):
     """
 
     :param reprocess_type:
     :param param:
-    :param cutoff_date:
+    :param date_cutoff:
     :return:
     """
     queued_tasks = []
-    records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, cutoff_date)
+    records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, date_cutoff)
     for record in records:
         tasks.task_reprocess_subset_references(record)
         return
@@ -196,20 +201,29 @@ if __name__ == '__main__':
                         help='Reprocess records that failed to get resolved')
 
     stats = subparsers.add_parser('STATS', help='Print out statistics of the reference source file')
+    stats.add_argument('-b',
+                        '--bibcode',
+                        dest='bibcode',
+                        action='store',
+                        default=None,
+                        help='Statistics of source reference, comparing classic and service reference resolvering if available')
     stats.add_argument('-s',
                         '--source_filename',
                         dest='source_filename',
                         action='store',
                         default=None,
-                        required=True,
-                        help='Statistics of source reference file, comparing classic and service reference resolvering')
+                        help='Statistics of source reference, comparing classic and service reference resolvering if available')
     stats.add_argument('-p',
                         '--publisher',
                         dest='publisher',
                         action='store',
                         default=None,
-                        required=True,
                         help='To list all source filenames resolved from a specific publisher')
+    stats.add_argument('-c',
+                       '--count',
+                       dest='count',
+                       action='store_true',
+                       help='Print out the count of records in the four main tables')
 
     args = parser.parse_args()
 
@@ -237,31 +251,35 @@ if __name__ == '__main__':
                 # if days has been specified, read it and only consider files with date from today-days,
                 # otherwise we are going with everything
                 if args.days:
-                    cutoff_date = get_date() - timedelta(days=int(args.days))
+                    date_cutoff = get_date() - timedelta(days=int(args.days))
                 else:
-                    cutoff_date = get_date('1972')
-                source_filenames = get_source_filenames(args.path, args.extension, cutoff_date.timetuple())
+                    date_cutoff = get_date('1972')
+                source_filenames = get_source_filenames(args.path, args.extension, date_cutoff.timetuple())
                 if len(source_filenames) > 0:
                     queue_files(source_filenames)
         elif args.confidence:
-            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.score, score_cutoff=float(args.confidence), cutoff_date=cutoff_date)
+            date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.score, score_cutoff=float(args.confidence), date_cutoff=date_cutoff)
         elif args.bibstem:
-            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.bibstem, match_bibcode=args.bibstem, cutoff_date=cutoff_date)
+            date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.bibstem, match_bibcode=args.bibstem, date_cutoff=date_cutoff)
         elif args.year:
-            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.year, match_bibcode=args.bibstem, cutoff_date=cutoff_date)
+            date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.year, match_bibcode=args.bibstem, date_cutoff=date_cutoff)
         elif args.fail:
-            cutoff_date = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.failed, cutoff_date=cutoff_date)
+            date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
+            queue_reprocess(ReprocessQueryType.failed, date_cutoff=date_cutoff)
 
 
     # TODO: do we need more command for querying db
 
     elif args.action == 'STATS':
-        if args.source_filename:
-            print(app.get_stats_compare(args.source_filename))
+        if args.bibcode or args.source_filename:
+            table, num_references, num_resolved = app.get_stats_compare(args.bibcode, args.source_filename)
+            print('\n',table,'\n')
+            print('Num References:', num_references)
+            print('Num References Resolved:', num_resolved)
+            print('\n')
         elif args.publisher:
             records = app.query_reference_tbl(parser_type=args.publisher)
             if not records:
@@ -269,5 +287,13 @@ if __name__ == '__main__':
             else:
                 for record in records:
                     print(record['source_filename'])
+        elif args.count:
+            table_description = ['reference file information', 'top level information for a processed run',
+                                 'resolved information for a processed run', 'comparison of new and classic processed run']
+            counts = app.get_count_records()
+            print('\n')
+            for i, (table,num_records) in enumerate(counts.items()):
+                print('Currently there are %d records in `%s` table, which holds %s.'%(num_records, table, table_description[i]))
+            print('\n')
 
     sys.exit(0)

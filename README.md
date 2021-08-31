@@ -19,36 +19,33 @@ This pipeline is to process source reference files, if xml to parse them first a
     $ vim local_config.py # edit, edit
 
 
-### Config options for users
-* 
-
-
 ## Queues
-* 
+    - process_references: input filename is collected and processed
+    - reprocess_subset_references: input collection is collected and references are procossed
 
 
-### Command lines:
+## Command lines:
 
-#####To run diagnostics:
-* Either supply list of bibcodes or list of source files
+### To run diagnostics:
+- Either supply list of bibcodes or list of source files
     ```
     python run.py DIAGNOSTICS -b <list of bibcodes separated by spaces>
     python run.py DIAGNOSTICS -s <list of source filenames separated by spaces>
     python run.py DIAGNOSTICS -b <list of bibcodes separated by spaces> -s <list of source filenames separated by spaces>
     ```
 
-* To check if a source files can be processed by the pipeline (parser is included), use the command
+- To check if a source files can be processed by the pipeline (parser is included), use the command
     ```
     python run.py DIAGNOSTICS -p <source filename>
     ```
     
-If diagnostics is run without any parameters, count of records in each of the four tables, Reference, History, Resolved, and Compare are displayed.
+    If diagnostics is run without any parameters, count of records in each of the four tables, Reference, History, Resolved, and Compare are displayed.
 
-#####To resolve references:
+### To resolve references:
 
-* There are six options:
+- There are six options:
 
-    1. Specify source files to be processed, regardless of source file format (ie, raw, any flavor xml), use the command
+    1. Specify source files to be processed, regardless of format (ie, raw, any flavor xml), use the command
         ```
         python run.py RESOLVE -s <list of source filenames separated by spaces>
         ```
@@ -62,7 +59,7 @@ If diagnostics is run without any parameters, count of records in each of the fo
         ```
         python run.py RESOLVE -c <confidence cutoff>
         ```
-        where all the references with this score lower than this shall be queued for reprocessing.
+        where all the references having score value lower than cutoff shall be queued for reprocessing.
         
     4. To reprocess existing references based on resolved bibcode's bibstem, use the command
         ```
@@ -76,28 +73,33 @@ If diagnostics is run without any parameters, count of records in each of the fo
         ```
         where all the references having this year shall be queued for reprocessing.
         
-    6. To reprocess existing references that were queued but for some reason they were not able to get resolved (ie, service issue), use the command
+    6. To reprocess existing references that were queued but were not resolved due to reference service issue, use the command
         ```
         python run.py RESOLVE -f
         ```
         where any reference that were queued but not resolved shall be reprocessed.
 
-    Note that there is an optional parameter that can be combined with cases numbers 2 - 5, to filter references on time. Include the parameter
+    Note that there is an optional parameter that can be combined with cases *ii* - *v*, to filter results on time. Include the parameter
     
         -d <days>
-    to filter on time. For the case of command #2, this parameter is applied to source file, if timestamp of the file is later than specified past many days, the file shall be queued for processing. For the case of commands numbers 3 - 5 the time is applied to when the references where run last, if they were processed in the past specified days, they shall be queue for reprocessing. 
+    to filter on time. For the case *ii*, this parameter is applied to source file, if timestamp of the file is later than past *days*, the file shall be queued for processing. For the cases *iii* - *v* the time is applied to resolved references run, if they were processed in the past *days*, they shall be queue for reprocessing. 
 
-#####To query database:
+### To query database:
 
-* To get a list of source files processed from a specified publisher, use the command 
+- To get a list of source files processed from a specified publisher, use the command 
     ```
     python run.py STATS -p <publisher>
     ```
 
-* To see the result of resolved records for specific file/bibcode, use the command
+- To see the result of resolved records for specific source bibcode/filename, use the command
     ```
+    python run.py STATS -b <source bibcode>
     python run.py STATS -s <source filename>
-    python run.py STATS -b <bibcode>
+    ```
+
+- To see number of rows in the four main tables, use the command
+    ```
+    python run.py STATS -c
     ```
 
 

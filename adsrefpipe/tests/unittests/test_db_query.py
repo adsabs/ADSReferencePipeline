@@ -327,15 +327,20 @@ class test_database(unittest.TestCase):
         """ test the display of statistics comparing classic and new resolver """
         self.add_stub_data()
         result_expected = "" \
-            "+----------------------+----------------------+----------------------+----------------------+-------+-------+-------+-------+-------+\n" \
-            "|   service_bibcode    |   classic_bibcode    |  service_confidence  |    classic_score     | match | miss  |  new  | newu  | diff  |\n" \
-            "+======================+======================+======================+======================+=======+=======+=======+=======+=======+\n" \
-            "| 2011LRR....14....2U  | 2010arXiv1009.5514U  |         1.0          |          1           |       |       |       |       | DIFF  |\n" \
-            "+----------------------+----------------------+----------------------+----------------------+-------+-------+-------+-------+-------+\n" \
-            "| 2017RPPh...80l6902M  | 2017arXiv170902923M  |         1.0          |          1           |       |       |       |       | DIFF  |\n" \
-            "+----------------------+----------------------+----------------------+----------------------+-------+-------+-------+-------+-------+"
-        result_got = self.app.get_stats_compare(source_filename=os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
+            "+--------------------------------------------------------------+---------------------+---------------------+-----------------+-----------------+-------+-------+-------+-------+-------+\n" \
+            "|                            refstr                            |   service_bibcode   |   classic_bibcode   |  service_conf   |  classic_score  | match | miss  |  new  | newu  | diff  |\n" \
+            "+==============================================================+=====================+=====================+=================+=================+=======+=======+=======+=======+=======+\n" \
+            "| C. J. A. P. Martins, The status of varying constants: A      | 2017RPPh...80l6902M | 2017arXiv170902923M |       1.0       |        1        |       |       |       |       | DIFF  |\n" \
+            "| review of the physics, searches and implications,            |                     |                     |                 |                 |       |       |       |       |       |\n" \
+            "| 1709.02923.                                                  |                     |                     |                 |                 |       |       |       |       |       |\n" \
+            "+--------------------------------------------------------------+---------------------+---------------------+-----------------+-----------------+-------+-------+-------+-------+-------+\n" \
+            "| J.-P. Uzan, Varying constants, gravitation and cosmology,    | 2011LRR....14....2U | 2010arXiv1009.5514U |       1.0       |        1        |       |       |       |       | DIFF  |\n" \
+            "| Living Rev. Rel. 14 (2011) 2, [1009.5514].                   |                     |                     |                 |                 |       |       |       |       |       |\n" \
+            "+--------------------------------------------------------------+---------------------+---------------------+-----------------+-----------------+-------+-------+-------+-------+-------+"
+        result_got, num_references, num_resolved = self.app.get_stats_compare(source_bibcode=None, source_filename=os.path.join(self.test_dir, 'unittests/stubdata','00013.raw'))
         self.assertEqual(result_got, result_expected)
+        self.assertEqual(num_references, 2)
+        self.assertEqual(num_resolved, 2)
 
 
     def test_reprocess_references(self):
@@ -362,27 +367,21 @@ class test_database(unittest.TestCase):
              'references': [{'item_num': 2, 'refstr': 'Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 '}]
             }
         ]
-        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.year, match_bibcode='2019'), result_expected_year)
-        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.bibstem, match_bibcode='A&A..'), result_expected_bibstem)
+        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.year, match_bibcode='2019', score_cutoff=None, date_cutoff=None), result_expected_year)
+        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.bibstem, match_bibcode='A&A..', score_cutoff=None, date_cutoff=None), result_expected_bibstem)
 
         references_and_ids_year = [
-            {'id': 'H4I1', 'reference': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}
+            {'id': 'H4I2', 'reference': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}
         ]
         status, references = self.app.populate_tables_retry_precede(
             type=ReferenceType.text,
             source_bibcode=result_expected_year[0]['source_bibcode'],
             source_filename=result_expected_year[0]['source_filename'],
             source_modified=result_expected_year[0]['source_modified'],
-            references=[ref['refstr'] for ref in result_expected_year[0]['references']])
+            retry_records=result_expected_year[0]['references'])
         self.assertTrue(status == True)
         self.assertTrue(references == references_and_ids_year)
-
-        current_num_records = '' \
-                'Currently there are 3 records in `Reference` table, which holds reference files information.\n' \
-                'Currently there are 4 records in `History` table, which holds file level information for resolved run.\n' \
-                'Currently there are 7 records in `Resolved` table, which holds reference level information for resolved run.\n' \
-                'Currently there are 6 records in `Compare` table, which holds comparison of new and classic resolved run.\n'
-        self.assertTrue(self.app.get_count_records() == current_num_records)
+        self.assertTrue(self.app.get_count_records() == {'Reference':3, 'History':4, 'Resolved':7, 'Compare':6})
 
 
 if __name__ == '__main__':

@@ -26,5 +26,10 @@ CELERY_BROKER = 'pyamqp://'
 REDIS_BACKEND = "redis://localhost:6379/0"
 
 
+# if task did not finish in this many seconds, abort
+TASK_PROCESS_TIME = 30
+# checking queues every this many seconds
+QUEUE_AUDIT_INTERVAL = 10
+
 # true if to compare the resolved records with classic
 COMPARE_CLASSIC = False

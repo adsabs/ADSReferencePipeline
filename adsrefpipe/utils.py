@@ -143,14 +143,17 @@ def resolve_references(type, references):
     headers = {'Content-type': 'application/json',
                'Accept': 'application/json',
                'Authorization': 'Bearer ' + config['REFERENCE_PIPELINE_ADSWS_API_TOKEN']}
-    r = requests.post(url=url, data=json.dumps(payload), headers=headers)
-    if (r.status_code == 200):
-        resolved = json.loads(r.content)['resolved']
-        logger.debug('Resolved %d references successfully.' % (len(resolved)))
-        return resolved
-
-    logger.error('Attempt at resolving %d %s references failed with status code %s.' % (len(references), type, r.status_code))
-    return None
+    try:
+        r = requests.post(url=url, data=json.dumps(payload), headers=headers)
+        if (r.status_code == 200):
+            resolved = json.loads(r.content)['resolved']
+            logger.debug('Resolved %d references successfully.' % (len(resolved)))
+            return resolved
+        logger.error('Attempt at resolving %d %s references failed with status code %s.' % (len(references), type, r.status_code))
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.error('Unable to connect to the service: %s'%str(e))
+        return None
 
 
 def read_classic_resolved_file(source_bibcode, filename):
