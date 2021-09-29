@@ -29,38 +29,41 @@ def upgrade():
     # );
     action_table = op.create_table('parser',
                                    sa.Column('name', sa.String(), nullable=False, primary_key=True),
-                                   sa.Column('source_extension', sa.String(), nullable=False),
+                                   sa.Column('source_pattern', sa.String(), nullable=False),
+                                   sa.Column('reference_service_endpoint', sa.String(), nullable=False),
     )
-    op.bulk_insert(action_table, [{'name': 'AGU', 'source_extension': '.agu.xml'},
-                                  {'name': 'AIP', 'source_extension': '.aip.xml'},
-                                  {'name': 'APS', 'source_extension': '.ref.xml'},
-                                  {'name': 'CrossRef', 'source_extension': '.xref.xml'},
-                                  {'name': 'ELSEVIER', 'source_extension': '.elsevier.xml'},
-                                  {'name': 'IOP', 'source_extension': '.iop.xml'},
-                                  {'name': 'JATS', 'source_extension': '.jats.xml'},
-                                  {'name': 'NATURE', 'source_extension': '.nature.xml'},
-                                  {'name': 'NLM', 'source_extension': '.nlm3.xml'},
-                                  {'name': 'SPRINGER', 'source_extension': '.springer.xml'},
-                                  {'name': 'Text', 'source_extension': '.raw'},
-                                  {'name': 'WILEY', 'source_extension': '.wiley2.xml'},
-                                 ])
+    op.bulk_insert(action_table, [
+        {'name': 'arXiv', 'source_pattern': r'^.\d{4,5}.raw$', 'reference_service_endpoint': '/text'},
+        {'name': 'AGU', 'source_pattern': '^.agu.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'AIP', 'source_pattern': '^.aip.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'APS', 'source_pattern': '^.ref.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'CrossRef', 'source_pattern': '^.xref.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'ELSEVIER', 'source_pattern': '^.elsevier.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'IOP', 'source_pattern': '^.iop.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'JATS', 'source_pattern': '^.jats.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'NATURE', 'source_pattern': '^.nature.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'NLM', 'source_pattern': '^.nlm3.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'SPRINGER', 'source_pattern': '^.springer.xml', 'reference_service_endpoint': '/xml'},
+        {'name': 'WILEY', 'source_pattern': '^.wiley2.xml', 'reference_service_endpoint': '/xml'},
+    ])
 
-    # CREATE TABLE "reference" (
+    # CREATE TABLE "reference_source" (
     #   "bibcode" varchar(20),
     #   "source_filename" varchar,
     #   "source_create" datetime,
     #   "resolved_filename" varchar,
+    #   "parser_name" varchar,
     #   PRIMARY KEY ("bibcode", "source_filename")
     # );
-    op.create_table('reference',
+    op.create_table('reference_source',
                     sa.Column('bibcode', sa.String(), nullable=False, primary_key=True),
                     sa.Column('source_filename', sa.String(), nullable=False, primary_key=True),
                     sa.Column('resolved_filename', sa.String(), nullable=False),
-                    sa.Column('parser', sa.String(), nullable=False),
-                    sa.ForeignKeyConstraint(('parser',), ['parser.name'], ),
+                    sa.Column('parser_name', sa.String(), nullable=False),
+                    sa.ForeignKeyConstraint(('parser_name',), ['parser.name'], ),
     )
 
-    # CREATE TABLE "history" (
+    # CREATE TABLE "processed_history" (
     #   "id" integer PRIMARY KEY,
     #   "bibcode" varchar(20),
     #   "source_filename" varchar,
@@ -71,11 +74,11 @@ def upgrade():
     #   "resolved_ref" integer
     #   Foreign KEY ("bibcode", "source_filename")
     # );
-    op.create_table('history',
+    op.create_table('processed_history',
                     sa.Column('id', sa.Integer(), nullable=False, primary_key=True, autoincrement=True),
                     sa.Column('bibcode', sa.String(), nullable=False),
                     sa.Column('source_filename', sa.String(), nullable=False),
-                    sa.ForeignKeyConstraint(['bibcode', 'source_filename'], ['reference.bibcode','reference.source_filename'], ),
+                    sa.ForeignKeyConstraint(['bibcode', 'source_filename'], ['reference_source.bibcode','reference_source.source_filename'], ),
                     sa.Column('source_modified', sa.DateTime(timezone=True), nullable=False),
                     sa.Column('status', sa.String(), nullable=False),
                     sa.ForeignKeyConstraint(('status',), ['action.status'], ),
@@ -83,20 +86,22 @@ def upgrade():
                     sa.Column('total_ref', sa.Integer(), nullable=False),
     )
 
-    # CREATE TABLE "resolved" (
+    # CREATE TABLE "resolved_reference" (
     #   "history_id" integer,
     #   "item_num" integer,
     #   "reference_str" text,
     #   "bibcode" text,
     #   "score" numeric,
+    #   "reference_raw" text,
     #   PRIMARY KEY ("history_id", "item_num")
     # );
-    op.create_table('resolved',
+    op.create_table('resolved_reference',
                     sa.Column('history_id', sa.Integer(), nullable=False, primary_key=True),
                     sa.Column('item_num', sa.Integer(), nullable=False, primary_key=True),
                     sa.Column('reference_str', sa.String(), nullable=False),
                     sa.Column('bibcode', sa.String(), nullable=False),
                     sa.Column('score', sa.Numeric(), nullable=False),
+                    sa.Column('reference_raw', sa.String(), nullable=False),
     )
 
     # CREATE TABLE "compare" (
@@ -110,23 +115,10 @@ def upgrade():
     op.create_table('compare',
                     sa.Column('history_id', sa.Integer(), nullable=False),
                     sa.Column('item_num', sa.Integer(), nullable=False),
-                    sa.ForeignKeyConstraint(['history_id', 'item_num'], ['resolved.history_id','resolved.item_num'], ),
+                    sa.ForeignKeyConstraint(['history_id', 'item_num'], ['resolved_reference.history_id','resolved_reference.item_num'], ),
                     sa.Column('bibcode', sa.String(), nullable=False),
                     sa.Column('score', sa.Numeric(), nullable=False),
                     sa.Column('state', sa.String(), nullable=False),
-    )
-
-    # CREATE TABLE "xml" (
-    #   "history_id" integer,
-    #   "item_num" integer,
-    #   "reference" text,
-    #   Foreign KEY ("history_id", "item_num")
-    # );
-    op.create_table('xml',
-                    sa.Column('history_id', sa.Integer(), nullable=False),
-                    sa.Column('item_num', sa.Integer(), nullable=False),
-                    sa.ForeignKeyConstraint(['history_id', 'item_num'], ['resolved.history_id','resolved.item_num'], ),
-                    sa.Column('reference', sa.String(), nullable=False),
     )
 
     # temparary table to tell what is the class of arxiv bibcode for verification proposes only
@@ -140,7 +132,6 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table('xml')
     op.drop_table('compare')
     op.drop_table('resolved')
     op.drop_table('history')

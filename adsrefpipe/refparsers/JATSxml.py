@@ -3,11 +3,11 @@ import re
 import argparse
 import urllib.parse
 
-from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, match_doi, match_arxiv_id, match_year
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 from adsputils import setup_logging, load_config
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
@@ -39,7 +39,7 @@ class JATSreference(XMLreference):
         year = self.xmlnode_nodecontents('year').strip()
         # see if year can be extracted from reference string
         if not year:
-            year = match_year(str(self.reference_str))
+            year = self.match_year(str(self.reference_str))
         issn = self.xmlnode_nodecontents('issn').strip()
         ext_link = self.parse_external_links()
 
@@ -86,7 +86,7 @@ class JATSreference(XMLreference):
             # outlier: another tag for year
             # and actually can include month, so grab the year only
             if not year:
-                year = match_year(self.xmlnode_nodecontents('conf-date').strip())
+                year = self.match_year(self.xmlnode_nodecontents('conf-date').strip())
         else:
             title = self.xmlnode_nodecontents('article-title').strip()
             journal = self.xmlnode_nodecontents('source')
@@ -117,7 +117,7 @@ class JATSreference(XMLreference):
             self['doi'] = doi.strip()
         else:
             # attempt to extract it from refstr
-            doi = match_doi(str(self.reference_str))
+            doi = self.match_doi(str(self.reference_str))
             if doi:
                 self['doi'] = doi
             # see if there is a inspire link for eprint
@@ -125,7 +125,7 @@ class JATSreference(XMLreference):
                 for link in ext_link:
                     match = self.re_ext_link_inspire_doi.match(urllib.parse.unquote(link))
                     if match:
-                        doi = match_doi(match.group('DOI'))
+                        doi = self.match_doi(match.group('DOI'))
                         if doi:
                             self['doi'] = doi
         eprint = self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'arxiv'}).strip()
@@ -133,7 +133,7 @@ class JATSreference(XMLreference):
             self['eprint'] = eprint.strip()
         else:
             # attempt to extract arxiv id from refstr
-            eprint = match_arxiv_id(str(self.reference_str))
+            eprint = self.match_arxiv_id(str(self.reference_str))
             if eprint:
                 self['eprint'] = eprint
             # see if there is a inspire link for eprint
@@ -141,7 +141,7 @@ class JATSreference(XMLreference):
                 for link in ext_link:
                     match = self.re_ext_link_inspire_EPRINT.match(urllib.parse.unquote(link))
                     if match:
-                        eprint = match_arxiv_id(match.group('ARXIV_ID'))
+                        eprint = self.match_arxiv_id(match.group('ARXIV_ID'))
                         if eprint:
                             self['eprint'] = eprint
 
@@ -284,63 +284,76 @@ class JATSreference(XMLreference):
         return None
 
 
-re_cleanup_buffer = [
-    (re.compile(r'</?uri.*?>'), ''),
-    (re.compile(r'\(<comment>.*?</comment>\)'), ''),
-    (re.compile(r'<inline-formula[\w\s="\']*>.*?</inline-formula>', re.DOTALL), ''),
-    (re.compile(r'<label>.*?</label>'), ''),
-    (re.compile(r'<name><surname>(.*)</surname></name><name><surname>(.*)</surname>'), r'<name><surname>\1 \2</surname>')
-]
-re_cleanup_block = [
-    # (re.compile(r'</?ext-link.*?>'), ''),
-    (re.compile(r'<object-id>.*?</object-id>'), ''),
-    (re.compile(r'<inline-formula>.*?</inline-formula>'), ''),
-    (re.compile(r'<disp-formula>.*?</disp-formula>'), ''),
-    # (re.compile(r'<\w*\:?math>.*?</\w*\:?math>'), ''),
-    (re.compile(r'ext-link.*href='), 'ext-link href='),
-    (re.compile(r'\s+xlink:href='), ' href=')
-]
+class JATStoREFs(XMLtoREFs):
 
-def JATStoREFs(filename=None, buffer=None, unicode=None):
-    """
+    block_cleanup = [
+        # (re.compile(r'</?ext-link.*?>'), ''),
+        (re.compile(r'<object-id>.*?</object-id>'), ''),
+        (re.compile(r'<inline-formula>.*?</inline-formula>'), ''),
+        (re.compile(r'<disp-formula>.*?</disp-formula>'), ''),
+        # (re.compile(r'<\w*\:?math>.*?</\w*\:?math>'), ''),
+        (re.compile(r'ext-link.*href='), 'ext-link href='),
+        (re.compile(r'\s+xlink:href='), ' href=')
+    ]
 
-    :param filename:
-    :param buffer:
-    :param unicode: 
-    :return: 
-    """
-    references = []
-    pairs = get_references(filename=filename, buffer=buffer)
+    reference_cleanup = [
+        (re.compile(r'</?uri.*?>'), ''),
+        (re.compile(r'\(<comment>.*?</comment>\)'), ''),
+        (re.compile(r'<inline-formula[\w\s="\']*>.*?</inline-formula>', re.DOTALL), ''),
+        (re.compile(r'<label>.*?</label>'), ''),
+        (re.compile(r'<name><surname>(.*)</surname></name><name><surname>(.*)</surname>'), r'<name><surname>\1 \2</surname>')
+    ]
 
-    for pair in pairs:
-        bibcode = pair[0]
-        buffer = pair[1]
+    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+        """
 
-        for one_set in re_cleanup_buffer:
-            buffer = one_set[0].sub(one_set[1], buffer)
+        :param filename:
+        :param buffer:
+        :param unicode:
+        :param tag:
+        """
+        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='mixed-citation', cleanup=self.block_cleanup)
 
-        references_bibcode = {'bibcode':bibcode, 'references':[]}
+    def cleanup(self, reference):
+        """
 
-        # We have to split on 'mixed-citation' to capture entries
-        # with multiple references!
-        block_references = get_xml_block(buffer, 'mixed-citation')
+        :param reference:
+        :return:
+        """
+        for (compiled_re, replace_str) in self.reference_cleanup:
+            reference = compiled_re.sub(replace_str, reference)
+        return reference
 
-        for reference in block_references:
-            # these are found in APS references
-            for one_set in re_cleanup_block:
-                reference = one_set[0].sub(one_set[1], reference)
+    def process_and_dispatch(self, cleanup_process=True):
+        """
+        this function does reference cleaning and then calls the parser
 
-            logger.debug("JATSxml: parsing %s" % reference)
-            try:
-                jats_reference = JATSreference(reference)
-                references_bibcode['references'].append({**jats_reference.get_parsed_reference(), 'xml_reference':reference})
-            except ReferenceError as error_desc:
-                logger.error("JATSxml: error parsing reference: %s" %error_desc)
+        :param cleanup_process:
+        :return:
+        """
+        references = []
+        for raw_block_references in self.raw_references:
+            bibcode = raw_block_references['bibcode']
+            block_references = raw_block_references['block_references']
 
-        references.append(references_bibcode)
-        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+            references_bibcode = {'bibcode':bibcode, 'references':[]}
 
-    return references
+            for reference in block_references:
+                if cleanup_process:
+                    reference = self.cleanup(reference)
+
+                logger.debug("JATSxml: parsing %s" % reference)
+                try:
+                    jats_reference = JATSreference(reference)
+                    references_bibcode['references'].append({**jats_reference.get_parsed_reference(), 'refraw':reference})
+                except ReferenceError as error_desc:
+                    logger.error("JATSxml: error parsing reference: %s" %error_desc)
+
+            references.append(references_bibcode)
+            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+
+        return references
+
 
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse JATS references')
@@ -348,11 +361,12 @@ if __name__ == '__main__':      # pragma: no cover
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(JATStoREFs(filename=args.filename))
+        print(JATStoREFs(filename=args.filename).process_and_dispatch())
     if args.buffer:
-        print(JATStoREFs(buffer=args.buffer))
+        print(JATStoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     if not args.filename and not args.buffer:
-        print(JATStoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.jats.xml')))
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.jats.xml')
+        print(JATStoREFs(filename=filename).process_and_dispatch())
     sys.exit(0)
     # /proj/ads/references/sources/JAP/0127/iss24.jats.xml

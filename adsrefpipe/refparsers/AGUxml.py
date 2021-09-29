@@ -4,12 +4,12 @@ import argparse
 
 from adsputils import setup_logging, load_config
 
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
-from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_int, match_doi
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 class AGUreference(XMLreference):
 
@@ -29,8 +29,8 @@ class AGUreference(XMLreference):
         self.parsed = 0
 
         qualifier = ''
-        self['year'] = match_int(self.xmlnode_nodecontents('year'))
-        self['volume'] = match_int(self.xmlnode_nodecontents('volume'))
+        self['year'] = self.match_int(self.xmlnode_nodecontents('year'))
+        self['volume'] = self.match_int(self.xmlnode_nodecontents('volume'))
         self['issue'] = self.xmlnode_nodecontents('issue')
         self['pages'] = self.xmlnode_nodecontents('firstPage')
         if self['pages'] == 'null':
@@ -61,7 +61,7 @@ class AGUreference(XMLreference):
             self['doi'] = doi
         else:
             # attempt to extract it from refstr
-            doi = match_doi(self.reference_str.toxml())
+            doi = self.match_doi(self.reference_str.toxml())
             if doi:
                 self['doi'] = doi
 
@@ -90,37 +90,43 @@ class AGUreference(XMLreference):
         return ''
 
 
-def AGUtoREFs(filename=None, buffer=None, unicode=None):
-    """
+class AGUtoREFs(XMLtoREFs):
 
-    :param filename:
-    :param buffer:
-    :param unicode:
-    :return:
-    """
-    references = []
-    pairs = get_references(filename=filename, buffer=buffer)
+    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+        """
 
-    for pair in pairs:
-        bibcode = pair[0]
-        buffer = pair[1]
+        :param filename:
+        :param buffer:
+        :param unicode:
+        :param tag:
+        """
+        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='citation')
 
-        references_bibcode = {'bibcode':bibcode, 'references':[]}
+    def process_and_dispatch(self, cleanup_process=True):
+        """
 
-        block_references = get_xml_block(buffer, 'citation')
+        :param cleanup_process:
+        :return:
+        """
+        references = []
+        for raw_block_references in self.raw_references:
+            bibcode = raw_block_references['bibcode']
+            block_references = raw_block_references['block_references']
 
-        for reference in block_references:
-            logger.debug("AGUxml: parsing %s" % reference)
-            try:
-                agu_reference = AGUreference(reference)
-                references_bibcode['references'].append({**agu_reference.get_parsed_reference(), 'xml_reference':reference})
-            except ReferenceError as error_desc:
-                logger.error("AGUxml: error parsing reference: %s" %error_desc)
+            references_bibcode = {'bibcode':bibcode, 'references':[]}
 
-        references.append(references_bibcode)
-        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+            for reference in block_references:
+                logger.debug("AGUxml: parsing %s" % reference)
+                try:
+                    agu_reference = AGUreference(reference)
+                    references_bibcode['references'].append({**agu_reference.get_parsed_reference(), 'refraw':reference})
+                except ReferenceError as error_desc:
+                    logger.error("AGUxml: error parsing reference: %s" %error_desc)
 
-    return references
+            references.append(references_bibcode)
+            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+
+        return references
 
 
 if __name__ == '__main__':      # pragma: no cover
@@ -129,10 +135,11 @@ if __name__ == '__main__':      # pragma: no cover
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(AGUtoREFs(filename=args.filename))
+        print(AGUtoREFs(filename=args.filename).process_and_dispatch())
     if args.buffer:
-        print(AGUtoREFs(buffer=args.buffer))
+        print(AGUtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     if not args.filename and not args.buffer:
-        print(AGUtoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.agu.xml')))
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.agu.xml')
+        print(AGUtoREFs(filename=filename).process_and_dispatch())
     sys.exit(0)

@@ -43,24 +43,40 @@ class Parser(Base):
     """
     __tablename__ = 'parser'
     name = Column(String, primary_key=True)
-    source_extension = Column(String)
+    source_pattern = Column(String)
+    reference_service_endpoint = Column(String)
 
-    def __init__(self, name, source_extension):
+    def __init__(self, name, source_pattern, reference_service_endpoint):
         """
 
         :param name:
-        :param source_extension:
+        :param source_pattern:
+        :param reference_service_endpoint:
         """
         self.name = name
-        self.source_extension = source_extension
+        self.source_pattern = source_pattern
+        self.reference_service_endpoint = reference_service_endpoint
 
     def get_name(self):
         """
 
-        :param source_filename:
         :return:
         """
         return self.name
+
+    def get_source_pattern(self):
+        """
+
+        :return:
+        """
+        return self.source_pattern
+
+    def get_endpoint(self):
+        """
+
+        :return:
+        """
+        return self.reference_service_endpoint
 
     def toJSON(self):
         """
@@ -68,29 +84,30 @@ class Parser(Base):
         """
         return {
             'name': self.name,
-            'source_extension': self.source_extension,
+            'source_pattern': self.source_pattern,
+            'reference_service_endpoint': self.reference_service_endpoint,
         }
 
 
-class Reference(Base):
-    __tablename__ = 'reference'
+class ReferenceSource(Base):
+    __tablename__ = 'reference_source'
     bibcode = Column(String, primary_key=True)
     source_filename = Column(String, primary_key=True)
     resolved_filename = Column(String)
-    parser = Column(String, ForeignKey('parser.name'))
+    parser_name = Column(String, ForeignKey('parser.name'))
 
-    def __init__(self, bibcode, source_filename, resolved_filename, parser):
+    def __init__(self, bibcode, source_filename, resolved_filename, parser_name):
         """
 
         :param bibcode:
         :param source_filename:
         :param resolved_filename:
-        :param parser:
+        :param parser_name:
         """
         self.bibcode = bibcode
         self.source_filename = source_filename
         self.resolved_filename = resolved_filename
-        self.parser = parser
+        self.parser_name = parser_name
 
     def toJSON(self):
         """
@@ -100,13 +117,13 @@ class Reference(Base):
             'bibcode': self.bibcode,
             'source_filename': self.source_filename,
             'resolved_filename': self.resolved_filename,
-            'parser': self.parser,
+            'parser_name': self.parser_name,
         }
 
 
-class History(Base):
-    __tablename__ = 'history'
-    __table_args__ = (ForeignKeyConstraint( ['bibcode', 'source_filename'], ['reference.bibcode', 'reference.source_filename']),)
+class ProcessedHistory(Base):
+    __tablename__ = 'processed_history'
+    __table_args__ = (ForeignKeyConstraint( ['bibcode', 'source_filename'], ['reference_source.bibcode', 'reference_source.source_filename']),)
     id = Column(Integer, primary_key=True)
     bibcode = Column(String)
     source_filename = Column(String)
@@ -146,15 +163,16 @@ class History(Base):
         }
 
 
-class Resolved(Base):
-    __tablename__ = 'resolved'
-    history_id = Column(Integer, ForeignKey('history.id'), primary_key=True)
+class ResolvedReference(Base):
+    __tablename__ = 'resolved_reference'
+    history_id = Column(Integer, ForeignKey('processed_history.id'), primary_key=True)
     item_num = Column(Integer, primary_key=True)
     reference_str = Column(String, primary_key=True)
     bibcode = Column(String)
     score = Column(Numeric)
+    reference_raw = Column(String)
 
-    def __init__(self, history_id, item_num, reference_str, bibcode, score):
+    def __init__(self, history_id, item_num, reference_str, bibcode, score, reference_raw):
         """
 
         :param history_id:
@@ -168,29 +186,40 @@ class Resolved(Base):
         self.reference_str = reference_str
         self.bibcode = bibcode
         self.score = score
+        self.reference_raw = reference_raw
 
     def toJSON(self):
         """
         :return: values formatted as python dict, if no values found returns empty structure, not None
         """
+        if self.reference_raw:
+            return {
+                'history_id': self.history_id,
+                'reference_str': self.reference_str,
+                'bibcode': self.bibcode,
+                'score': self.score,
+                'item_num': self.item_num,
+                'reference_raw': self.reference_raw
+            }
+        # do not include reference_raw if it is None
         return {
             'history_id': self.history_id,
             'reference_str': self.reference_str,
             'bibcode': self.bibcode,
             'score': self.score,
-            'item_num': self.item_num
+            'item_num': self.item_num,
         }
 
 
-class Compare(Base):
+class CompareClassic(Base):
     """
     This table is for comparing classic resolver with service reference,
     keeps track of service reference that matched classic reference
     bibcode and score here is for classic
 
     """
-    __tablename__ = 'compare'
-    history_id = Column(Integer, ForeignKey('history.id'), primary_key=True)
+    __tablename__ = 'compare_classic'
+    history_id = Column(Integer, ForeignKey('processed_history.id'), primary_key=True)
     item_num = Column(Integer, primary_key=True)
     bibcode = Column(String)
     score = Column(Numeric)
@@ -223,34 +252,3 @@ class Compare(Base):
             'state': self.state,
         }
 
-
-class XML(Base):
-    """
-    This table is for saving xml references for reprocessing if need to
-
-    """
-    __tablename__ = 'xml'
-    history_id = Column(Integer, ForeignKey('history.id'), primary_key=True)
-    item_num = Column(Integer, primary_key=True)
-    reference = Column(String)
-
-    def __init__(self, history_id, item_num, reference):
-        """
-
-        :param history_id:
-        :param item_num:
-        :param reference:
-        """
-        self.history_id = history_id
-        self.item_num = item_num
-        self.reference = reference
-
-    def toJSON(self):
-        """
-        :return: values formatted as python dict, if no values found returns empty structure, not None
-        """
-        return {
-            'history_id': self.history_id,
-            'item_num': self.item_num,
-            'reference': self.reference,
-        }

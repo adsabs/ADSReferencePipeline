@@ -4,8 +4,7 @@
 LOG_STDOUT = False
 
 REFERENCE_PIPELINE_ADSWS_API_TOKEN = 'this is a secret api token!'
-REFERENCE_PIPELINE_SERVICE_TEXT_URL = 'https://dev.adsabs.harvard.edu/v1/reference/text'
-REFERENCE_PIPELINE_SERVICE_XML_URL = 'https://dev.adsabs.harvard.edu/v1/reference/xml'
+REFERENCE_PIPELINE_SERVICE_URL = 'https://dev.adsabs.harvard.edu/v1/reference'
 
 REFERENCE_PIPELINE_MAX_NUM_REFERENCES = 16
 

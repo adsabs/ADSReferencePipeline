@@ -6,22 +6,22 @@ if project_home not in sys.path:
 import unittest
 
 from adsrefpipe.tests.unittests.stubdata import parsed_references
-from adsrefpipe.xmlparsers.CrossRefXML import CrossReftoREFs
-from adsrefpipe.xmlparsers.ElsevierXML import ELSEVIERtoREFs
-from adsrefpipe.xmlparsers.JATSxml import JATStoREFs
-from adsrefpipe.xmlparsers.IOPxml import IOPtoREFs
-from adsrefpipe.xmlparsers.SpringerXML import SPRINGERtoREFs
-from adsrefpipe.xmlparsers.APSxml import APStoREFs
-from adsrefpipe.xmlparsers.NatureXML import NATUREtoREFs
-from adsrefpipe.xmlparsers.AIPxml import AIPtoREFs
-from adsrefpipe.xmlparsers.WileyXML import WILEYtoREFs
-from adsrefpipe.xmlparsers.NLM3xml import NLMtoREFs
-from adsrefpipe.xmlparsers.AGUxml import AGUtoREFs, AGUreference
+from adsrefpipe.refparsers.CrossRefXML import CrossReftoREFs
+from adsrefpipe.refparsers.ElsevierXML import ELSEVIERtoREFs
+from adsrefpipe.refparsers.JATSxml import JATStoREFs
+from adsrefpipe.refparsers.IOPxml import IOPtoREFs
+from adsrefpipe.refparsers.SpringerXML import SPRINGERtoREFs
+from adsrefpipe.refparsers.APSxml import APStoREFs
+from adsrefpipe.refparsers.NatureXML import NATUREtoREFs
+from adsrefpipe.refparsers.AIPxml import AIPtoREFs
+from adsrefpipe.refparsers.WileyXML import WILEYtoREFs
+from adsrefpipe.refparsers.NLM3xml import NLMtoREFs
+from adsrefpipe.refparsers.AGUxml import AGUtoREFs, AGUreference
 
-from adsrefpipe.xmlparsers.reference import Reference, ReferenceError, XMLreference
+from adsrefpipe.refparsers.reference import Reference, ReferenceError, XMLreference
 
 
-class TestXMLParsers(unittest.TestCase):
+class TestReferenceParsers(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -32,67 +32,67 @@ class TestXMLParsers(unittest.TestCase):
     def test_crossrefxml_parser(self):
         """ test parser for crossrefxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.ref.xml')
-        references = CrossReftoREFs(filename=reference_source)
+        references = CrossReftoREFs(filename=reference_source, buffer=None, parsername='CrossRef').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_crossref)
 
     def test_elsevierxml_parser(self):
         """ test parser for elsevierxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.elsevier.xml')
-        references = ELSEVIERtoREFs(filename=reference_source)
+        references = ELSEVIERtoREFs(filename=reference_source, buffer=None, parsername='ELSEVIER').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_elsevier)
 
     def test_jatsxml_parser(self):
         """ test parser for jatsxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.jats.xml')
-        references = JATStoREFs(filename=reference_source)
+        references = JATStoREFs(filename=reference_source, buffer=None, parsername='JATS').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_jats)
 
     def test_iopxml_parser(self):
         """ test parser for iopxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.iop.xml')
-        references = IOPtoREFs(filename=reference_source)
+        references = IOPtoREFs(filename=reference_source, buffer=None, parsername='IOP').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_iop)
 
     def test_springerxml_parser(self):
         """ test parser for springerxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.springer.xml')
-        references = SPRINGERtoREFs(filename=reference_source)
+        references = SPRINGERtoREFs(filename=reference_source, buffer=None, parsername='SPRINGER').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_springer)
 
     def test_apsxml_parser(self):
         """ test parser for apsxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.aps.xml')
-        references = APStoREFs(filename=reference_source)
+        references = APStoREFs(filename=reference_source, buffer=None, parsername='APS').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_aps)
 
     def test_naturexml_parser(self):
         """ test parser for naturexml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.nature.xml')
-        references = NATUREtoREFs(filename=reference_source)
+        references = NATUREtoREFs(filename=reference_source, buffer=None, parsername='NATURE').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_nature)
 
     def test_aipxml_parser(self):
         """ test parser for aipxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.aip.xml')
-        references = AIPtoREFs(filename=reference_source)
+        references = AIPtoREFs(filename=reference_source, buffer=None, parsername='AIP').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_aip)
 
     def test_wileyxml_parser(self):
         """ test parser for wileyxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.wiley2.xml')
-        references = WILEYtoREFs(filename=reference_source)
+        references = WILEYtoREFs(filename=reference_source, buffer=None, parsername='WILEY').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_wiley)
 
     def test_nlm3xml_parser(self):
         """ test parser for nlm3xml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.nlm3.xml')
-        references = NLMtoREFs(filename=reference_source)
+        references = NLMtoREFs(filename=reference_source, buffer=None, parsername='NLM').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_nlm3)
 
     def test_aguxml_parser(self):
         """ test parser for aguxml """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.agu.xml')
-        references = AGUtoREFs(filename=reference_source)
+        references = AGUtoREFs(filename=reference_source, buffer=None, parsername='AGU').process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_agu)
 
     def test_reference_init(self):

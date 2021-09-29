@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from adsrefpipe.xmlparsers.CrossRefXML import CrossReftoREFs
-from adsrefpipe.xmlparsers.ElsevierXML import ELSEVIERtoREFs
-from adsrefpipe.xmlparsers.JATSxml import JATStoREFs
-from adsrefpipe.xmlparsers.IOPxml import IOPtoREFs
-from adsrefpipe.xmlparsers.SpringerXML import SPRINGERtoREFs
-from adsrefpipe.xmlparsers.APSxml import APStoREFs
-from adsrefpipe.xmlparsers.NatureXML import NATUREtoREFs
-from adsrefpipe.xmlparsers.AIPxml import AIPtoREFs
-from adsrefpipe.xmlparsers.WileyXML import WILEYtoREFs
-from adsrefpipe.xmlparsers.NLM3xml import NLMtoREFs
-from adsrefpipe.xmlparsers.AGUxml import AGUtoREFs
+from adsrefpipe.refparsers.CrossRefXML import CrossReftoREFs
+from adsrefpipe.refparsers.ElsevierXML import ELSEVIERtoREFs
+from adsrefpipe.refparsers.JATSxml import JATStoREFs
+from adsrefpipe.refparsers.IOPxml import IOPtoREFs
+from adsrefpipe.refparsers.SpringerXML import SPRINGERtoREFs
+from adsrefpipe.refparsers.APSxml import APStoREFs
+from adsrefpipe.refparsers.NatureXML import NATUREtoREFs
+from adsrefpipe.refparsers.AIPxml import AIPtoREFs
+from adsrefpipe.refparsers.WileyXML import WILEYtoREFs
+from adsrefpipe.refparsers.NLM3xml import NLMtoREFs
+from adsrefpipe.refparsers.AGUxml import AGUtoREFs
+from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
 
 def verify(parser_name):
     """
@@ -41,4 +42,6 @@ def verify(parser_name):
         return NLMtoREFs
     if parser_name == 'AGU':
         return AGUtoREFs
+    if parser_name == 'arXiv':
+        return ARXIVtoREFs
     return None

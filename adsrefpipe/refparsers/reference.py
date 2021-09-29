@@ -6,8 +6,8 @@ try:
 except ImportError:
     from collections import UserDict
 
-from adsrefpipe.xmlparsers.xmlFile import XmlString
-from adsrefpipe.xmlparsers.unicode import UnicodeHandler
+from adsrefpipe.refparsers.xmlFile import XmlString
+from adsrefpipe.refparsers.unicode import UnicodeHandler
 unicode_handler = UnicodeHandler()
 
 
@@ -64,6 +64,33 @@ class Reference(UserDict):
     re_match_non_digit = re.compile(r'\D+')
     re_hex_decode = re.compile(r'%[A-Fa-f0-9]{2}')
     re_remove_xml_tag = re.compile(r'<.*?>')
+
+    arxiv_category = ['acc-phys', 'adap-org', 'alg-geom', 'ao-sci', 'astro-ph', 'atom-ph', 'bayes-an', 'chao-dyn', 'chem-ph',
+                      'cmp-lg', 'comp-gas', 'cond-mat', 'cs', 'dg-ga', 'funct-an', 'gr-qc', 'hep-ex', 'hep-lat', 'hep-ph',
+                      'hep-th', 'math', 'math-ph', 'mtrl-th', 'nlin', 'nucl-ex', 'nucl-th', 'patt-sol', 'physics', 'plasm-ph',
+                      'q-alg', 'q-bio', 'quant-ph', 'solv-int', 'supr-con']
+    re_arxiv_old_pattern = re.compile(
+        r'\b(?:arXiv\W*)?(' + "|".join(arxiv_category) + r')(\.[A-Z]{2})?/(\d{7})(:?v\d+)?\b', re.IGNORECASE)
+    re_arxiv_new_pattern = re.compile(r'\b(?:(?:arXiv\s*\W?\s*)|(?:(?:' + "|".join(
+        arxiv_category) + r')\s*[:/]?\s*)|(?:http://.*?/abs/)|(?:))(\d{4})\.(\d{4,5})(?:v\d+)?\b', re.IGNORECASE)
+
+    re_doi = re.compile(r'\bdoi:\s*(10\.[\d\.]{2,9}/\S+\w)', re.IGNORECASE)
+    re_doi_xml = re.compile(r'<doi>(10\.[\d\.]{2,9}/\S+)</doi>', re.IGNORECASE)
+    re_doi_url = re.compile(r'//(?:dx\.)?doi\.org/(10\.[\d\.]{2,9}/[^<\s\."]*)', re.IGNORECASE)
+    # this is so we can catch cases such as the following:
+    #    Pinter, T. et al (2013), PIMO, La Palma, Spain, 213-217, 10.5281/zenodo.53085
+    re_doi_prm = re.compile(r'\b(10.[\d\.]{2,9}/\S+\w)', re.IGNORECASE)
+
+    re_year = re.compile(r'\b[12][09]\d\d\b')
+    re_year_parentheses = re.compile(r'\(.*([12][09]\d\d).*\)')
+
+    romans_numeral = {
+        'M': 1000, 'CM': 900, 'D': 500, 'CD': 400,
+        'C': 100, 'XC': 90, 'L': 50, 'XL': 40,
+        'X': 10, 'IX': 9, 'V': 5, 'IV': 4,
+        'I': 1,
+    }
+    romans_numeral_keys = [x[0] for x in sorted(romans_numeral.items(), key=lambda x: x[1], reverse=True)]
 
     def __init__(self, reference_str, unicode=None):
         """
@@ -180,51 +207,6 @@ class Reference(UserDict):
 
         return vol_num
 
-    # def string2asc(self, str):
-    #     """
-    #     returns str in ASCII representation with a few safety
-    #     measures added vs. a simple encode.
-    #
-    #     :param str:
-    #     :return:
-    #     """
-    #     if not str: return ''
-    #     str = self.unicode.remove_control_chars(str)
-    #     # this is really a hack, but we want to translate back
-    #     # "&" characters that were turned into __amp__ in the
-    #     # resolved reference strings (used in update mode)
-    #     # then we translate entities to unicode and finally we
-    #     # map them to ascii
-    #     #        try:
-    #     #            new = uh.u2asc(uh.ent2u(str.replace('__amp__','&')))
-    #     #        except:
-    #     #            new = uh.u2asc(uh.cleanall(str.replace('__amp__','&')))
-    #     try:
-    #         new = self.unicode.u2asc(self.unicode.cleanall(str.replace('__amp__', '&')))
-    #     except:
-    #         new = ''
-    #     # remove any remaining unicode chars
-    #     try:
-    #         a = new.encode('ascii', 'ignore')
-    #     except UnicodeEncodeError:
-    #         a = ''
-    #     return a
-
-    # def string2num(self, str):
-    #     """
-    #     returns all the digits in str pasted together as an
-    #     integer.
-    #
-    #     :param str:
-    #     :return:
-    #     """
-    #     if not str: return 0
-    #     num = self.re_match_non_digit.sub('', str)
-    #     if num:
-    #         return int(num)
-    #     else:
-    #         return 0
-
     def get_parsed_reference(self):
         """
 
@@ -257,9 +239,127 @@ class Reference(UserDict):
             return r
         return self.re_hex_decode.sub(hex2c, url_str)
 
+    def match_arxiv_id(self, ref_str):
+        """
+    
+        :param ref_str: 
+        :return: 
+        """
+        match_start = self.re_arxiv_old_pattern.search(ref_str)
+        if match_start:
+            return match_start.group(1) + '/' + match_start.group(3)
+        match_start = self.re_arxiv_new_pattern.search(ref_str)
+        if match_start:
+            return match_start.group(1) + '.' + match_start.group(2)
+
+    def match_doi(self, ref_str):
+        """
+    
+        :param ref_str: 
+        :return: 
+        """
+        match_start = self.re_doi.search(ref_str) or self.re_doi_xml.search(ref_str) or \
+                      self.re_doi_url.search(ref_str) or self.re_doi_prm.search(ref_str)
+        if match_start:
+            return match_start.group(1)
+
+
+    def match_int(self, ref_str):
+        """
+        extracts the first integer found in a string
+    
+        :param ref_str: 
+        :return: 
+        """
+        if ref_str:
+            if isinstance(ref_str, list):
+                ref_str = ref_str[0]
+            match = re.match(r'.*?(\d+)', ref_str)
+            if match:
+                return match.group(1)
+        return ''
+
+    def match_year(self, refstr):
+        """
+        xtracts a 4-digit year in an input string, if there is only one
+        if there are more than one 4-digit year, see if one is in parentheses
+
+        :param refstr: 
+        :return: 
+        """
+        match = list(set(self.re_year.findall(refstr)))
+        if len(match) == 1:
+            return match[0]
+        elif len(match) > 1:
+            match = self.re_year_parentheses.search(refstr)
+            if match:
+                return match.group(1)
+        return None
+
+    def int2roman(self, int_value):
+        """
+
+        :param int_value:
+        :return:
+        """
+        result = ''
+        if int_value < 1 or int_value > 4000:
+            raise ReferenceError("Unrecognizable Roman Numeral")
+        for i in self.romans_numeral_keys:
+            while self.romans_numeral[i] <= int_value:
+                result = result + i
+                int_value = int_value - self.romans_numeral[i]
+        return result
+
+    def roman2int(self, roman_value):
+        """
+
+        :param roman_value:
+        :return:
+        """
+        roman_value = roman_value.upper()
+
+        idx = 0
+        result = 0
+        while True:
+            if idx == len(roman_value):
+                break
+
+            if roman_value[idx] not in self.romans_numeral_keys or idx != len(roman_value) - 1 and \
+                            roman_value[idx + 1] not in self.romans_numeral_keys:
+                raise ReferenceError("Unrecognizable Roman Numeral")
+
+            if idx == len(roman_value) - 1 or self.romans_numeral[roman_value[idx]] >= self.romans_numeral[roman_value[idx + 1]]:
+                result += self.romans_numeral[roman_value[idx]]
+            else:
+                result -= self.romans_numeral[roman_value[idx]]
+
+            idx += 1
+
+        return result
+
+
+class TextReference(Reference):
+    """
+    Base class for dealing with TXT-based refreences (such as arXiv).
+    """
+
+    def __init__(self, reference_str, unicode=None):
+        """
+        simply forwards the request to the superclass
+
+        :param reference_str:
+        :param unicode:
+        """
+        Reference.__init__(self, reference_str, unicode)
+
+    def parse(self, prevref=None):
+        self.parsed = True
+
+
 class XMLreference(Reference):
     """
-    Base class for dealing with XML-based references (such as IOP and APS)
+    Base class for dealing with XML-based references (such as IOP and APS).
     This class creates a DOM tree (via XmlString) and then pulls out the
     appropriate fields to be used by the resolver by walking it.
     """
@@ -284,7 +384,7 @@ class XMLreference(Reference):
         if not reference_str:
             raise ReferenceError("XMLReference must have a non-empty input reference")
         elif self.is_types_stringtypes(reference_str):
-            parsed = None
+            self.parsed = None
             try:
                 parsed = XmlString(reference_str)
             except KeyboardInterrupt:
@@ -318,22 +418,6 @@ class XMLreference(Reference):
             return isinstance(obj, str)
         except NameError:
             return isinstance(obj, str)
-
-    # def get_reference_str(self):
-    #     """
-    #     returns what might be a good approximation to a plain
-    #     text reference string by simply concatenating all
-    #     text nodes into a string.
-    #
-    #     :return:
-    #     """
-    #     try:
-    #         contents = self.xmlnode_nodecontents(None)
-    #         if not contents: return ''
-    #         contents = self.re_remove_extra_spaces.sub(' ', contents)
-    #         return self.unicode.ent2asc(contents.strip())
-    #     except:
-    #         return ''
 
     def get_reference_str(self):
         """
@@ -554,6 +638,33 @@ class XMLreference(Reference):
         """
         return self.re_remove_xml_tag.sub(change, refstr).strip()
 
+    def extract_tag(self, refstr, tag, remove=1, keeptag=0, greedy=0, foldcase=0, attr=0, join=''):
+        """
+        extracts an XML tag from the input reference string
+        and returns the (potentially) modified input string
+        as well as the extracted tag
+        """
+        if not refstr: return '', None
+
+        if greedy:
+            mrx = '.*'
+        else:
+            mrx = '.*?'
+        if attr:
+            attrs = '[^>]*'
+        else:
+            attrs = ''
+        if keeptag:
+            tagrx = r'(%s<%s%s>%s</%s>)' % ('(?i)' if foldcase else '', tag, attrs, mrx, tag)
+        else:
+            tagrx = r'%s<%s%s>(%s)</%s>' % ('(?i)' if foldcase else '', tag, attrs, mrx, tag)
+        match_start = re.search(tagrx, refstr)
+        substr = None
+        if match_start:
+            substr = match_start.group(1)
+            if remove:
+                refstr = refstr[:match_start.start()] + join + refstr[match_start.end():]
+        return refstr, substr
 
     def dexml(self, refstr):
         """

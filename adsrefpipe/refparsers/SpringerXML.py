@@ -2,11 +2,11 @@ import sys, os
 import re
 import argparse
 
-from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, match_doi, match_arxiv_id, match_year
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 from adsputils import setup_logging, load_config
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
@@ -44,7 +44,7 @@ class SPRINGERreference(XMLreference):
         authors = self.parse_authors()
         year = self.xmlnode_nodecontents('Year').strip()
         if not year:
-            year = match_year(str(self.reference_str))
+            year = self.match_year(str(self.reference_str))
         volume = self.xmlnode_nodecontents('VolumeID').strip()
         pages = self.xmlnode_nodecontents('FirstPage').strip()
 
@@ -169,7 +169,7 @@ class SPRINGERreference(XMLreference):
         if doi:
             return doi
 
-        return match_doi(refstr)
+        return self.match_doi(refstr)
 
     def parse_arXiv(self, refstr):
         """
@@ -178,11 +178,11 @@ class SPRINGERreference(XMLreference):
         """
         refsrc = self.xmlnode_nodescontents('RefSource')
         for entry in refsrc:
-            eprint = match_arxiv_id(entry)
+            eprint = self.match_arxiv_id(entry)
             if eprint:
                 return eprint
 
-        return match_arxiv_id(refstr)
+        return self.match_arxiv_id(refstr)
 
     def parse_title_and_year(self, refstr):
         """
@@ -221,51 +221,69 @@ class SPRINGERreference(XMLreference):
         return None
 
 
-re_doi = re.compile(r'<Occurrence\ Type="DOI"><Handle>(?P<doi>.*?)</Handle></Occurrence>')
 
-def SPRINGERtoREFs(filename=None, buffer=None, unicode=None):
-    """
+class SPRINGERtoREFs(XMLtoREFs):
 
-    :param filename:
-    :param buffer:
-    :param unicode:
-    :return:
-    """
-    references = []
-    pairs = get_references(filename=filename, buffer=buffer)
+    re_doi = re.compile(r'<Occurrence\ Type="DOI"><Handle>(?P<doi>.*?)</Handle></Occurrence>')
 
-    for pair in pairs:
-        bibcode = pair[0]
-        buffer = pair[1]
+    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+        """
 
-        references_bibcode = {'bibcode':bibcode, 'references':[]}
+        :param filename:
+        :param buffer:
+        :param unicode:
+        :param tag:
+        """
+        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='Citation')
 
-        block_references = get_xml_block(buffer, 'Citation')
+    def cleanup(self, reference):
+        """
 
-        for reference in block_references:
-            # first check for those horrible DOIs with < and > in them
-            # and replace those with &lt; and &gt;
-            # 8/21/2020 was not able to find a case for this in the
-            # reference files I looked at, but keeping it for now,
-            # should remove it if not need to not waste any time
-            match = re_doi.search(reference)
-            if match:
-                doi = match.group('doi')
-                if doi.find('<') > 0:
-                    newdoi = doi.replace('<','&lt;').replace('>','&gt;')
-                    reference = reference.replace(doi, newdoi)
+        :param reference:
+        :return:
+        """
+        # first check for those horrible DOIs with < and > in them
+        # and replace those with &lt; and &gt;
+        # 8/21/2020 was not able to find a case for this in the
+        # reference files I looked at, but keeping it for now,
+        # should remove it if not need to not waste any time
+        match = self.re_doi.search(reference)
+        if match:
+            doi = match.group('doi')
+            if doi.find('<') > 0:
+                newdoi = doi.replace('<', '&lt;').replace('>', '&gt;')
+                reference = reference.replace(doi, newdoi)
+        return reference
 
-            logger.debug("SpringerXML: parsing %s" % reference)
-            try:
-                springer_reference = SPRINGERreference(reference)
-                references_bibcode['references'].append({**springer_reference.get_parsed_reference(), 'xml_reference':reference})
-            except ReferenceError as error_desc:
-                logger.error("SPRINGERxml: error parsing reference: %s" %error_desc)
+    def process_and_dispatch(self, cleanup_process=True):
+        """
+        this function does reference cleaning and then calls the parser
 
-        references.append(references_bibcode)
-        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+        :param cleanup_process:
+        :return:
+        """
+        references = []
+        for raw_block_references in self.raw_references:
+            bibcode = raw_block_references['bibcode']
+            block_references = raw_block_references['block_references']
 
-    return references
+            references_bibcode = {'bibcode':bibcode, 'references':[]}
+
+            for reference in block_references:
+                if cleanup_process:
+                    reference = self.cleanup(reference)
+
+                logger.debug("SpringerXML: parsing %s" % reference)
+                try:
+                    springer_reference = SPRINGERreference(reference)
+                    references_bibcode['references'].append({**springer_reference.get_parsed_reference(), 'refraw':reference})
+                except ReferenceError as error_desc:
+                    logger.error("SPRINGERxml: error parsing reference: %s" %error_desc)
+
+            references.append(references_bibcode)
+            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+
+        return references
 
 
 if __name__ == '__main__':      # pragma: no cover
@@ -274,11 +292,12 @@ if __name__ == '__main__':      # pragma: no cover
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(SPRINGERtoREFs(filename=args.filename))
+        print(SPRINGERtoREFs(filename=args.filename).process_and_dispatch())
     if args.buffer:
-        print(SPRINGERtoREFs(buffer=args.buffer))
+        print(SPRINGERtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     if not args.filename and not args.buffer:
-        print(SPRINGERtoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.springer.xml')))
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.springer.xml')
+        print(SPRINGERtoREFs(filename=filename).process_and_dispatch())
     sys.exit(0)
     # '/proj/adswon/references/sources/SoSyR/0040/iss1.springer.xml'

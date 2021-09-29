@@ -4,12 +4,12 @@ import argparse
 
 from adsputils import setup_logging, load_config
 
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
-from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_doi, match_arxiv_id, match_year
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 class APSreference(XMLreference):
@@ -59,21 +59,21 @@ class APSreference(XMLreference):
         if year:
             self['year'] = year
         else:
-            self['year'] = match_year(str(self.reference_str))
+            self['year'] = self.match_year(str(self.reference_str))
         if issue:
             self['issue'] = issue
         if doi:
             self['doi'] = doi
         else:
             # attempt to extract it from refstr
-            doi = match_doi(self.reference_str.toxml())
+            doi = self.match_doi(self.reference_str.toxml())
             if doi:
                 self['doi'] = doi
         if eprint:
             self['eprint'] = eprint
         else:
             # attempt to extract arxiv id from refstr
-            eprint = match_arxiv_id(self.reference_str.toxml())
+            eprint = self.match_arxiv_id(self.reference_str.toxml())
             if eprint:
                 self['eprint'] = eprint
         if issn:
@@ -130,55 +130,75 @@ class APSreference(XMLreference):
         return None
 
 
-re_closing_tag = re.compile(r'</references>\s*$')
-re_formula = re.compile(r'<formula.*?>.*?</formula>')
-re_previous_tag = re.compile(r'<prevau>')
-re_previous_ref = re.compile(r'<ibid>')
+class APStoREFs(XMLtoREFs):
 
-def APStoREFs(filename=None, buffer=None, unicode=None):
-    """
+    re_closing_tag = re.compile(r'</references>\s*$')
+    re_previous_ref = re.compile(r'<ibid>')
 
-    :param filename:
-    :param buffer:
-    :param unicode:
-    :return:
-    """
-    references = []
-    pairs = get_references(filename=filename, buffer=buffer)
+    reference_cleanup = [
+        (re.compile(r'<formula.*?>.*?</formula>'), ''),
+        (re.compile(r'<prevau>'), '---'),
+    ]
 
-    for pair in pairs:
-        bibcode = pair[0]
-        buffer = pair[1]
+    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+        """
 
-        references_bibcode = {'bibcode':bibcode, 'references':[]}
+        :param filename:
+        :param buffer:
+        :param unicode:
+        :param tag:
+        """
+        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='(ref|refitem)')
 
-        block_references = get_xml_block(buffer, '(ref|citation)')
-        # remove closing '</reference>' tag at end of file
-        if block_references and len(block_references):
-            block_references[-1] = re_closing_tag.sub('', block_references[-1])
+    def cleanup(self, reference, prev_reference):
+        """
 
-        prev_reference = ''
-        for reference in block_references:
-            reference = re_formula.sub('', reference)
+        :param reference:
+        :return:
+        """
+        for (compiled_re, replace_str) in self.reference_cleanup:
+            reference = compiled_re.sub(replace_str, reference)
 
-            logger.debug("APSXML: parsing %s" % reference)
+        # take care of previous author tag
+        if prev_reference:
+            reference = self.re_previous_ref.sub(prev_reference, reference)
+        reference, prev_reference = self.extract_tag(reference, 'journal', remove=0, keeptag=1)
+        return reference, prev_reference
 
-            # take care of previous author tag
-            reference = re_previous_tag.sub('---',reference)
-            if prev_reference:
-                reference = re_previous_ref.sub(prev_reference,reference)
-            reference,prev_reference = extract_tag(reference,'journal',remove=0,keeptag=1)
+    def process_and_dispatch(self, cleanup_process=True):
+        """
 
-            try:
-                aps_reference = APSreference(reference)
-                references_bibcode['references'].append({**aps_reference.get_parsed_reference(), 'xml_reference':reference})
-            except ReferenceError as error_desc:
-                logger.error("APSxml: error parsing reference: %s" %error_desc)
+        :param cleanup_process:
+        :return:
+        """
+        references = []
+        for raw_block_references in self.raw_references:
+            bibcode = raw_block_references['bibcode']
+            block_references = raw_block_references['block_references']
 
-        references.append(references_bibcode)
-        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+            references_bibcode = {'bibcode':bibcode, 'references':[]}
 
-    return references
+            if cleanup_process:
+                # remove closing '</reference>' tag at end of file
+                if block_references and len(block_references):
+                    block_references[-1] = self.re_closing_tag.sub('', block_references[-1])
+    
+            prev_reference = ''
+            for reference in block_references:
+                if cleanup_process:
+                    reference, prev_reference = self.cleanup(reference, prev_reference)
+
+                logger.debug("APSXML: parsing %s" % reference)
+                try:
+                    aps_reference = APSreference(reference)
+                    references_bibcode['references'].append({**aps_reference.get_parsed_reference(), 'refraw':reference})
+                except ReferenceError as error_desc:
+                    logger.error("APSxml: error parsing reference: %s" %error_desc)
+    
+            references.append(references_bibcode)
+            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+    
+        return references
 
 
 if __name__ == '__main__':      # pragma: no cover
@@ -187,12 +207,13 @@ if __name__ == '__main__':      # pragma: no cover
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(APStoREFs(filename=args.filename))
+        print(APStoREFs(filename=args.filename).process_and_dispatch())
     if args.buffer:
-        print(APStoREFs(buffer=args.buffer))
+        print(APStoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     if not args.filename and not args.buffer:
-        print(APStoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.aps.xml')))
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.aps.xml')
+        print(APStoREFs(filename=filename).process_and_dispatch())
     sys.exit(0)
     # two formats
     # /proj/ads/references/sources/PhRvB/0081/2010PhRvB..81r4520P.ref.xml

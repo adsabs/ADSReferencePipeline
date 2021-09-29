@@ -8,8 +8,8 @@ import argparse
 import threading
 
 from adsrefpipe import tasks
+from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.utils import get_date_modified_struct_time, ReprocessQueryType
-from adsrefpipe.models import Parser
 
 
 proj_home = os.path.realpath(os.path.dirname(__file__))
@@ -20,6 +20,7 @@ app = tasks.app
 logger = setup_logging('run.py')
 
 
+MAX_ENTRIES_DIAGNOSTICS = 5
 
 def run_diagnostics(bibcodes, source_filenames):
     """
@@ -28,6 +29,11 @@ def run_diagnostics(bibcodes, source_filenames):
     :param: bibcodes - list of bibcodes
     :param: source_filenames - list of source filenames
     """
+    # make sure we only send max number of entires per bibcode/source_file to be queried
+    if bibcodes:
+        bibcodes = bibcodes[:MAX_ENTRIES_DIAGNOSTICS]
+    if source_filenames:
+        source_filenames = source_filenames[:MAX_ENTRIES_DIAGNOSTICS]
     results = app.query_reference_tbl(bibcodes, source_filenames)
     for result in results:
         print(result)
@@ -99,8 +105,16 @@ def queue_files(filenames):
     """
     queued_tasks = []
     for filename in filenames:
-        results = tasks.task_process_reference_file.delay(filename)
-        queued_tasks.append({'filename':filename, 'results':results})
+        # first figure out which parser to call
+        parser_name = app.get_parser_name(filename)
+        parser = verify(parser_name)
+        # now read the source file
+        toREFs = parser(filename=filename, buffer=None, parsername=parser_name)
+        if toREFs:
+            results = tasks.task_process_references.delay(toREFs)
+            queued_tasks.append({'toREFs': toREFs, 'results': results})
+        else:
+            logger.error("Unable to open and read %s. Skipped!" %filename)
     check_queue(queued_tasks)
 
 
@@ -115,10 +129,16 @@ def queue_reprocess(reprocess_type, score_cutoff=0, match_bibcode='', date_cutof
     queued_tasks = []
     records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, date_cutoff)
     for record in records:
-        tasks.task_reprocess_subset_references(record)
-        return
-        results = tasks.task_reprocess_subset_references.delay(record)
-        queued_tasks.append({'reprocess':record, 'results':results})
+        # first figure out which parser to call
+        parser_name = app.get_parser_name(record['source_filename'])
+        parser = verify(parser_name)
+        # now read the source file
+        toREFs = parser(filename=None, buffer=record, parsername=None)
+        if toREFs:
+            tasks.task_reprocess_references(toREFs)
+            return
+            results = tasks.task_reprocess_references.delay(toREFs)
+            queued_tasks.append({'toREFs':toREFs, 'results':results})
     check_queue(queued_tasks)
 
 
@@ -229,7 +249,7 @@ if __name__ == '__main__':
 
     if args.action == 'DIAGNOSTICS':
         if args.parse_filename:
-            name = Parser().get_name(args.parse_filename)
+            name = app.get_parser_name(args.parse_filename)
             if name:
                 print('Source file `%s` shall be parsed using `%s` parser.' % (args.parse_filename, name))
             else:
@@ -275,7 +295,7 @@ if __name__ == '__main__':
 
     elif args.action == 'STATS':
         if args.bibcode or args.source_filename:
-            table, num_references, num_resolved = app.get_stats_compare(args.bibcode, args.source_filename)
+            table, num_references, num_resolved = app.get_service_classic_compare_stats_grid(args.bibcode, args.source_filename)
             print('\n',table,'\n')
             print('Num References:', num_references)
             print('Num References Resolved:', num_resolved)
@@ -288,12 +308,10 @@ if __name__ == '__main__':
                 for record in records:
                     print(record['source_filename'])
         elif args.count:
-            table_description = ['reference file information', 'top level information for a processed run',
-                                 'resolved information for a processed run', 'comparison of new and classic processed run']
-            counts = app.get_count_records()
+            results = app.get_count_records()
             print('\n')
-            for i, (table,num_records) in enumerate(counts.items()):
-                print('Currently there are %d records in `%s` table, which holds %s.'%(num_records, table, table_description[i]))
+            for result in results:
+                print('Currently there are %d records in `%s` table, which holds %s.'%(result['count'], result['name'], result['description']))
             print('\n')
 
     sys.exit(0)

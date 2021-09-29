@@ -2,12 +2,12 @@ import sys, os
 import re
 import argparse
 
-from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_arxiv_id, match_doi, match_year
-from adsrefpipe.xmlparsers.unicode import tostr
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
+from adsrefpipe.refparsers.unicode import tostr
 
 from adsputils import setup_logging, load_config
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
@@ -32,7 +32,7 @@ class NLMreference(XMLreference):
         authors = self.parse_authors()
         year = self.xmlnode_nodecontents('year').strip()
         if not year:
-            year = match_year(str(self.reference_str))
+            year = self.match_year(str(self.reference_str))
 
         type = self.xmlnode_attribute('mixed-citation', 'publication-type') or \
                self.xmlnode_attribute('nlm-citation',  'citation-type')
@@ -53,19 +53,19 @@ class NLMreference(XMLreference):
 
         doi = ''
         try:
-            doi = 'doi:' + match_doi(self.xmlnode_nodecontents('pub-id').strip())
+            doi = 'doi:' + self.match_doi(self.xmlnode_nodecontents('pub-id').strip())
         except:
             # attempt to extract doi from refstr
-            # there are some debris in the refstr to attempt to cleanup before sending it to match_doi
-            doi = match_doi(self.re_cleanup_doi.sub(r'\1:\2\3)', refstr))
+            # there are some debris in the refstr to attempt to cleanup before sending it to self.match_doi
+            doi = self.match_doi(self.re_cleanup_doi.sub(r'\1:\2\3)', refstr))
 
         eprint = ''
         if self.re_preprint.search(refstr):
             try:
-                eprint = 'arxiv:' + match_arxiv_id(self.xmlnode_nodecontents('pub-id').strip())
+                eprint = 'arxiv:' + self.match_arxiv_id(self.xmlnode_nodecontents('pub-id').strip())
             except:
                 # attempt to extract arxiv id from refstr
-                eprint = match_arxiv_id(refstr)
+                eprint = self.match_arxiv_id(refstr)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
@@ -108,8 +108,8 @@ class NLMreference(XMLreference):
         author_list = []
         for author in authors:
             an_author = ''
-            author, lastname = extract_tag(author, 'surname')
-            author, givennames = extract_tag(author, 'given-names')
+            author, lastname = self.extract_tag(author, 'surname')
+            author, givennames = self.extract_tag(author, 'given-names')
             if lastname: an_author = tostr(lastname)
             if an_author and givennames: an_author += ', ' + tostr(givennames)
             if an_author: author_list.append(an_author)
@@ -127,54 +127,68 @@ class NLMreference(XMLreference):
         return authors
 
 
-re_uri = re.compile(r'</?uri.*?>')
-re_cleanup_block = [
-    (re.compile(r'</?(ext-link|x).*?>'), ''),
-    (re.compile(r'\sxlink:type="simple"'), ''),
-    (re.compile(r'\s+xlink:href='), ' href='),
-    (re.compile(r'<inline-formula>.*?</inline-formula>'), ''),
-    (re.compile(r'\s+xlink:type='), ' type='),
-]
+class NLMtoREFs(XMLtoREFs):
 
+    block_cleanup = [
+        (re.compile(r'</?uri.*?>'), ''),
+    ]
+    reference_cleanup = [
+        (re.compile(r'</?(ext-link|x).*?>'), ''),
+        (re.compile(r'\sxlink:type="simple"'), ''),
+        (re.compile(r'\s+xlink:href='), ' href='),
+        (re.compile(r'<inline-formula>.*?</inline-formula>'), ''),
+        (re.compile(r'\s+xlink:type='), ' type='),
+    ]
 
-def NLMtoREFs(filename=None, buffer=None, unicode=None):
-    """
+    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+        """
 
-    :param filename:
-    :param buffer:
-    :param unicode:
-    :return:
-    """
-    references = []
-    pairs = get_references(filename=filename, buffer=buffer)
+        :param filename:
+        :param buffer:
+        :param unicode:
+        :param tag:
+        """
+        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='ref', cleanup=self.block_cleanup)
 
-    for pair in pairs:
-        bibcode = pair[0]
-        if len(bibcode) != 19:
-            logger.error("NLMxml: error in getting a bibcode along with the reference strings. Returned %s for bibcode." % bibcode)
-            continue
-        buffer = pair[1]
-        buffer = re_uri.sub('', buffer)
+    def cleanup(self, reference):
+        """
 
-        references_bibcode = {'bibcode':bibcode, 'references':[]}
+        :param reference:
+        :return:
+        """
+        for (compiled_re, replace_str) in self.reference_cleanup:
+            reference = compiled_re.sub(replace_str, reference)
+        return reference
 
-        block_references = get_xml_block(buffer, 'ref')
+    def process_and_dispatch(self, cleanup_process=True):
+        """
+        this function does reference cleaning and then calls the parser
 
-        for reference in block_references:
-            for one_set in re_cleanup_block:
-                reference = one_set[0].sub(one_set[1], reference)
+        :param cleanup_process:
+        :return:
+        """
+        references = []
+        for raw_block_references in self.raw_references:
+            bibcode = raw_block_references['bibcode']
+            block_references = raw_block_references['block_references']
 
-            logger.debug("NLMxml: parsing %s" % reference)
-            try:
-                nlm_reference = NLMreference(reference)
-                references_bibcode['references'].append({**nlm_reference.get_parsed_reference(), 'xml_reference':reference})
-            except ReferenceError as error_desc:
-                logger.error("NLMxml: error parsing reference: %s" %error_desc)
+            references_bibcode = {'bibcode':bibcode, 'references':[]}
+    
+            for reference in block_references:
+                if cleanup_process:
+                    reference = self.cleanup(reference)
 
-        references.append(references_bibcode)
-        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
-
-    return references
+                logger.debug("NLMxml: parsing %s" % reference)
+                try:
+                    nlm_reference = NLMreference(reference)
+                    references_bibcode['references'].append({**nlm_reference.get_parsed_reference(), 'refraw':reference})
+                except ReferenceError as error_desc:
+                    logger.error("NLMxml: error parsing reference: %s" %error_desc)
+    
+            references.append(references_bibcode)
+            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+    
+        return references
 
 
 if __name__ == '__main__':      # pragma: no cover
@@ -183,12 +197,13 @@ if __name__ == '__main__':      # pragma: no cover
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(NLMtoREFs(filename=args.filename))
+        print(NLMtoREFs(filename=args.filename).process_and_dispatch())
     if args.buffer:
-        print(NLMtoREFs(buffer=args.buffer))
+        print(NLMtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     if not args.filename and not args.buffer:
-        print(NLMtoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.nlm3.xml')))
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.nlm3.xml')
+        print(NLMtoREFs(filename).process_and_dispatch())
     sys.exit(0)
     # /proj/ads/references/sources/PNAS/0109/iss17.nlm3.xml
     # /proj/ads/references/sources/A+A/0620/iss.nlm3.xml

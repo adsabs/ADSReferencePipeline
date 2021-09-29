@@ -2,11 +2,11 @@ import sys, os
 import re
 import argparse
 
-from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, match_year, match_doi, match_arxiv_id
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 from adsputils import setup_logging, load_config
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
@@ -34,17 +34,17 @@ class NATUREreference(XMLreference):
             match = self.re_collabrations.search(theref)
             if match:
                 authors = match.group('COLLAB').strip().rstrip('.')
-        theref, title = extract_tag(theref, 'atl', foldcase=1)
+        theref, title = self.extract_tag(theref, 'atl', foldcase=1)
         if not title:
-            theref, title = extract_tag(theref, 'btl', foldcase=1)
-        theref, journal = extract_tag(theref, 'jtl', foldcase=1)
-        theref, year = extract_tag(theref, 'cd', foldcase=1, attr=1)
+            theref, title = self.extract_tag(theref, 'btl', foldcase=1)
+        theref, journal = self.extract_tag(theref, 'jtl', foldcase=1)
+        theref, year = self.extract_tag(theref, 'cd', foldcase=1, attr=1)
         # see if year is in plaintext
         if not year:
-            year = match_year(theref)
+            year = self.match_year(theref)
         volume, page = self.parse_volume_and_page(theref)
 
-        theref, doi = extract_tag(theref, 'refdoi', foldcase=1)
+        theref, doi = self.extract_tag(theref, 'refdoi', foldcase=1)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
@@ -58,11 +58,11 @@ class NATUREreference(XMLreference):
 
         if not doi:
             # attempt to extract doi from reference text
-            doi = match_doi(theref)
+            doi = self.match_doi(theref)
             if doi:
                 self['doi'] = doi
         # attempt to extract arxiv id from reference text
-        eprint = match_arxiv_id(theref)
+        eprint = self.match_arxiv_id(theref)
         if eprint:
             self['eprint'] = eprint
 
@@ -80,16 +80,16 @@ class NATUREreference(XMLreference):
         :param theref:
         :return:
         """
-        authors, author = extract_tag(theref, 'refau')
+        authors, author = self.extract_tag(theref, 'refau')
         author_list = []
         while author:
             an_author = ''
-            author, lname = extract_tag(author, 'snm')
-            author, fname = extract_tag(author, 'fnm')
+            author, lname = self.extract_tag(author, 'snm')
+            author, fname = self.extract_tag(author, 'fnm')
             if lname: an_author = self.unicode.u2asc(lname)
             if an_author and fname: an_author += ', ' + self.unicode.u2asc(fname)
             if an_author: author_list.append(an_author)
-            authors, author = extract_tag(authors, 'refau')
+            authors, author = self.extract_tag(authors, 'refau')
 
         match = self.re_etal.search(theref)
         if match:
@@ -118,56 +118,62 @@ class NATUREreference(XMLreference):
         return volume, page
 
 
-def NATUREtoREFs(filename=None, buffer=None, unicode=None):
-    """
+class NATUREtoREFs(XMLtoREFs):
 
-    :param filename:
-    :param buffer:
-    :param unicode:
-    :return:
-    """
-    references = []
-    pairs = get_references(filename=filename, buffer=buffer)
+    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+        """
 
-    for pair in pairs:
-        bibcode = pair[0]
-        buffer = pair[1]
+        :param filename:
+        :param buffer:
+        :param unicode:
+        :param tag:
+        """
+        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='(reftxt|REFTXT)')
 
-        references_bibcode = {'bibcode':bibcode, 'references':[]}
+    def process_and_dispatch(self, cleanup_process=True):
+        """
+        this function does reference cleaning and then calls the parser
 
-        block_references = get_xml_block(buffer, '(reftxt|REFTXT)')
+        :param cleanup_process:
+        :return:
+        """
+        references = []
+        for raw_block_references in self.raw_references:
+            bibcode = raw_block_references['bibcode']
+            block_references = raw_block_references['block_references']
 
-        for reference in block_references:
-            reference = reference.replace('()','')
-            reference = reference.replace(' . ',' ')
-            reference = reference.strip()
+            references_bibcode = {'bibcode':bibcode, 'references':[]}
 
-            logger.debug("NatureXML: parsing %s" % reference)
-            try:
-                nature_reference = NATUREreference(reference)
-                references_bibcode['references'].append({**nature_reference.get_parsed_reference(), 'xml_reference':reference})
-            except ReferenceError as error_desc:
-                logger.error("NatureXML: error parsing reference: %s" %error_desc)
+            for reference in block_references:
+                if cleanup_process:
+                    reference = reference.replace('()','').replace(' . ',' ').strip()
 
-        references.append(references_bibcode)
-        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+                logger.debug("NatureXML: parsing %s" % reference)
+                try:
+                    nature_reference = NATUREreference(reference)
+                    references_bibcode['references'].append({**nature_reference.get_parsed_reference(), 'refraw':reference})
+                except ReferenceError as error_desc:
+                    logger.error("NatureXML: error parsing reference: %s" %error_desc)
 
-    return references
+            references.append(references_bibcode)
+            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+
+        return references
 
 
-re_xml_tags = re.compile(r"<([^\/>]+)[/]*>")
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Nature references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(NATUREtoREFs(filename=args.filename))
+        print(NATUREtoREFs(filename=args.filename).process_and_dispatch())
     if args.buffer:
-        print(NATUREtoREFs(buffer=args.buffer))
+        print(NATUREtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     if not args.filename and not args.buffer:
-        print(NATUREtoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.nature.xml')))
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.nature.xml')
+        print(NATUREtoREFs(filename=filename).process_and_dispatch())
     sys.exit(0)
     # /proj/ads/references/sources/Natur/0008/iss183.nature.xml
     # /proj/ads/references/sources/Natur/0549/iss7672.nature.xml

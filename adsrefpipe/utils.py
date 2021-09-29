@@ -17,10 +17,6 @@ config.update(load_config())
 DATE_FORMAT = "%d-%02d-%02d %02d:%02d:%02d"
 
 
-class ReferenceType:
-    text, xml = range(2)
-
-
 class ReprocessQueryType:
     score, bibstem, year, failed = range(4)
 
@@ -66,85 +62,29 @@ def get_resolved_filename(source_filename):
     """
     return source_filename.replace('sources','retrieve') + '.result'
 
-def read_reference_text_file(filename):
-    """
-    read reference file of text format
 
-    :param filename:
-    :return:
-    """
-    try:
-        bibcode = None
-        with open(filename, 'r') as f:
-            reader = f.readlines()
-            references = []
-            prev_line = ''
-            for line in reader:
-                if not line.startswith('%'):
-                    line = re.search(r'([-.\s]*.*[A-Z].*$)', line)
-                    if line:
-                        line = fix_inheritance(line.group(), prev_line)
-                        references.append(line)
-                        prev_line = line
-                elif line.startswith('%R'):
-                    bibcode = line.split('%R ')[1].strip()
-        if len(references) > 0 and bibcode:
-            logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
-        elif len(references) == 0:
-            logger.error('No references found in reference file %s.' % (filename))
-        elif bibcode is None:
-            logger.error('No bibcode found in reference file %s.' % (filename))
-        return bibcode, references
-    except Exception as e:
-        logger.error('Exception: %s' % (str(e)))
-        return None, None
-
-
-def fix_inheritance(cur_refstr, prev_refstr):
-    """
-    if author list is the same as the reference above it, a dash is inserted
-    get the list of authors from the previous reference and add it to the current one
-
-    :param cur_refstr:
-    :param prev_refstr:
-    :return:
-    """
-    match = re.match(r"[-_]{2,}\.?", cur_refstr)
-    if match and prev_refstr and len(prev_refstr) > 1:
-        try:
-            # find the year and return everything that came before it
-            prev_authors = re.match(r"(.*)(?=\s\d{4})", prev_refstr)
-            if prev_authors:
-                cur_refstr = prev_authors.group() + " " + cur_refstr[match.end():]
-        except TypeError:
-            pass
-    return cur_refstr
-
-
-def resolve_references(type, references):
+def get_resolved_references(references, service_url):
     """
     send a request to reference service
 
-    :param type: text or xml
     :param references: list of references
+    :param service_url
     :return:
     """
-    if type == ReferenceType.text:
+    if service_url.endswith('text'):
         str_references,ids = map(list, zip(*[ref.values() for ref in references]))
-        url = config['REFERENCE_PIPELINE_SERVICE_TEXT_URL']
         payload = {'reference': str_references, 'id': ids}
-    elif type == ReferenceType.xml:
-        url = config['REFERENCE_PIPELINE_SERVICE_XML_URL']
+    elif service_url.endswith('xml'):
         payload = {'parsed_reference': references}
     else:
-        logger.error('Unrecognizable reference type `%s`.'%type)
+        logger.error('Unrecognizable service url `%s`.'%service_url)
         return None
 
     headers = {'Content-type': 'application/json',
                'Accept': 'application/json',
                'Authorization': 'Bearer ' + config['REFERENCE_PIPELINE_ADSWS_API_TOKEN']}
     try:
-        r = requests.post(url=url, data=json.dumps(payload), headers=headers)
+        r = requests.post(url=service_url, data=json.dumps(payload), headers=headers)
         if (r.status_code == 200):
             resolved = json.loads(r.content)['resolved']
             logger.debug('Resolved %d references successfully.' % (len(resolved)))

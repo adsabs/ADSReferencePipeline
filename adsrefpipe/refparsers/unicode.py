@@ -11,7 +11,7 @@ except ImportError:
 import unicodedata
 
 from adsputils import setup_logging, load_config
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 

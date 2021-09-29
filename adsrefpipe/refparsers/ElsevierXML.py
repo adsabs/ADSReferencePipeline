@@ -2,13 +2,12 @@ import sys, os
 import re
 import argparse
 
-from adsrefpipe.xmlparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.xmlparsers.common import get_references, get_xml_block, extract_tag, roman2int, \
-    match_arxiv_id, match_doi, match_year
-from adsrefpipe.xmlparsers.unicode import tostr
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
+from adsrefpipe.refparsers.unicode import tostr
 
 from adsputils import setup_logging, load_config
-logger = setup_logging('reference-xml')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
@@ -37,7 +36,7 @@ class ELSEVIERreference(XMLreference):
         authors = self.parse_authors()
         host = self.xmlnode_nodescontents('host', keepxml=1)
         try:
-            host, journal = extract_tag(host[0], 'maintitle')
+            host, journal = self.extract_tag(host[0], 'maintitle')
             journal = journal.strip()
         except:
             journal = ''
@@ -50,7 +49,7 @@ class ELSEVIERreference(XMLreference):
 
         year = self.xmlnode_nodecontents('date')
         if not year:
-            year = match_year(str(self.reference_str))
+            year = self.match_year(str(self.reference_str))
 
         volume = self.xmlnode_nodecontents('volume-nr').strip()
         if len(volume) > 0:
@@ -61,7 +60,7 @@ class ELSEVIERreference(XMLreference):
 
         # if the volume number happens to be a roman numeral, convert
         if self.re_volume_roman.search(volume):
-            volume = str(roman2int(volume))
+            volume = str(self.roman2int(volume))
 
         pages = self.xmlnode_nodecontents('first-page').strip()
         artno = self.xmlnode_nodecontents('article-number').strip()
@@ -73,17 +72,17 @@ class ELSEVIERreference(XMLreference):
             self['comment'] = comment
 
         try:
-            eprint = match_arxiv_id(self.xmlnode_nodecontents('inter-ref'))
+            eprint = self.match_arxiv_id(self.xmlnode_nodecontents('inter-ref'))
             # attempt to extract arxiv id from refstr
             if not eprint:
-                eprint = match_arxiv_id(str(self.reference_str))
+                eprint = self.match_arxiv_id(str(self.reference_str))
         except:
             pass
         try:
             doi = self.xmlnode_nodecontents('doi').strip()
             if len(doi) == 0:
                 # attempt to extract doi from refstr
-                doi = match_doi(str(self.reference_str))
+                doi = self.match_doi(str(self.reference_str))
         except:
             pass
 
@@ -146,13 +145,13 @@ class ELSEVIERreference(XMLreference):
         """
         contrib = self.xmlnode_nodescontents('contribution', keepxml=1)
         try:
-            contrib, authors = extract_tag(contrib[0], 'authors')
-            authors, author = extract_tag(authors.strip(), 'author')
+            contrib, authors = self.extract_tag(contrib[0], 'authors')
+            authors, author = self.extract_tag(authors.strip(), 'author')
             type = 'author'
         except:
             try:
-                contrib, authors = extract_tag(contrib[0], 'editors')
-                authors, author = extract_tag(authors.strip(), 'editor')
+                contrib, authors = self.extract_tag(contrib[0], 'editors')
+                authors, author = self.extract_tag(authors.strip(), 'editor')
                 type = 'editor'
             except:
                 author = ''
@@ -162,12 +161,12 @@ class ELSEVIERreference(XMLreference):
         author_list = []
         while author:
             an_author = ''
-            author, lastname = extract_tag(author, 'surname')
-            author, givennames = extract_tag(author, 'given-name')
+            author, lastname = self.extract_tag(author, 'surname')
+            author, givennames = self.extract_tag(author, 'given-name')
             if lastname: an_author = str(lastname)
             if an_author and givennames: an_author += ', ' + str(givennames)
             if an_author: author_list.append(an_author)
-            authors, author = extract_tag(authors, type)
+            authors, author = self.extract_tag(authors, type)
 
         if collab:
             author_list = collab + author_list
@@ -176,53 +175,69 @@ class ELSEVIERreference(XMLreference):
         return ', '.join(author_list)
 
 
-re_cleanup = [
-    (re.compile(r'<(/?)[a-z]+:(.*?)>'), r'<\1\2>'), # the XML parser doesn't like the colon in the tags
-    (re.compile(r'<math.*?>'), r'<math>'),                # remove MathML markup
-    (re.compile(r'<inter-ref.*?>'), r'<inter-ref>'),
-    (re.compile(r'<intra-ref.*?>'), r'<intra-ref>'),
-    (re.compile(r'<other-ref>'), r'<reference>'),
-    (re.compile(r'</other-ref>'), r'</reference>')
-]
-re_doubled = (re.compile(r'</bib-reference>\s*</bib-reference>\s*$'), r'</bib-reference>\n')
+class ELSEVIERtoREFs(XMLtoREFs):
 
-# ELS files have references for multiple articles concatenated
-# we parse them a chunk at a time to simplify the processing
-def ELSEVIERtoREFs(filename=None, buffer=None, unicode=None):
-    """
+    block_cleanup = [
+        (re.compile(r'<(/?)[a-z]+:(.*?)>'), r'<\1\2>'),  # the XML parser doesn't like the colon in the tags
+        (re.compile(r'<math.*?>'), r'<math>'),  # remove MathML markup
+        (re.compile(r'<inter-ref.*?>'), r'<inter-ref>'),
+        (re.compile(r'<intra-ref.*?>'), r'<intra-ref>'),
+        (re.compile(r'<other-ref>'), r'<reference>'),
+        (re.compile(r'</other-ref>'), r'</reference>')
+    ]
+    reference_cleanup = [
+        (re.compile(r'</bib-reference>\s*</bib-reference>\s*$'), r'</bib-reference>\n')
+    ]
 
-    :param filename:
-    :param buffer:
-    :param unicode:
-    :return:
-    """
-    references = []
-    pairs = get_references(filename=filename, buffer=buffer)
+    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+        """
 
-    for pair in pairs:
-        bibcode = pair[0]
-        buffer = pair[1]
-        for one_set in re_cleanup:
-            buffer = one_set[0].sub(one_set[1], buffer)
+        :param filename:
+        :param buffer:
+        :param unicode:
+        :param tag:
+        """
+        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='reference', cleanup=self.block_cleanup, encoding='ISO-8859-1')
 
-        references_bibcode = {'bibcode':bibcode, 'references':[]}
+    def cleanup(self, reference):
+        """
 
-        block_references = get_xml_block(buffer, 'reference', encoding='ISO-8859-1')
+        :param reference:
+        :return:
+        """
+        for (compiled_re, replace_str) in self.reference_cleanup:
+            reference = compiled_re.sub(replace_str, reference)
+        return reference
 
-        for reference in block_references:
-            reference = re_doubled[0].sub(re_doubled[1], reference)
+    def process_and_dispatch(self, cleanup_process=True):
+        """
+        this function does reference cleaning and then calls the parser
 
-            logger.debug("ElsevierXML: parsing %s" % reference)
-            try:
-                elsevier_reference = ELSEVIERreference(reference)
-                references_bibcode['references'].append({**elsevier_reference.get_parsed_reference(), 'xml_reference':reference})
-            except ReferenceError as error_desc:
-                logger.error("ELSEVIERxml:  error parsing reference: %s" %error_desc)
+        :param cleanup_process:
+        :return:
+        """
+        references = []
+        for raw_block_references in self.raw_references:
+            bibcode = raw_block_references['bibcode']
+            block_references = raw_block_references['block_references']
 
-        references.append(references_bibcode)
-        logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+            references_bibcode = {'bibcode':bibcode, 'references':[]}
+    
+            for reference in block_references:
+                if cleanup_process:
+                    reference = self.cleanup(reference)
 
-    return references
+                logger.debug("ElsevierXML: parsing %s" % reference)
+                try:
+                    elsevier_reference = ELSEVIERreference(reference)
+                    references_bibcode['references'].append({**elsevier_reference.get_parsed_reference(), 'refraw':reference})
+                except ReferenceError as error_desc:
+                    logger.error("ELSEVIERxml:  error parsing reference: %s" %error_desc)
+    
+            references.append(references_bibcode)
+            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+
+        return references
 
 
 if __name__ == '__main__':      # pragma: no cover
@@ -231,12 +246,13 @@ if __name__ == '__main__':      # pragma: no cover
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(ELSEVIERtoREFs(filename=args.filename))
+        print(ELSEVIERtoREFs(filename=args.filename).process_and_dispatch())
     if args.buffer:
-        print(ELSEVIERtoREFs(buffer=args.buffer))
+        print(ELSEVIERtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     if not args.filename and not args.buffer:
-        print(ELSEVIERtoREFs(os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.elsevier.xml')))
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.elsevier.xml')
+        print(ELSEVIERtoREFs(filename=filename).process_and_dispatch())
     sys.exit(0)
     # /proj/ads/references/sources/JPhG/0028/iss1.raw
     # /proj/ads/references/sources/AtmEn/0235/iss.elsevier.xml
