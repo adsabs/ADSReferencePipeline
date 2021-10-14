@@ -219,14 +219,14 @@ class TestDatabase(unittest.TestCase):
         """ verify non existence reference_source record """
 
         # test when bibcode does not exist
-        self.assertTrue(self.app.query_reference_source_tbl(bibcode_list=['2020arXiv200400015L']) == None)
+        self.assertTrue(self.app.query_reference_source_tbl(bibcode_list=['2020arXiv200400015L']) == [])
 
         # test when filename does not exist
-        self.assertTrue(self.app.query_reference_source_tbl(source_filename_list=os.path.join(self.stubdata_dir,'00015.raw')) == None)
+        self.assertTrue(self.app.query_reference_source_tbl(source_filename_list=os.path.join(self.stubdata_dir,'00015.raw')) == [])
 
         # test when both bibcode and filename are passed and nothing is returned
         self.assertTrue(self.app.query_reference_source_tbl(bibcode_list=['2020arXiv200400015L'],
-                                                     source_filename_list=os.path.join(self.stubdata_dir,'00013.raw')) == None)
+                                                     source_filename_list=os.path.join(self.stubdata_dir,'00013.raw')) == [])
 
     def test_insert_reference_record(self):
         """ test inserting reference_source record """
@@ -264,8 +264,8 @@ class TestDatabase(unittest.TestCase):
             self.assertEqual(name, self.app.get_parser_name(info[0]))
             self.assertEqual(info[1], verify(name))
         # now verify couple of errors
-        self.assertEqual(self.app.get_parser_name('/RScI/0091/2020RScI...91e3301A.aipft.xml'), None)
-        self.assertEqual(self.app.get_parser_name('/arXiv/2004/15000.1raw'), None)
+        self.assertEqual(self.app.get_parser_name('/RScI/0091/2020RScI...91e3301A.aipft.xml'), '')
+        self.assertEqual(self.app.get_parser_name('/arXiv/2004/15000.1raw'), '')
 
     def test_reference_service_endpoint(self):
         """ test getting reference service endpoint from parser name method """
@@ -420,7 +420,7 @@ class TestDatabaseNoStubdata(unittest.TestCase):
 
     def test_query_reference_tbl_when_empty(self):
         """ verify reference_source table being empty """
-        self.assertTrue(self.app.query_reference_source_tbl() == None)
+        self.assertTrue(self.app.query_reference_source_tbl() == [])
 
     def test_populate_tables(self):
         """ test populating all tables """
