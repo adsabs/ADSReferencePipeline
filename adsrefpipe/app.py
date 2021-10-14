@@ -42,7 +42,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                     self.logger.error("No unique record found in table `Parser` matching extension %s."%source_pattern)
         else:
             self.logger.error("Unrecognizable source file %s."%source_filename)
-        return None
+        return ''
 
     def get_reference_service_endpoint(self, parsername):
         """
@@ -100,7 +100,6 @@ class ADSReferencePipelineCelery(ADSCelery):
                     self.logger.error("No records found for parser = %s." % (parsername))
                 else:
                     self.logger.error("No records found in table `ReferenceSource`.")
-                return None
 
             results = []
             for row in rows:
@@ -232,7 +231,7 @@ class ADSReferencePipelineCelery(ADSCelery):
         except SQLAlchemyError as e:
             session.rollback()
             self.logger.info("Source file %s information failed to get added to database. Error: %s" % (source_filename, str(e.__dict__['orig'])))
-        return None
+        return []
 
     def populate_tables_pre_resolved_retry_status(self, source_bibcode, source_filename, source_modified, retry_records):
         """
@@ -260,9 +259,8 @@ class ADSReferencePipelineCelery(ADSCelery):
                     self.logger.info("Source file %s for bibcode %s with %d references, for reprocessing added successfully." % (source_filename, source_bibcode, len(references)))
                     return references
         except SQLAlchemyError as e:
-            session.rollback()
             self.logger.info("Source file %s information for reprocessing failed to get added to database." % (source_filename, str(e.__dict__['orig'])))
-        return None
+        return []
 
     def populate_tables_post_resolved(self, resolved_reference, source_bibcode, classic_resolved_filename):
         """
@@ -312,7 +310,6 @@ class ADSReferencePipelineCelery(ADSCelery):
                 self.logger.info("Updated %d resolved reference records successfully." % len(resolved_reference))
                 return True
         except SQLAlchemyError as e:
-            session.rollback()
             self.logger.info("Failed to update %d resolved reference records successfully. Error %s" % (len(resolved_reference), str(e)))
             return False
 
