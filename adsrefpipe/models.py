@@ -2,6 +2,7 @@
 
 
 from sqlalchemy import Integer, String, Column, ForeignKey, DateTime, func, Numeric, ForeignKeyConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -40,22 +41,26 @@ class Parser(Base):
     name is   `Text` (text parser),
               `CrossRef` (xml CrossRef parser),
               ...
+              `OCR` (OCR parser that has method_identifiers specifiying which flavor of OCR it is to be parsed)
     """
     __tablename__ = 'parser'
     name = Column(String, primary_key=True)
-    source_pattern = Column(String)
+    extension_pattern = Column(String)
     reference_service_endpoint = Column(String)
+    matches = Column(JSONB, default=dict)
 
-    def __init__(self, name, source_pattern, reference_service_endpoint):
+    def __init__(self, name, extension_pattern, reference_service_endpoint, matches=[]):
         """
 
         :param name:
-        :param source_pattern:
+        :param extension_pattern:
         :param reference_service_endpoint:
+        :param matches:
         """
         self.name = name
-        self.source_pattern = source_pattern
+        self.extension_pattern = extension_pattern
         self.reference_service_endpoint = reference_service_endpoint
+        self.matches = matches
 
     def get_name(self):
         """
@@ -64,12 +69,12 @@ class Parser(Base):
         """
         return self.name
 
-    def get_source_pattern(self):
+    def get_extension_pattern(self):
         """
 
         :return:
         """
-        return self.source_pattern
+        return self.extension_pattern
 
     def get_endpoint(self):
         """
@@ -78,14 +83,22 @@ class Parser(Base):
         """
         return self.reference_service_endpoint
 
+    def get_matches(self):
+        """
+
+        :return:
+        """
+        return self.matches
+
     def toJSON(self):
         """
-        :return: values formatted as python dict, if no values found returns empty structure, not None
+        :return: values formatted as python dict
         """
         return {
             'name': self.name,
-            'source_pattern': self.source_pattern,
+            'extension_pattern': self.extension_pattern,
             'reference_service_endpoint': self.reference_service_endpoint,
+            'matches': self.matches,
         }
 
 

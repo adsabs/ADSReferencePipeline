@@ -1,4 +1,4 @@
-<ADSBIBCODE>2020TEST..........R</ADSBIBCODE>
+<ADSBIBCODE>0000JAP.....0.....Z</ADSBIBCODE>
 <ref id="c1">
 <label>1.</label>
 <mixed-citation publication-type="journal">
@@ -451,3 +451,1111 @@
     , <pub-id pub-id-type="arxiv">arXiv:cond-mat/0407066</pub-id>.
 </mixed-citation>
 </ref>
+<ref id="c112">
+<label>112.</label>
+<mixed-citation publication-type="other"><collab>REN21</collab>, Renewable Global Status Report Technical Report,
+    REN21 Secretariat, Paris, France, 2020.
+</mixed-citation>
+</ref>
+<ref id="CR26">
+<label>26.</label>
+<mixed-citation publication-type="journal">
+    <person-group person-group-type="author">
+        <name>
+            <surname>Liu</surname>
+            <given-names>C</given-names>
+        </name>
+        <etal/>
+    </person-group>
+    <article-title xml:lang="en">Particulate Air pollution mediated effects on insulin resistance in mice are
+        independent of CCR2
+    </article-title>
+    <source>Part. Fibre Toxicol.</source>
+    <year>2017</year>
+    <volume>14</volume>
+    <pub-id pub-id-type="pmid">28253935</pub-id>
+    <pub-id pub-id-type="pmcid">5335830</pub-id>
+    <pub-id pub-id-type="doi">10.1186/s12989-017-0187-3</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c37">
+<label>37.</label>
+<mixed-citation publication-type="confproc">
+    <string-name>
+        <given-names>A. R.</given-names>
+        <surname>Moharana</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>P.</given-names>
+        <surname>Kulha</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M. J.</given-names>
+        <surname>Haslinger</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>M&uuml;hlberger</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>D.</given-names>
+        <surname>Fechtig</surname>
+    </string-name>
+    , in <italic>International Conference on Nanoimprint and Nanoprint Technology (NNT), Boston, USA, 2019</italic>, see
+    <ext-link ext-link-type="uri"
+              xlink:href="https://nnt2019.org/documents/uploads/Amiya_R._Moharana_Pavel_Kulha_Michael_J._Haslinger_Michael_Muehlberger_and_Daniel_Fechtig~NNT2019_Abstract_amohar_final.pdf">
+        https://nnt2019.org/documents/uploads/Amiya_R._Moharana_Pavel_Kulha_Michael_J._Haslinger_Michael_Muehlberger_and_Daniel_Fechtig&sim;NNT2019_Abstract_amohar_final.pdf
+    </ext-link>
+    (last accessed February 10, 2021).
+</mixed-citation>
+</ref>
+<ref id="c7">
+<label>7.</label>
+<mixed-citation publication-type="other"><italic>Rehm</italic>, &lt;<ext-link ext-link-type="uri"
+                                                                              xlink:href="https://www.rehm-group.com/de/prozesse/solar-equipment/rfs.html">
+    https://www.rehm-group.com/de/prozesse/solar-equipment/rfs.html</ext-link>&gt;.
+</mixed-citation>
+</ref>
+<ref id="CR39">
+<label>[39]</label>
+<mixed-citation publication-type="other">P.B. Arnold and L.G. Yaffe, <italic>Effective theories for real time
+    correlations in hot plasmas</italic>,
+    <italic>Phys. Rev. D</italic>
+    <bold>57</bold>
+    (1998) 1178 [<ext-link xlink:href="https://arxiv.org/abs/hep-ph/9709449" ext-link-type="url">
+        hep-ph/9709449</ext-link>] [<ext-link
+            xlink:href="https://inspirehep.net/search?p=find%2BEPRINT%2Bhep-ph%2F9709449" ext-link-type="url">
+        INSPIRE</ext-link>].
+</mixed-citation>
+</ref>
+<ref id="CR31">
+<label>[31]</label>
+<mixed-citation publication-type="other">J.B. Kogut and L. Susskind,<italic>Hamiltonian formulation of Wilson&rsquo;s
+    lattice gauge theories</italic>,
+    <italic>Phys. Rev. D</italic>
+    <bold>11</bold>
+    (1975) 395 [<ext-link xlink:href="https://inspirehep.net/search?p=find%2BJ%20%22Phys.Rev.%2CD11%2C395%22"
+                          ext-link-type="url">INSPIRE</ext-link>].
+</mixed-citation>
+</ref>
+<ref id="CR3">
+<label>[3]</label>
+<mixed-citation publication-type="other">Z. Bern, L.J. Dixon, D.C. Dunbar and D.A. Kosower, <italic>One loop n point
+    gauge theory amplitudes, unitarity and collinear limits</italic>,
+    <italic>Nucl. Phys. B</italic>
+    <bold>425</bold>
+    (1994) 217 [<ext-link xlink:href="https://arxiv.org/abs/hep-ph/9403226" ext-link-type="url">
+        hep-ph/9403226</ext-link>] [<ext-link
+            xlink:href="https://inspirehep.net/search?p=find%2Bdoi%20%2210.1016%2F0550-3213%2894%2990179-1%22"
+            ext-link-type="url">INSPIRE</ext-link>].
+</mixed-citation>
+</ref>
+<ref id="c50">
+<label>[50]</label>
+<mixed-citation publication-type="book">
+    <object-id>50</object-id>
+    <person-group person-group-type="author">
+        <string-name>G. Inden</string-name>
+    </person-group>
+    , <chapter-title>Atomic ordering</chapter-title>, in <source>Phase Transformations in Materials</source>, edited by
+    <person-group person-group-type="editor">
+        <string-name>G. Kostorz</string-name>
+    </person-group>
+    (<publisher-name>VCH</publisher-name>, <publisher-loc>Weinheim</publisher-loc>, <year>2001</year>), Chap. 8,
+    p. <page-range>519</page-range>.
+</mixed-citation>
+</ref>
+<ref id="ref2">
+<mixed-citation publication-type="other" id="r2">
+    <string-name><surname>Bourke</surname>,
+        <given-names>T. L.</given-names>
+    </string-name>
+    ,
+    <string-name><surname>Wolk</surname>,
+        <given-names>S. J.</given-names>
+    </string-name>
+    ,
+    <string-name><surname>Vigil</surname>,
+        <given-names>M.</given-names>
+    </string-name>
+    , &amp;
+    <string-name><surname>Alves</surname>,
+        <given-names>J.</given-names>
+    </string-name>
+    <year>2004</year>, The Massive Star Forming Region RCW 38 - from XRays to Molecular Gas. The Dense Interstellar
+    Medium in Galaxies Vol. 91, Springer Proceedings in Physics, doi:
+    <pub-id pub-id-type="doi">10.1007/978-3-642-18902-9_111</pub-id>
+</mixed-citation>
+</ref>
+<ref id="CR63">
+<label>63.</label>
+<mixed-citation publication-type="journal">
+    <person-group person-group-type="author">
+        <name>
+            <surname>Fengjie Huang</surname>
+        </name>
+        <etal/>
+    </person-group>
+    <article-title xml:lang="en">Theabrownin from Pu-erh tea attenuates hypercholesterolemia via modulation of gut
+        microbiota and bile acid metabolism. Nature
+    </article-title>
+    <source>Communications.</source>
+    <year>2019</year>
+    <volume>10</volume>
+    <fpage>4971</fpage>
+</mixed-citation>
+</ref>
+
+
+<ADSBIBCODE>0000AIPC....0.....Z</ADSBIBCODE>
+<title>REFERENCES</title> <ref id="c1">
+<label>1.</label>
+<mixed-citation publication-type="book">
+    <string-name>
+        <surname>Gallager</surname>
+        <given-names>R. G.</given-names>
+    </string-name>
+    : <chapter-title>Low-Density Parity-Check Codes</chapter-title>, <publisher-name>MIT Press</publisher-name>, (<year>
+    1963</year>).
+</mixed-citation>
+</ref>
+<ref id="c2">
+<label>2.</label>
+<mixed-citation publication-type="book">
+    <string-name>
+        <surname>Berrou</surname>
+        <given-names>C.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Glavieux</surname>
+        <given-names>A.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Thitimajshima</surname>
+        <given-names>P.</given-names>
+    </string-name>
+    : <chapter-title>Near Shannon Limit Error-Correcting Coding and Decoding:
+    Turbo-Codes</chapter-title>, <publisher-name>IEEE International Limit Conference on Communications</publisher-name>, <volume>
+    2
+</volume> (<year>1993</year>),
+    <fpage>1064</fpage>&ndash;<lpage>1070</lpage>.
+</mixed-citation>
+</ref>
+<ref id="c3">
+<label>3.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <surname>MacKay</surname>
+        <given-names>D. J. C.</given-names>
+    </string-name>
+    : <article-title>Good Error-Correcting Codes Based on Very Sparse Matrices</article-title>, <source>EEE Transactions
+    on Information Theory</source>, <volume>45</volume> (<year>1999</year>), n. <issue>2</issue>,
+    <fpage>399</fpage>&ndash;<lpage>431</lpage>.
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1109/18.748992</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c4">
+<label>4.</label>
+<mixed-citation publication-type="confproc">
+    <string-name>
+        <surname>Li</surname>
+        <given-names>H.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Guo</surname>
+        <given-names>J.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Guo</surname>
+        <given-names>C.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Wang</surname>
+        <given-names>D.</given-names>
+    </string-name>
+    : <article-title>A low-complexity min-sum decoding algorithm for LDPC codes</article-title>, <conf-name>IEEE 17th
+    International Conference on Communication Technology (ICCT</conf-name>), (<year>2017</year>),
+    <fpage>102</fpage>&ndash;<lpage>105</lpage>.
+</mixed-citation>
+</ref>
+<ref id="c5">
+<label>5.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <surname>Zhao</surname>
+        <given-names>M.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Zhang</surname>
+        <given-names>X.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Zhao</surname>
+        <given-names>L.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Lee</surname>
+        <given-names>C.</given-names>
+    </string-name>
+    : <article-title>Design of a High-Throughput QC-LDPC Decoder With TDMP Scheduling</article-title>, <source>IEEE
+    Transactions on Circuits and Systems II: Express Briefs</source>, <volume>62</volume> (<year>2015</year>),
+    n. <issue>1</issue>,
+    <fpage>56</fpage>&ndash;<lpage>60</lpage>.
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1109/TCSII.2014.2362661</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c6">
+<label>6.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <surname>Tanner</surname>
+        <given-names>R. M.</given-names>
+    </string-name>
+    : <article-title>A recursive Approach to Low Complexity Codes</article-title>, <source>IEEE Transactions of
+    Information Theory</source>, <volume>27</volume> (<year>1981</year>), n. <issue>5</issue>,
+    <fpage>533</fpage>&ndash;<lpage>547</lpage>.
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1109/TIT.1981.1056404</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c7">
+<label>7.</label>
+<mixed-citation publication-type="confproc">
+    <string-name>
+        <surname>Wenjie</surname>
+        <given-names>L.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Jun</surname>
+        <given-names>L.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Zhongfeng</surname>
+        <given-names>W.</given-names>
+    </string-name>
+    ,: <article-title>An Efficient Post Processing Scheme to Lower the Error Floor of LDPC
+    Decoders</article-title>, <conf-name>IEEE 17th International Conference on Communication Technology
+    (ICCT</conf-name>), (<year>2017</year>),
+    <fpage>122</fpage>&ndash;<lpage>126</lpage>.
+</mixed-citation>
+</ref>
+<ref id="c8">
+<label>8.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <surname>Zhao</surname>
+        <given-names>J.</given-names>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Zarkeshvari</surname>
+        <given-names>F.</given-names>
+    </string-name>
+    : <article-title>On Implementation of Min-Sum Algorithm and Its Modifications for Decoding Low-Density Parity-Check
+    (LDPC) Codes</article-title>, <source>IEEE Transactions On Communications</source>, <volume>53</volume> (<year>
+    2005</year>), n. <issue>4</issue>,
+    <fpage>549</fpage>&ndash;<lpage>554</lpage>.
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1109/TCOMM.2004.836563</pub-id>
+</mixed-citation>
+</ref>
+
+
+<ADSBIBCODE>0000RScI....0.....Z</ADSBIBCODE>
+<title>REFERENCES</title><ref id="c1">
+<label>1.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>C.</given-names>
+        <surname>Andreani</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>J. M.</given-names>
+        <surname>Carpenter</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>G.</given-names>
+        <surname>Festa</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>G.</given-names>
+        <surname>Gorini</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>C.-K.</given-names>
+        <surname>Loong</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>R.</given-names>
+        <surname>Senesi</surname>
+    </string-name>
+    ,
+    <source>Phys. Rep.</source>
+    <volume>654</volume>,
+    <fpage>1</fpage>&ndash;<lpage>58</lpage>
+    (<year>2016</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1016/j.physrep.2016.07.007</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c2">
+<label>2.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Uesaka</surname>
+    </string-name>
+    and
+    <string-name>
+        <given-names>H.</given-names>
+        <surname>Kobayashi</surname>
+    </string-name>
+    ,
+    <source>Rev. Accel. Sci. Technol.</source>
+    <volume>8</volume>,
+    <fpage>181</fpage>&ndash;<lpage>207</lpage>
+    (<year>2015</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1142/s1793626815300108</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c3">
+<label>3.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Takamura</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Ikeda</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>H.</given-names>
+        <surname>Sunaga</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>A.</given-names>
+        <surname>Taketani</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Otake</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>H.</given-names>
+        <surname>Suzuki</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Kumagai</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>T.</given-names>
+        <surname>Hama</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Oba</surname>
+    </string-name>
+    ,
+    <source>J. Phys.: Conf. Ser.</source>
+    <volume>734</volume>(<issue>3</issue>), <fpage>032047</fpage> (<year>2016</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1088/1742-6596/734/3/032047</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c4">
+<label>4.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>C. M.</given-names>
+        <surname>Lavelle</surname>
+    </string-name>
+    <etal>
+        <italic>et al.</italic>
+    </etal>
+    ,
+    <source>Nucl. Instrum. Methods Phys. Res., Sect. A</source>
+    <volume>587</volume>(<issue>2-3</issue>),
+    <fpage>324</fpage>&ndash;<lpage>341</lpage>
+    (<year>2008</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1016/j.nima.2007.12.044</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c5">
+<label>5.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Zuo</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>G.</given-names>
+        <surname>Tang</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>Z.</given-names>
+        <surname>Guo</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>J.</given-names>
+        <surname>Guo</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Pei</surname>
+    </string-name>
+    ,
+    <string-name>
+        <surname>Yuyang</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>J.</given-names>
+        <surname>Xu</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>H.</given-names>
+        <surname>Wang</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Lu</surname>
+    </string-name>
+    ,
+    <source>Phys. Proc.</source>
+    <volume>60</volume>,
+    <fpage>220</fpage>&ndash;<lpage>227</lpage>
+    (<year>2014</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1016/j.phpro.2014.11.031</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c6">
+<label>6.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Lebois</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>J. N.</given-names>
+        <surname>Wilson</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>P.</given-names>
+        <surname>Halipr&eacute;</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>B.</given-names>
+        <surname>Leniau</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>I.</given-names>
+        <surname>Matea</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>A.</given-names>
+        <surname>Oberstedt</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>S.</given-names>
+        <surname>Oberstedt</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>D.</given-names>
+        <surname>Verney</surname>
+    </string-name>
+    ,
+    <source>Nucl. Instrum. Methods Phys. Res., Sect. A</source>
+    <volume>735</volume>,
+    <fpage>145</fpage>&ndash;<lpage>151</lpage>
+    (<year>2014</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1016/j.nima.2013.07.061</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c7">
+<label>7.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>T.</given-names>
+        <surname>Kanesue</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Fuwa</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>K.</given-names>
+        <surname>Kondo</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Okamura</surname>
+    </string-name>
+    ,
+    <source>Appl. Phys. Lett.</source>
+    <volume>105</volume>, <fpage>193506</fpage> (<year>2014</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1063/1.4902021</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c8">
+<label>8.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>G.</given-names>
+        <surname>Machicoane</surname>
+    </string-name>
+    and
+    <string-name>
+        <given-names>P.</given-names>
+        <surname>Ostroumov</surname>
+    </string-name>
+    ,
+    <source>Beam Dyn. Newsl.</source>
+    <volume>73</volume>,
+    <fpage>173</fpage>&ndash;<lpage>182</lpage>
+    (<year>2018</year>).
+</mixed-citation>
+</ref>
+<ref id="c9">
+<label>9.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>A.</given-names>
+        <surname>Hershcovitch</surname>
+    </string-name>
+    ,
+    <source>Phys. Plasmas</source>
+    <volume>5</volume>(<issue>5</issue>),
+    <fpage>2130</fpage>&ndash;<lpage>2136</lpage>
+    (<year>1998</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1063/1.872885</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c10">
+<label>10.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Okamura</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>K.</given-names>
+        <surname>Palm</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>C.</given-names>
+        <surname>Stifller</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>D.</given-names>
+        <surname>Steski</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>S.</given-names>
+        <surname>Ikeda</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Kumaki</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>T.</given-names>
+        <surname>Kanesue</surname>
+    </string-name>
+    ,
+    <source>Rev. Sci. Instrum.</source>
+    <volume>87</volume>(<issue>2</issue>), <fpage>02A906</fpage> (<year>2016</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1063/1.4933341</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c11">
+<label>11.</label>
+<mixed-citation publication-type="book">
+    <string-name>
+        <given-names>T.</given-names>
+        <surname>Kanesue</surname>
+    </string-name>
+    <etal>
+        <italic>et al.</italic>
+    </etal>
+    , No. BNL-205778-2018-COPA, <publisher-name>Brookhaven National Laboratory (BNL)</publisher-name>, <publisher-loc>
+    Upton, NY, USA</publisher-loc>, <year>2018</year>.
+</mixed-citation>
+</ref>
+<ref id="c12">
+<label>12.</label>
+<mixed-citation publication-type="confproc">
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Fuwa</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Kumaki</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Iwashita</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>T.</given-names>
+        <surname>Kanesue</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Okamura</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>S.</given-names>
+        <surname>Ikeda</surname>
+    </string-name>
+    , in
+    <conf-name>
+        <italic>Proceedings of LINAC2014</italic>
+    </conf-name>
+    (<publisher-name>JACoW</publisher-name>, <publisher-loc>Geneva, Switzerland</publisher-loc>, <year>2014</year>), p. <fpage>
+    MOPP112</fpage>.
+</mixed-citation>
+</ref>
+<ref id="c13">
+<label>13.</label>
+<mixed-citation publication-type="journal">
+    <string-name>
+        <given-names>R. K.</given-names>
+        <surname>Crandall</surname>
+    </string-name>
+    and
+    <string-name>
+        <given-names>T. P.</given-names>
+        <surname>Wangler</surname>
+    </string-name>
+    ,
+    <source>AIP Conf. Proc.</source>
+    <volume>177</volume>(<issue>1</issue>), <fpage>22</fpage> (<year>1988</year>).
+    <pub-id pub-id-type="doi" specific-use="metadata">10.1063/1.37798</pub-id>
+</mixed-citation>
+</ref>
+<ref id="c14">
+<label>14.</label>
+<mixed-citation publication-type="confproc">
+    <string-name>
+        <given-names>T.</given-names>
+        <surname>Kanesue</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>S.</given-names>
+        <surname>Ikeda</surname>
+    </string-name>
+    ,
+    <string-name>
+        <given-names>M.</given-names>
+        <surname>Okamura</surname>
+    </string-name>
+    , and
+    <string-name>
+        <given-names>Y.</given-names>
+        <surname>Saito</surname>
+    </string-name>
+    , in
+    <conf-name>
+        <italic>Proceedings of IPAC 2017</italic>
+    </conf-name>
+    (<publisher-name>JACoW</publisher-name>, <publisher-loc>Copenhagen, Denmark</publisher-loc>, <year>2017</year>), p. <fpage>
+    MOPIK052</fpage>.
+</mixed-citation>
+</ref>
+<ref id="cit0003">
+<mixed-citation publication-type="journal">
+    <person-group person-group-type="author">
+        <anonymous>Momma K, Izumi F</anonymous>
+    </person-group>
+    <x xml:space="preserve">. </x>
+    <article-title>VESTA 3 for three-dimensional visualization of crystal, volumetric and morphology data
+    </article-title>
+    <x xml:space="preserve">. </x>
+    <source>J Appl Crystallogr</source>
+    <x xml:space="preserve">. </x>
+    <year>2011</year>
+    <x xml:space="preserve">;</x>
+    <volume>44</volume>
+    <x xml:space="preserve">(</x>
+    <issue>6</issue>
+    <x xml:space="preserve">):</x>
+    <fpage>1272</fpage>
+    <x xml:space="preserve">&#x2013;</x>
+    <lpage>1276</lpage>
+    <x xml:space="preserve">.</x>
+</mixed-citation>
+</ref>
+<ref id="CR2">
+<label>2.</label>
+<mixed-citation publication-type="journal">
+    <person-group person-group-type="author">
+        <name>
+            <surname>Castano</surname>
+            <given-names>L</given-names>
+        </name>
+        <name>
+            <surname>Eisenbarth</surname>
+            <given-names>GS</given-names>
+        </name>
+    </person-group>
+    <article-title xml:lang="en">Type-I diabetes: a chronic autoimmune disease of human, mouse, and rat</article-title>
+    <source>Annu Rev Immunol</source>
+    <year>1990</year>
+    <volume>8</volume>
+    <fpage>647</fpage>
+    <pub-id pub-id-type="doi">10.1146/annurev.iy.08.040190.003243</pub-id>
+</mixed-citation>
+</ref>
+<ref id="CR11">
+<label>[11]</label>
+<mixed-citation publication-type="other">S.W. Hawking and G.F.R. Ellis, <italic>The Large Scale Structure of
+    Space-Time</italic>, Cambridge Monographs on Mathematical Physics, Cambridge University Press (2011), <ext-link
+        xlink:href="https://doi.org/10.1017/CBO9780511524646" ext-link-type="doi">
+    https://doi.org/10.1017/CBO9780511524646
+</ext-link> [<ext-link xlink:href="https://inspirehep.net/search?p=find+doi%20%2210.1017%2FCBO9780511524646%22"
+                       ext-link-type="url">INSPIRE</ext-link>].
+</mixed-citation>
+</ref>
+<ref id="CR66">
+<label>[66]</label>
+<mixed-citation publication-type="other">R. Le Du, <italic>Auxiliary fields rescaling in higher derivative
+    supergravity</italic>, <ext-link xlink:href="http://arxiv.org/abs/hep-th/9807027" ext-link-type="url">
+    hep-th/9807027
+</ext-link> [<ext-link xlink:href="http://inspirehep.net/search?p=find+EPRINT+hep-th/9807027" ext-link-type="url">
+    INSPIRE</ext-link>].
+</mixed-citation>
+</ref>
+<ref id="CR7">
+<label>7.</label>
+<mixed-citation publication-type="journal">
+    <person-group person-group-type="author">
+        <collab>Task Force of the European Society of Cardiology the North American Society of Pacing
+            Electrophysiology
+        </collab>
+    </person-group>
+    <article-title xml:lang="en">Heat rate variability: standards of measurement, physiological interpretation and
+        clinical use
+    </article-title>
+    <source>Circulation.</source>
+    <year>1996</year>
+    <volume>93</volume>
+    <fpage>1043</fpage>
+    <lpage>65</lpage>
+    <pub-id pub-id-type="doi">10.1161/01.CIR.93.5.1043</pub-id>
+</mixed-citation>
+</ref>
+
+
+<ADSBIBCODE>0000HiA.....0.....Z</ADSBIBCODE>
+<mixed-citation id="ref1" publication-type="journal">
+<name name-style="western">
+    <surname>Cataldo</surname>
+    <given-names>F.</given-names>
+</name>
+, &amp;
+<name name-style="western">
+    <surname>Iglesias-Groth</surname>
+    <given-names>S.</given-names>
+</name>
+<year>2009</year>,
+<source>MNRAS</source>
+<volume>400</volume>,
+<fpage>291</fpage>
+<pub-id pub-id-type="doi">10.1111/j.1365-2966.2009.15457.x</pub-id>
+<pub-id pub-id-type="ads">2009MNRAS.400..291C</pub-id>
+</mixed-citation>
+<mixed-citation id="ref2" publication-type="journal">
+<name name-style="western">
+    <surname>Chang</surname>
+    <given-names>H.-C.</given-names>
+</name>
+,
+<name name-style="western">
+    <surname>Chen</surname>
+    <given-names>K.</given-names>
+</name>
+, &amp;
+<name name-style="western">
+    <surname>Kwok</surname>
+    <given-names>S.</given-names>
+</name>
+<year>2006</year>,
+<source>ApJ</source>
+<volume>639</volume>,
+<fpage>L63</fpage>
+<pub-id pub-id-type="doi">10.1086/502677</pub-id>
+<pub-id pub-id-type="ads">2006ApJ...639L..63C</pub-id>
+</mixed-citation>
+<mixed-citation id="ref3" publication-type="journal">
+<name name-style="western">
+    <surname>Cook</surname>
+    <given-names>D. J.</given-names>
+</name>
+,
+<etal>et al.</etal>
+<year>1998</year>,
+<source>JPCA</source>
+<volume>102</volume>,
+<fpage>1465</fpage>
+<pub-id pub-id-type="doi">10.1021/jp9724434</pub-id>
+<pub-id pub-id-type="ads">1998JPCA..102.1465C</pub-id>
+</mixed-citation>
+<mixed-citation id="ref4" publication-type="journal">
+<name name-style="western">
+    <surname>Iglesias-Groth</surname>
+    <given-names>S.</given-names>
+</name>
+<year>2004</year>,
+<source>ApJ</source>
+<volume>608</volume>,
+<fpage>L37</fpage>
+<pub-id pub-id-type="doi">10.1086/422216</pub-id>
+<pub-id pub-id-type="ads">2004ApJ...608L..37I</pub-id>
+</mixed-citation>
+<mixed-citation id="ref5" publication-type="journal">
+<name name-style="western">
+    <surname>Kwok</surname>
+    <given-names>S.</given-names>
+</name>
+,
+<name name-style="western">
+    <surname>Zhang</surname>
+    <given-names>Y.</given-names>
+</name>
+<year>2011</year>,
+<source>Nature</source>
+<volume>479</volume>,
+<fpage>80</fpage>
+<pub-id pub-id-type="doi">10.1038/nature10542</pub-id>
+<pub-id pub-id-type="pmid">22031328</pub-id>
+<pub-id pub-id-type="ads">2011Natur.479...80K</pub-id>
+</mixed-citation>
+<mixed-citation id="ref6" publication-type="journal">
+<name name-style="western">
+    <surname>Ledoux</surname>
+    <given-names>G.</given-names>
+</name>
+,
+<etal>et al.</etal>
+<year>1998</year>,
+<source>A&amp;A</source>
+<volume>333</volume>,
+<fpage>L39</fpage>
+<pub-id pub-id-type="ads">1998A&amp;A...333L..39L</pub-id>
+</mixed-citation>
+<mixed-citation id="ref7" publication-type="journal">
+<name name-style="western">
+    <surname>Mennella</surname>
+    <given-names>V.</given-names>
+</name>
+,
+<name name-style="western">
+    <surname>Colangeli</surname>
+    <given-names>L.</given-names>
+</name>
+,
+<name name-style="western">
+    <surname>Bussoletti</surname>
+    <given-names>E.</given-names>
+</name>
+,
+<name name-style="western">
+    <surname>Palumbo</surname>
+    <given-names>P.</given-names>
+</name>
+, &amp;
+<name name-style="western">
+    <surname>Rotundi</surname>
+    <given-names>A.</given-names>
+</name>
+<year>1998</year>,
+<source>ApJ</source>
+<volume>507</volume>,
+<fpage>L177</fpage>
+<pub-id pub-id-type="doi">10.1086/311693</pub-id>
+<pub-id pub-id-type="ads">1998ApJ...507L.177M</pub-id>
+</mixed-citation>
+<mixed-citation id="ref8" publication-type="journal">
+<name name-style="western">
+    <surname>Papoular</surname>
+    <given-names>R.</given-names>
+</name>
+<year>2001</year>,
+<source>A&amp;A</source>
+<volume>378</volume>,
+<fpage>597</fpage>
+<pub-id pub-id-type="doi">10.1051/0004-6361:20011224</pub-id>
+<pub-id pub-id-type="ads">2001A&amp;A...378..597P</pub-id>
+</mixed-citation>
+<mixed-citation id="ref9" publication-type="journal">
+<name name-style="western">
+    <surname>Papoular</surname>
+    <given-names>R.</given-names>
+</name>
+<year>2011</year>,
+<source>MNRAS</source>
+<volume>415</volume>,
+<fpage>494</fpage>
+<pub-id pub-id-type="doi">10.1111/j.1365-2966.2011.18724.x</pub-id>
+<pub-id pub-id-type="ads">2011MNRAS.415..494P</pub-id>
+</mixed-citation>
+<mixed-citation id="ref10" publication-type="journal">
+<name name-style="western">
+    <surname>Papoular</surname>
+    <given-names>R. J.</given-names>
+</name>
+, &amp;
+<name name-style="western">
+    <surname>Papoular</surname>
+    <given-names>R.</given-names>
+</name>
+<year>2009</year>,
+<source>MNRAS</source>
+<volume>394</volume>,
+<fpage>2175</fpage>
+<pub-id pub-id-type="doi">10.1111/j.1365-2966.2009.14484.x</pub-id>
+<pub-id pub-id-type="ads">2009MNRAS.394.2175P</pub-id>
+</mixed-citation>
+<mixed-citation id="ref11" publication-type="journal">
+<name name-style="western">
+    <surname>Sakata</surname>
+    <given-names>A.</given-names>
+</name>
+,
+<etal>et al.</etal>
+<year>1992</year>,
+<source>ApJ</source>
+<volume>393</volume>,
+<fpage>L83</fpage>
+<pub-id pub-id-type="doi">10.1086/186457</pub-id>
+<pub-id pub-id-type="ads">1992ApJ...393L..83S</pub-id>
+</mixed-citation>
+<mixed-citation id="ref12" publication-type="journal">
+<name name-style="western">
+    <surname>Speck</surname>
+    <given-names>A. K.</given-names>
+</name> &amp;
+<name name-style="western">
+    <surname>Hofmeister</surname>
+    <given-names>A. M.</given-names>
+</name>
+<year>2004</year>,
+<source>ApJ</source>
+<volume>600</volume>,
+<fpage>986</fpage>
+<pub-id pub-id-type="doi">10.1086/379973</pub-id>
+<pub-id pub-id-type="ads">2004ApJ...600..986S</pub-id>
+</mixed-citation>
+<mixed-citation id="ref13" publication-type="journal">
+<name name-style="western">
+    <surname>Tielens</surname>
+    <given-names>A. G. G. M.</given-names>
+</name>
+<year>2008</year>,
+<source>ARA&amp;A</source>
+<volume>46</volume>,
+<fpage>289</fpage>
+<pub-id pub-id-type="doi">10.1146/annurev.astro.46.060407.145211</pub-id>
+<pub-id pub-id-type="ads">2008ARA&amp;A..46..289T</pub-id>
+</mixed-citation>
+<mixed-citation id="ref14" publication-type="journal">
+<name name-style="western">
+    <surname>Webster</surname>
+    <given-names>A.</given-names>
+</name>
+<year>1993</year>,
+<source>MNRAS</source>
+<volume>264</volume>,
+<fpage>L1</fpage>
+<pub-id pub-id-type="doi">10.1093/mnras/264.1.L1</pub-id>
+<pub-id pub-id-type="ads">1993MNRAS.264L...1W</pub-id>
+</mixed-citation>
+<mixed-citation id="ref15" publication-type="journal">
+<name name-style="western">
+    <surname>Webster</surname>
+    <given-names>A.</given-names>
+</name>
+<year>1995</year>,
+<source>MNRAS</source>
+<volume>277</volume>,
+<fpage>1555</fpage>
+<pub-id pub-id-type="doi">10.1093/mnras/277.4.1555</pub-id>
+<pub-id pub-id-type="ads">1995MNRAS.277.1555W</pub-id>
+</mixed-citation>
+<mixed-citation id="ref16" publication-type="journal">
+<name name-style="western">
+    <surname>Witt</surname>
+    <given-names>A. N.</given-names>
+</name>
+,
+<name name-style="western">
+    <surname>Gordon</surname>
+    <given-names>K. D.</given-names>
+</name>
+, &amp;
+<name name-style="western">
+    <surname>Furton</surname>
+    <given-names>D. G.</given-names>
+</name>
+<year>1998</year>,
+<source>ApJ</source>
+<volume>501</volume>,
+<fpage>L111</fpage>
+<pub-id pub-id-type="doi">10.1086/311453</pub-id>
+<pub-id pub-id-type="ads">1998ApJ...501L.111W</pub-id>
+</mixed-citation>
+

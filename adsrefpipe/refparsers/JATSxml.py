@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 import urllib.parse
 
@@ -16,32 +17,31 @@ class JATSreference(XMLreference):
 
     re_title_in_quote = re.compile(r"__amp__ldquo;(?P<INQUOTES>[^__amp__rdquo;].*)__amp__rdquo;", re.MULTILINE)
     re_ext_link = re.compile(r'<ext-link.*href="(?P<EXT_LINK>[^"]*)"', re.MULTILINE)
-    re_ext_link_inspire_J = re.compile(r'https:\/\/inspirehep.net\/search\?p=find\+J\s*"(?P<METADATA>.*)"')
-    re_ext_link_inspire_doi = re.compile(r'https:\/\/inspirehep.net\/search\?p=find\+doi\s*"(?P<DOI>.*)"')
-    re_ext_link_inspire_EPRINT = re.compile(r'https:\/\/inspirehep.net\/search\?p=find\+EPRINT\+(?P<ARXIV_ID>.*)')
+    re_ext_link_inspire_J = re.compile(r'http[s]?:\/\/inspirehep.net\/search\?p=find\+J\s*"(?P<METADATA>.*)"')
+    re_ext_link_inspire_doi = re.compile(r'http[s]?:\/\/inspirehep.net\/search\?p=find\+doi\s*"(?P<DOI>.*)"')
+    re_ext_link_inspire_EPRINT = re.compile(r'http[s]?:\/\/inspirehep.net\/search\?p=find\+EPRINT\+(?P<ARXIV_ID>.*)')
 
-    re_ampersand = re.compile(r"&amp;", re.IGNORECASE)
+    re_replace_amp = re.compile(r"&amp;", re.IGNORECASE)
 
     re_unstructured_title_journal = re.compile(r"([:,]+\s*(?P<title>[^.(,]*)[.(,]+)([^<]*)(<italic.*>(?P<journal>.*)</italic>)", re.MULTILINE)
     re_unstructured_title = re.compile(r"(:\s*(?P<title>[^.(<_/][A-Za-z.\s]+)[.,(<_/]+)([^<_/]*)", re.MULTILINE)
     re_unstructured_journal = re.compile(r"[Ii]?[Nn]?[:,]?\s+(<italic.*>(?P<journal>.*)</italic>)", re.MULTILINE)
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
         
-        :param prevref: 
-        :return: 
+        :return:
         """
-
         self.parsed = 0
+
+        refstr = self.dexml(self.reference_str.toxml())
 
         authors = self.parse_authors()
         year = self.xmlnode_nodecontents('year').strip()
         # see if year can be extracted from reference string
         if not year:
-            year = self.match_year(str(self.reference_str))
+            year = self.match_year(refstr)
         issn = self.xmlnode_nodecontents('issn').strip()
-        ext_link = self.parse_external_links()
 
         try:
             # 5/4/2021 types I found in JATs xmls are as follows
@@ -93,17 +93,17 @@ class JATSreference(XMLreference):
 
         if not journal and not title:
             # outlier: some references have title in between colon and dot, and the journal inside italic tag
-            match = self.re_unstructured_title_journal.search(str(self.reference_str))
+            match = self.re_unstructured_title_journal.search(refstr)
             if match:
                 journal = match.group('journal')
                 title = match.group('title')
             else:
                 # outlier: do we have only title
-                match = self.re_unstructured_title.search(str(self.reference_str))
+                match = self.re_unstructured_title.search(refstr)
                 if match:
                     title = match.group('title')
                 # outlier: do we have only journal inside italic tag
-                match = self.re_unstructured_journal.search(str(self.reference_str))
+                match = self.re_unstructured_journal.search(refstr)
                 if match:
                     journal = match.group('journal')
 
@@ -112,18 +112,21 @@ class JATSreference(XMLreference):
         if len(pages) == 0:
             pages = self.xmlnode_nodecontents('page-range')
 
+        ext_links = [urllib.parse.unquote(link) for link in self.xmlnode_attributes('ext-link', attrname='href').keys()]
+
+
         doi = self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'doi'}).strip()
         if len(doi) > 0:
             self['doi'] = doi.strip()
         else:
             # attempt to extract it from refstr
-            doi = self.match_doi(str(self.reference_str))
+            doi = self.match_doi(refstr)
             if doi:
                 self['doi'] = doi
             # see if there is a inspire link for eprint
-            elif ext_link:
-                for link in ext_link:
-                    match = self.re_ext_link_inspire_doi.match(urllib.parse.unquote(link))
+            elif ext_links:
+                for link in ext_links:
+                    match = self.re_ext_link_inspire_doi.match(link)
                     if match:
                         doi = self.match_doi(match.group('DOI'))
                         if doi:
@@ -133,27 +136,27 @@ class JATSreference(XMLreference):
             self['eprint'] = eprint.strip()
         else:
             # attempt to extract arxiv id from refstr
-            eprint = self.match_arxiv_id(str(self.reference_str))
+            eprint = self.match_arxiv_id(refstr)
             if eprint:
                 self['eprint'] = eprint
             # see if there is a inspire link for eprint
-            elif ext_link:
-                for link in ext_link:
-                    match = self.re_ext_link_inspire_EPRINT.match(urllib.parse.unquote(link))
+            elif ext_links:
+                for link in ext_links:
+                    match = self.re_ext_link_inspire_EPRINT.match(link)
                     if match:
                         eprint = self.match_arxiv_id(match.group('ARXIV_ID'))
                         if eprint:
                             self['eprint'] = eprint
 
         if not title:
-            match = self.re_title_in_quote.search(str(self.reference_str))
+            match = self.re_title_in_quote.search(refstr)
             if match:
                 title = match.group('INQUOTES').rstrip(',')
 
         # if there are missing fields, see if we have inspire link to be able to extract these information out
-        if (not journal or not volume or not pages) and ext_link:
-            for link in ext_link:
-                match = self.re_ext_link_inspire_J.match(urllib.parse.unquote(link))
+        if (not journal or not volume or not pages) and ext_links:
+            for link in ext_links:
+                match = self.re_ext_link_inspire_J.match(link)
                 if match:
                     metadata = match.group('METADATA').split(',')
                     journal = metadata[0].replace('.', '. ').strip()
@@ -169,7 +172,7 @@ class JATSreference(XMLreference):
         self['page'], self['qualifier'] = self.parse_pages(pages)
         self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
         self['issn'] = issn
-        self['ext_link'] = ext_link
+        self['ext_link'] = ext_links
 
         self['refstr'] = self.get_reference_str()
         if not self['refstr'] and type not in ['website', 'supplementary-material']:
@@ -272,13 +275,13 @@ class JATSreference(XMLreference):
         except:
             return None
 
-
-    def parse_external_links(self):
+    def parse_external_links(self, refstr):
         """
 
+        :param refstr:
         :return:
         """
-        match = self.re_ext_link.findall(str(self.reference_str))
+        match = self.re_ext_link.findall(refstr)
         if match:
             return match
         return None
@@ -304,7 +307,7 @@ class JATStoREFs(XMLtoREFs):
         (re.compile(r'<name><surname>(.*)</surname></name><name><surname>(.*)</surname>'), r'<name><surname>\1 \2</surname>')
     ]
 
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -312,7 +315,7 @@ class JATStoREFs(XMLtoREFs):
         :param unicode:
         :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='mixed-citation', cleanup=self.block_cleanup)
+        XMLtoREFs.__init__(self, filename, buffer, parsername=JATStoREFs, tag='mixed-citation', cleanup=self.block_cleanup)
 
     def cleanup(self, reference):
         """
@@ -324,11 +327,10 @@ class JATStoREFs(XMLtoREFs):
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
         this function does reference cleaning and then calls the parser
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -336,37 +338,39 @@ class JATStoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode':bibcode, 'references':[]}
-
-            for reference in block_references:
-                if cleanup_process:
-                    reference = self.cleanup(reference)
+            parsed_references = []
+            for raw_reference in block_references:
+                reference = self.cleanup(raw_reference)
 
                 logger.debug("JATSxml: parsing %s" % reference)
                 try:
                     jats_reference = JATSreference(reference)
-                    references_bibcode['references'].append({**jats_reference.get_parsed_reference(), 'refraw':reference})
+                    parsed_references.append({**jats_reference.get_parsed_reference(), 'refraw': raw_reference})
                 except ReferenceError as error_desc:
                     logger.error("JATSxml: error parsing reference: %s" %error_desc)
 
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse JATS references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(JATStoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
-        print(JATStoREFs(buffer=args.buffer).process_and_dispatch())
+        print(JATStoREFs(filename=args.filename, buffer=None).process_and_dispatch())
+    elif args.buffer:
+        print(JATStoREFs(buffer=args.buffer, filename=None).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
+    elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.jats.xml')
-        print(JATStoREFs(filename=filename).process_and_dispatch())
+        result = JATStoREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_jats:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)
-    # /proj/ads/references/sources/JAP/0127/iss24.jats.xml

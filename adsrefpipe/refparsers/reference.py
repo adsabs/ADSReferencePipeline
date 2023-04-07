@@ -1,4 +1,5 @@
-import re
+import os
+import regex as re
 from builtins import str
 
 try:
@@ -15,6 +16,7 @@ class ReferenceError(Exception):
     """
     is raised by Reference and XMLreference
     """
+
 
 class Reference(UserDict):
     """
@@ -54,7 +56,8 @@ class Reference(UserDict):
         ("refstr", "refstr"),
         ("issn", "issn"),
         ("refplaintext", "refplaintext"),
-        ("series", "series")
+        ("series", "series"),
+        ("bibcode", "bibcode")
     ]
 
     re_remove_space = re.compile(r'\s')
@@ -81,7 +84,7 @@ class Reference(UserDict):
     #    Pinter, T. et al (2013), PIMO, La Palma, Spain, 213-217, 10.5281/zenodo.53085
     re_doi_prm = re.compile(r'\b(10.[\d\.]{2,9}/\S+\w)', re.IGNORECASE)
 
-    re_year = re.compile(r'\b[12][09]\d\d\b')
+    re_year = re.compile(r'\b[12][09]\d\d[a-z]?\b')
     re_year_parentheses = re.compile(r'\(.*([12][09]\d\d).*\)')
 
     romans_numeral = {
@@ -106,9 +109,13 @@ class Reference(UserDict):
         self.unicode = unicode
         self.reference_str = reference_str
         self.parsed = False
-        self.parse()
+        try:
+            self.parse()
+        except AttributeError:
+            # xml string was not parsed to create the xml structure with childNodes
+            pass
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
         override as appropriate.  The idea is that parse is called
         by the resolver and should fill out a set of attributes (see above
@@ -118,8 +125,7 @@ class Reference(UserDict):
         Clearly, cases where no parsing has to be done (BibResolver,
         TextResolver) just set parsed.
 
-        :param prevref: 
-        :return: 
+        :return:
         """
         raise ReferenceError("Parse method not defined.")
 
@@ -251,6 +257,7 @@ class Reference(UserDict):
         match_start = self.re_arxiv_new_pattern.search(ref_str)
         if match_start:
             return match_start.group(1) + '.' + match_start.group(2)
+        return None
 
     def match_doi(self, ref_str):
         """
@@ -339,24 +346,6 @@ class Reference(UserDict):
         return result
 
 
-class TextReference(Reference):
-    """
-    Base class for dealing with TXT-based refreences (such as arXiv).
-    """
-
-    def __init__(self, reference_str, unicode=None):
-        """
-        simply forwards the request to the superclass
-
-        :param reference_str:
-        :param unicode:
-        """
-        Reference.__init__(self, reference_str, unicode)
-
-    def parse(self, prevref=None):
-        self.parsed = True
-
-
 class XMLreference(Reference):
     """
     Base class for dealing with XML-based references (such as IOP and APS).
@@ -366,7 +355,7 @@ class XMLreference(Reference):
 
     re_valid_refstr = [
         re.compile(r'\w{3,}'),
-        re.compile(r'\b[12][09]\d\d\w?\b|\d+(st|nd|rd|th)+')
+        re.compile(r'\b[12][098]\d\d\w?\b|\d+(st|nd|rd|th)+')
     ]
     re_unstructured_url = re.compile(r'http\S+')
     re_extra_whitespace = re.compile(r"\s+")
@@ -510,15 +499,20 @@ class XMLreference(Reference):
         if not name:
             contents = str(self)
         else:
-            required_attrs = set(attrs.items())
-            elements = self.reference_str.getElementsByTagName(name)
-            for element in elements:
-                if not element.childNodes:
-                    continue
-                element_attrs = set(element.attributes.items())
-                if required_attrs.issubset(element_attrs):
-                    contents = ''.join([n.toxml() for n in element.childNodes])
-                    break
+            try:
+                required_attrs = set(attrs.items())
+                elements = self.reference_str.getElementsByTagName(name)
+                for element in elements:
+                    if not element.childNodes:
+                        continue
+                    element_attrs = set(element.attributes.items())
+                    if required_attrs.issubset(element_attrs):
+                        contents = ''.join([n.toxml() for n in element.childNodes])
+                        break
+            except AttributeError:
+                # xml string was not parsed to create the xml structure with childNodes
+                return self.re_remove_xml_tag.sub(' ', contents)
+
         if not keepxml:
             contents = self.re_remove_xml_tag.sub(' ', contents)
         try:
@@ -542,10 +536,15 @@ class XMLreference(Reference):
         if not name:
             return self.xmlnode_nodecontents(None)
 
-        required_attrs = set(attrs.items())
-        elements = self.reference_str.getElementsByTagName(name)
-        if not elements or len(elements) == 0:
+        try:
+            required_attrs = set(attrs.items())
+            elements = self.reference_str.getElementsByTagName(name)
+            if not elements or len(elements) == 0:
+                return ''
+        except AttributeError:
+            # xml string was not parsed to create the xml structure with childNodes
             return ''
+
         contents = []
         for element in elements:
             if not element.childNodes:
@@ -559,8 +558,7 @@ class XMLreference(Reference):
             try:
                 contents.append(self.unicode.ent2asc(content.strip()))
             except:
-                str = content.strip()
-                contents.append(self.unicode.cleanall(str.replace('__amp__', '&')))
+                contents.append(self.unicode.cleanall(content.strip().replace('__amp__', '&')))
         return contents
 
     def xmlnode_textcontents(self, name, subels=[], attrs={}):
@@ -616,11 +614,11 @@ class XMLreference(Reference):
         :param attrname: 
         :return: 
         """
-        contents = ''
         if not name or not attrname:
             return ''
         element = self.reference_str.getElementsByTagName(name)
 
+        contents = ''
         if element and element[0].getAttribute(attrname):
             contents = element[0].getAttribute(attrname)
         elif element and len(element) and element[0].childNodes:
@@ -632,7 +630,50 @@ class XMLreference(Reference):
 
         return contents.strip()
 
-    def strip_tags(self, refstr, change=''):
+    def xmlnode_attributes(self, name, attrname):
+        """
+        returns the contents of an attribute of the given element name
+        as a dict.
+
+        :param name:
+        :param attrname:
+        :return:
+        """
+        if not name or not attrname:
+            return {}
+        element = self.reference_str.getElementsByTagName(name)
+
+        contents = {}
+        if element:
+            for e in element:
+                attr_value = e.getAttribute(attrname)
+                tag_value = self.xmlnode_textcontents(name, attrs={attrname: attr_value})
+                if tag_value:
+                    contents[attr_value] = tag_value
+        return contents
+
+    def xmlnode_attribute_match_return(self, name, attr_match, attrname_return):
+        """
+        returns the contents of a return attribute of the given element name
+        as plain text if a match attribute matches the other attribute.
+
+        :param name:
+        :param attr_match: this is a dict
+        :param attrname_return: this is a single value
+        :return:
+        """
+        if not name or not attr_match or not attrname_return:
+            return ''
+        element = self.reference_str.getElementsByTagName(name)
+
+        if element:
+            for e in element:
+                for key, value in attr_match.items():
+                    if e.getAttribute(key) == value:
+                        return e.getAttribute(attrname_return)
+        return ''
+
+    def strip_tags(self, refstr, change=' '):
         """
         strips all XML tags from input string, keeping text between them
         """
@@ -673,12 +714,99 @@ class XMLreference(Reference):
         return self.unicode.ent2asc(self.strip_tags(refstr)).strip()
 
 
-    def to_ascii(self, str):
+    def to_ascii(self, text):
         """
 
-        :param str:
+        :param text:
         :return:
         """
-        return self.unicode.ent2asc(self.unicode.u2asc(str))
+        return self.unicode.ent2asc(self.unicode.u2asc(text.replace('amp', '&')))
 
 
+class LatexReference(Reference):
+    """
+    This class handles references in TeX/LaTeX format.  It basically
+    behaves like a plain TextReference but does perform some latex
+    macro substitutions when stringifying the object.
+    """
+
+    macro_filename = os.path.dirname(__file__) + '/data_files/aas_latex.dat'
+    aas_macros = open(macro_filename).readlines()
+    aas_macro_dict = {}
+    for line in aas_macros:
+        line = line.strip()
+        macro, means = line.split(None, 1)
+        # force macro to match at word boundary;  this prevents incorrect
+        # translation of latex commands such as \natexlab{b} (which would
+        # be translated to Natureexlab{b} due to the \nat macro)
+        # AA 8/6/02
+        aas_macro_dict[macro] = means
+
+    aas_macro_keys = aas_macro_dict.keys()
+    aas_macro_keys = sorted(aas_macro_keys, key=len)
+    re_aas_macro = re.compile(r'\b|'.join(map(re.escape, aas_macro_keys)) + r'\b')
+
+    latex_macro_dict = {'newline': ' ',
+                        'newblock': ' ',
+                        'etal': 'et al.',
+                        'i': 'i',
+                        '-': '-'}
+    re_latex_macro = re.compile(r'\\(?P<macro>%s)' % '|'.join(latex_macro_dict.keys()))
+    
+    reference_cleanup_1 = [
+        (re.compile(r'\\[\w\W]{1}\{([A-Za-z]{1})\}'), r'\1'),
+        (re.compile(r'\\&'), '&'),
+        (re.compile(r'&amp;'), '&'),
+        (re.compile(r'\samp\s'), '&'),
+        (re.compile(r'(:?\'\')|(:?\`\`)'), ''),                            # quotes
+        (re.compile(r'\\[\^\"\'\`\.\~]'), ''),                             # accent
+        (re.compile(r'\\[vH]\s?'), ''),                                    # euaccent
+        (re.compile(r'\\([clL])'), ''),                                    # lslash
+        (re.compile(r'\\[\ ]'), ' '),                                      # space
+        (re.compile(r'\{\\(it|bf|em) (.*?)\}'), r'\2'),                    # style
+        (re.compile(r'\\(textbf|textit|emph)\{(.*?)\}'), r'\2'),           # font
+        (re.compile(r'\\(textbf|textit|emph|sl|bf) '), ' '),               # more fonts
+        (re.compile(r'&#37;'), ' '),                                       # tab
+        (re.compile(r'[\{\}]'), ''),                                       # curly brakets
+    ]
+    
+    reference_cleanup_2 = [
+        (re.compile(r'\s\s+'), ' '),                                       # multi-space
+    ]
+
+    def __init__(self, reference_str, unicode=None):
+        """
+
+        :param reference_str:
+        :param unicode:
+        """
+        Reference.__init__(self, reference_str, unicode)
+
+    def parse(self):
+        """
+
+        :return:
+        """
+        self.parsed = True
+
+    def __str__(self):
+        """
+
+        :return:
+        """
+        reference_str = Reference.__str__(self)
+        return self.cleanup(reference_str).strip()
+
+    def cleanup(self, reference):
+        """
+
+        :param reference:
+        :return:
+        """
+        reference = self.re_aas_macro.sub(lambda match: self.aas_macro_dict[match.group(0)], reference)
+        for (compiled_re, replace_str) in self.reference_cleanup_1:
+            reference = compiled_re.sub(replace_str, reference)
+        reference = self.re_latex_macro.sub(lambda match: self.latex_macro_dict[match.group('macro')], reference)
+        for (compiled_re, replace_str) in self.reference_cleanup_2:
+            reference = compiled_re.sub(replace_str, reference)
+        return reference

@@ -1,4 +1,4 @@
-<ADSBIBCODE>2020TEST..........R</ADSBIBCODE>
+<ADSBIBCODE>0000ApPhL...0.....Z</ADSBIBCODE>
 <citation id="r1">
 <ref>
     <biother>
@@ -86,5 +86,17 @@
             <linkkey type="issn">0163-1829</linkkey>
         </plink>
     </art>
+</ref>
+</citation>
+<citation id="r12">
+<ref>
+    <biother>
+        <othinfo>The subtle feature around 0.88 eV below the OA peak stems from the transmission characteristics of the
+            quartz beam splitter, which was used for the OA measurements. The PL experiments were carried out with a CaF<emph
+                    type="20">2
+            </emph> beam splitter<punct>,</punct>and therefore<punct>,</punct>do not show this feature
+            <punct>.</punct>
+        </othinfo>
+    </biother>
 </ref>
 </citation>

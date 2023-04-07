@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 
 from adsputils import setup_logging, load_config
@@ -34,10 +35,12 @@ class CrossRefreference(XMLreference):
         """
         self.parsed = 0
 
+        refstr = self.dexml(self.reference_str.toxml())
+
         authors = self.parse_authors()
         year = self.match_int(self.xmlnode_nodecontents('cYear'))
         if not year:
-            year = self.match_year(str(self.reference_str))
+            year = self.match_year(refstr)
 
         volume = self.match_int(self.xmlnode_nodecontents('volume'))
         issue = self.xmlnode_nodecontents('issue')
@@ -75,8 +78,8 @@ class CrossRefreference(XMLreference):
 
         doi = self.xmlnode_nodecontents('doi')
         if not doi:
-            doi = self.match_doi(str(self.reference_str))
-        eprint = self.match_arxiv_id(str(self.reference_str))
+            doi = self.match_doi(refstr)
+        eprint = self.match_arxiv_id(refstr)
 
         if doi:
             self['doi'] = doi
@@ -89,7 +92,7 @@ class CrossRefreference(XMLreference):
             for one_set in self.re_unstructured:
                 self['refplaintext'] = one_set[0].sub(one_set[1], self['refplaintext'])
             if not self['refplaintext']:
-                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('citation')))
+                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -199,24 +202,22 @@ class CrossRefreference(XMLreference):
         return None
 
 
-class CrossReftoREFs(XMLtoREFs):
+class CrossRefToREFs(XMLtoREFs):
 
     reference_cleanup = [
         (re.compile(r'<ref_issue>.*?</ref_issue>'), ''),
     ]
 
-    re_skip = re.compile(r'''<citation\ key=".*?"\ />\s*</citation_list>''', re.DOTALL | re.VERBOSE)
+    re_skip = re.compile(r'<citation\ key=".*?"\ />\s*</citation_list>', re.DOTALL | re.VERBOSE)
     re_linefeed = re.compile(r'\n')
 
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
         :param buffer:
-        :param unicode:
-        :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='citation')
+        XMLtoREFs.__init__(self, filename, buffer, parsername=CrossRefToREFs, tag='citation')
 
     def cleanup(self, reference):
         """
@@ -228,10 +229,9 @@ class CrossReftoREFs(XMLtoREFs):
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -239,39 +239,41 @@ class CrossReftoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode': bibcode, 'references': []}
-
-            for reference in block_references:
-                if cleanup_process:
-                    if self.re_skip.search(self.re_linefeed.sub('', reference)):
-                        continue
-                    reference = self.cleanup(reference)
+            parsed_references = []
+            for raw_reference in block_references:
+                if self.re_skip.search(self.re_linefeed.sub('', raw_reference)):
+                    continue
+                reference = self.cleanup(raw_reference)
 
                 logger.debug("CrossRefxml: parsing %s" % reference)
                 try:
                     crossref_reference = CrossRefreference(reference)
-                    references_bibcode['references'].append({**crossref_reference.get_parsed_reference(), 'refraw': reference})
+                    parsed_references.append({**crossref_reference.get_parsed_reference(), 'refraw': raw_reference})
                 except ReferenceError as error_desc:
                     logger.error("CrossRefxml: error parsing reference: %s" % error_desc)
 
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse CrossRef references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(CrossReftoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
-        print(CrossReftoREFs(buffer=args.buffer).process_and_dispatch())
+        print(CrossRefToREFs(filename=args.filename).process_and_dispatch())
+    elif args.buffer:
+        print(CrossRefToREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
+    elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.ref.xml')
-        print(CrossReftoREFs(filename=filename).process_and_dispatch())
+        result = CrossRefToREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_crossref:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)
-    # /PLoSO/0007/10.1371_journal.pone.0048146.xref.xml

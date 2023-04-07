@@ -1,0 +1,31 @@
+Kambry M.A., Nishikawa J. 1990, Sol. Phys. 126, 89
+Kambry M.A., Nishikawa J., Sakurai T., Ichimoto K., Hiei E.
+    1991, Sol. Phys. 132, 41
+BESSELL, M. S. :1983, Publ. Astron. Soc. Pac. 95, 480.
+BESSELL, M. S., WEIS, E. W.:1987, Publ. Astron. Soc. Pac. 99, 642.
+CARNEY, B. W., LATHAM, D. W.:1987, Astron. J. 92, 116.
+DOMMANGET, S.: 1985, Proceedings of the Colloquium on the European Astrometry Satellite Hipparcos, Scientific Aspects of the
+  Input Catalogue Preparation, Aussois (France). ESA SP-238, 153.
+EGRET, D., G0~Z, A.: 1985, Proceedings of the Colloquium on the European Astrometry Satellite Hipparcos, Scientific
+  Aspects of the Input Catalogue Preparation, Aussois (France). ESA SP-238, 87.
+Davoust, E., and Pence, W. D. 1982, Astr. Ap. Suppi., 49, 631.
+de Vaucouleurs, G. 1977a, Ap. J. Suppi., 33, 211.
+---1977b, in The Evolution ofGalaxies and Stellar Populations, ed. B. M. Tinsley and R. B. Larson (New Haven: Yale University Observatory), p. 43.
+de Vaucouleurs, G., and Agiiero, E. 1973, Pub. A.S.P., 85, 150.
+de Vaucouleurs, G., de Vaucouleurs, A., and Corwin, H. G., Jr. 1976, Second R~erence Catalogue ofBright Galaxies (Austin: University of Texas Press) (RC2).
+Fraser, C. W. 1977, Astr. Ap. Suppl., 29, 161.
+Freeman, K. C. 1970, Ap. J., 160, 811.
+Hamabe, M. 1982, Pub. Astr. Soc. Japan, 34, 423.
+Kodaira, K., Okamura, S., and Watanabe, M. 1983, Ap. J. (Letters), 274, L49.
+Kormendy, J. 1977, Ap. J., 218, 333.
+---1980, Proc. ESO Workshop on Two-Dimensional Photometry, ed. P. Crane and K. Kjiir (Munich: European Southern Observatory), p. 191.
+Simien, F., and de Vaucouleurs, G. 1983, in IAU Symposium 100, Internal Kinematics and Dynamics of Galaxies, ed. E. Athanassoula (l)ordrecht: Reidel), p. 375.
+Packer, Ch., Thomas, R. N.: 1962, Annales d'Astrophys. ~, 100.
+
+Rybansky', M., Ru~in, V.: 1983, Bull. Astron. inst. Czechosl. li~ 79
+
+Solar-Geophysical Data, 439 Part I * 450 Part 1, February 1981 * February
+     1982, U.S. Department of Commerce (Boulder,  Colorado, USA 80303).
+
+Underwood, J. H., Broussard, R. M.: 1977, Aerospace Report, No. ATR * 77
+     (7405) - 2.

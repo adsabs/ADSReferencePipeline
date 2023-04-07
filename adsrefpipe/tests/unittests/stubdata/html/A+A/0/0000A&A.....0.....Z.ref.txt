@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.1p1 release (March 2nd, 1998)
+originally by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>References</TITLE>
+<META NAME="description" CONTENT="References">
+<META NAME="keywords" CONTENT="aadb271">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="aadb271.css">
+<LINK REL="previous" HREF="node4.html">
+<LINK REL="up" HREF="aadb271.html">
+</HEAD>
+<BODY BGCOLOR=FFFFFF TEXT=000000>
+<!--Navigation Panel-->
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="/icons/next_motif_gr.gif">
+<A NAME="tex2html66"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="/icons/previous_motif.gif"></A>
+<BR>
+<B> Up:</B> <A NAME="tex2html71"
+ HREF="aadb271.html">Short term variability of 1999UG</SUB></A>
+<BR><HR><BR>
+<!--End of Navigation Panel-->
+ <H2><A NAME="SECTIONREF">References</A>
+</H2>
+<UL><A NAME="bar">&nbsp;</A><LI> Barucci, M. A., Romon, J., Doressoundiram, A., &amp; Tholen, D. J. 2000,
+Astron. J., 120, 496
+	<A NAME="tex2html8"
+ HREF="http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?2000AJ....120..496B">NASA ADS</A>
+<A NAME="gut">&nbsp;</A><LI> Guti&#233;rrez,  P. J., Ortiz, J. L., Rodrigo, R., &amp;
+ L&#243;pez-Moreno, J. J. 2000,
+A&amp;A, 355, 809
+	<A NAME="tex2html9"
+ HREF="http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?2000A&amp;A...355..809G">NASA ADS</A>
+<A NAME="Hahn">&nbsp;</A><LI> Hahn, G., &amp;  Bailey, M. E.  1990,
+Nature, 348, 132
+	<A NAME="tex2html10"
+ HREF="http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?1990Natur.348..132H">NASA ADS</A>
+<A NAME="hai">&nbsp;</A><LI> Hainaut, O. R.,  Delahodde, C. E.,
+ Boehnhardt, H., et al. 2000,
+A&amp;A, 356, 1076
+	<A NAME="tex2html11"
+ HREF="http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?2000A&amp;A...356.1076H">NASA ADS</A>
+<A NAME="Jewitt">&nbsp;</A><LI> Jewitt, D., &amp;  Kalas, P. 1998,
+ApJ, 499, L103
+	<A NAME="tex2html12"
+ HREF="http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?1998ApJ...499L.103J">NASA ADS</A>
+<A NAME="Landolt">&nbsp;</A><LI> Landolt, A. U. 1992,
+AJ, 104, 340
+	<A NAME="tex2html13"
+ HREF="http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?1992AJ....104..340L">NASA ADS</A>
+<A NAME="Lomb">&nbsp;</A><LI> Lomb, N. R. 1976,
+Astroph. Space Sci., 39, 447
+	<A NAME="tex2html14"
+ HREF="http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?1976Ap&amp;SS..39..447L">NASA ADS</A>
+<A NAME="Peixinho">&nbsp;</A><LI>
+Peixinho, N., Lacerda, P., Ortiz, J. L., et al. 2001,
+A&amp;A, in press
+<A NAME="Press">&nbsp;</A><LI> Press, W. H., Teukolsky,  S. A., Vetterling, W. T., &amp;
+Flannery, B. P. 1992,
+in Numerical Recipes in Fortran.  2nd ed. (Cambridge Univ. Press, London), 569
+<A NAME="Tholen1988">&nbsp;</A><LI> Tholen, D. J., Hartmann, W. K.,
+ Cruikshank, D. P., et al.  1988, IAUC, 4554
+</UL>
+<P>
+<HR>
+<!--Navigation Panel-->
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="/icons/next_motif_gr.gif">
+<A NAME="tex2html66"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="/icons/previous_motif.gif"></A>
+<BR>
+<B> Up:</B> <A NAME="tex2html71"
+ HREF="aadb271.html">Short term variability of 1999UG</SUB></A>
+<P>
+<!--End of Navigation Panel-->
+<ADDRESS>
+Copyright ESO 2001
+</ADDRESS>
+</BODY>
+</HTML>

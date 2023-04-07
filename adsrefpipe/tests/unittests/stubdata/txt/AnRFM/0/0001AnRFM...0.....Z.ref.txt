@@ -1,0 +1,29 @@
+Bakker  PG, Winkel  MEM. 1989,Proc. IUTAM Symp. Topol. Fluid Mech., Cambridge,  pp. 13-18
+Dallmann  U. 1983,DFVLR  1B:221-82
+Delery  J. 1992,J. Aircr.  29:856-76
+Delery  J. 1994,Prog. Aerosp. Sci.  30:1-59
+Delery  J. 1995. Fundamental flow phenomena related to 3-D afterbodies.  Aerodynamics of 3-D Aircraft Afterbodies, AGARD AR 318:7-24
+Hornung  H, Perry  AE. 1984,Z. Flugwiss. Weltraumforsch.  8(Heft 2):77-87
+Hunt  JCR, Abell  CJ, Peterka  JA, Woo  H. 1978,J. Fluid Mech.  86:179-200
+Legendre  R. 1952. Ecoulement au voisinage de la pointe avant d'une aile a forte fleche aux incidences moyennes.  8 th  Int. Congr. Theor. Appl. Mech., Istanbul, Turkey, Aug . and  La Rech. Aeronaut .30:3-8
+Legendre  R. 1956. Separation de l'ecoulement laminaire tridimensionnel.  La Rech. Aeronaut .54:3-8
+Legendre  R. 1965. Lignes de courant d'un ecoulement continu.  La Rech. Aerosp .105:3-9
+Legendre  R. 1966,Prog. Aerosp. Sci.  7:7-33
+Legendre  R. 1977. Lignes de courant d'un ecoulement permanent. Decollement et separation. La Rech. Aerosp .6:327-35
+Legendre  R. 1991,Rev. Sci. Techn. Def.  11:67-75
+Lighthill  MJ. 1963. Attachment and separation in three-dimensional flows. In  Laminar Bound. Layer Theory , Sect. II 2.6, ed. L Rosenhead,pp. 72-82. New York: Oxford Univ. Press
+Perry  AE, Fairlie  BD. 1974,Adv. Geophys. B  18:200-15
+Poincare  H. 1882,C. R. Acad. Sci. Paris  94:416-18;  CEuvres Completes 1:3-5
+Sedney  R, Kitchens  CW Jr.1977. Separation ahead of protuberances in supersonic turbulent boundary layers.  BRL Rep. 1958 , Feb. See also  AIAA J .15:546-52
+Tobak  M, Peake  DJ. 1982,Annu. Rev. Fluid Mech.  14:61-85
+Van Dyke  M. 1982.  An Album of Fluid Motion . Stanford, CA: Parabolic
+Werle  H. 1958. Possibilites experimentales du tunnel hydrodynamique a visualisation.  ONERA Note Tech. 48
+Werle  H. 1960. Sur l'eclatement des tourbillons d'apex d'une aile delta aux faibles vitesses.  La Rech. Aeronaut .74:25-30
+Werle  H. 1974. Le tunnel hydrodynamique au service de la recherche aerospatiale.  ONERA Publ. 156
+Werle  H. 1982. Flow visualization techniques for the study of high incidence aerodynamics.  AGARD-VKI Lect. Ser. 121
+Werle  H. 1983. Visualisation des ecoulements tourbillonnaires tridimensionnels.  AGARD-FDP Conf. Aerodyn. Vortical Type Flows in Three-dimensions, Rotterdam, April 25-27
+Werle  H. 1986. Possibilites d'essai offertes par les tunnels hydrodynamiques a visualisation de l'Onera dans les domaines aeronautiques et navals.  AGARD-CP 413
+Werle  H. 1987. Transition et turbulence.  ONERA Note Tech. 1987-7
+Werle  H, Gallon  M. 1982. Le nouveau laboratoire de visualisation hydrodynamique de la direction de l'aerodynamique.  La Rech. Aerosp .1992-5:289-311
+Werle  H, Roy  M. 1960. Partage et rencontre d'ecoulements fluides.  La Rech. Aeronaut .79:9-26
+Yates  LA, Chapman  GT. 1992,AIAA J.  30:1819-26

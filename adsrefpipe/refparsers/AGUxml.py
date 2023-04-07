@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 
 from adsputils import setup_logging, load_config
@@ -20,10 +21,9 @@ class AGUreference(XMLreference):
     ]
     re_xml_to_text = re.compile(r'<([A-Za-z_]*)\b[^>]*>(.*?)</\1>')
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
 
-        :param prevref:
         :return:
         """
         self.parsed = 0
@@ -92,7 +92,7 @@ class AGUreference(XMLreference):
 
 class AGUtoREFs(XMLtoREFs):
 
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -100,12 +100,11 @@ class AGUtoREFs(XMLtoREFs):
         :param unicode:
         :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='citation')
+        XMLtoREFs.__init__(self, filename, buffer, parsername=AGUtoREFs, tag='citation')
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -113,22 +112,22 @@ class AGUtoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode':bibcode, 'references':[]}
-
+            parsed_references = []
             for reference in block_references:
                 logger.debug("AGUxml: parsing %s" % reference)
                 try:
                     agu_reference = AGUreference(reference)
-                    references_bibcode['references'].append({**agu_reference.get_parsed_reference(), 'refraw':reference})
+                    parsed_references.append({**agu_reference.get_parsed_reference(), 'refraw': reference})
                 except ReferenceError as error_desc:
                     logger.error("AGUxml: error parsing reference: %s" %error_desc)
 
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AGU references')
     parser.add_argument('-f', '--filename', help='the path to source file')
@@ -136,10 +135,14 @@ if __name__ == '__main__':      # pragma: no cover
     args = parser.parse_args()
     if args.filename:
         print(AGUtoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
+    elif args.buffer:
         print(AGUtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
+    elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.agu.xml')
-        print(AGUtoREFs(filename=filename).process_and_dispatch())
+        result = AGUtoREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_agu:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)

@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 
 from adsputils import setup_logging, load_config
@@ -15,7 +16,7 @@ from adsrefpipe.refparsers.unicode import tounicode
 
 class AIPreference(XMLreference):
 
-    re_repalce_amp = re.compile(r'__amp__')
+    re_replace_amp = re.compile(r'__amp;?')
     re_extra_whitespace = re.compile(r"\s+")
     re_unstructured_url = re.compile(r'http\S+|www\S+')
     re_valid_refstr = [
@@ -27,21 +28,20 @@ class AIPreference(XMLreference):
         re.compile(r"<emph_1>(?P<TITLE>[^</]*)</emph_1>")
     ]
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
 
-        :param prevref:
         :return:
         """
         self.parsed = 0
 
         theref = self.reference_str.toxml()
-        theref = tounicode(self.re_repalce_amp.sub('&', theref))
+        theref = tounicode(self.re_replace_amp.sub('&', theref))
         theref, authors = self.parse_authors(theref)
 
         theref, year = self.extract_tag(theref, 'year')
         if not year:
-            year = self.match_year(str(self.reference_str))
+            year = self.match_year(self.dexml(self.reference_str.toxml()))
         theref, links = self.extract_tag(theref, 'plink')
         theref, coden = self.extract_tag(theref, 'bicoden')
 
@@ -146,7 +146,7 @@ class AIPtoREFs(XMLtoREFs):
     re_previous_tag = re.compile(r'<prevau>')
     re_previous_ref = re.compile(r'<ibid>')
 
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -154,7 +154,7 @@ class AIPtoREFs(XMLtoREFs):
         :param unicode:
         :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='(ref|refitem)')
+        XMLtoREFs.__init__(self, filename, buffer, parsername=AIPtoREFs, tag='(ref|refitem)')
 
     def cleanup(self, reference, prev_reference):
         """
@@ -180,10 +180,9 @@ class AIPtoREFs(XMLtoREFs):
         reference, prev_reference = self.extract_tag(reference, 'journal', remove=0, keeptag=1)
         return reference, prev_reference
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -191,26 +190,25 @@ class AIPtoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode':bibcode, 'references':[]}
-
+            parsed_references = []
             prev_reference = ''
-            for reference in block_references:
-                if cleanup_process:
-                    reference, prev_reference = self.cleanup(reference, prev_reference)
+            for raw_reference in block_references:
+                reference, prev_reference = self.cleanup(raw_reference, prev_reference)
 
                 logger.debug("AIPxml: parsing %s" % reference)
                 try:
                     aip_reference = AIPreference(reference)
-                    references_bibcode['references'].append({**aip_reference.get_parsed_reference(), 'refraw':reference})
+                    parsed_references.append({**aip_reference.get_parsed_reference(), 'refraw': raw_reference})
                 except ReferenceError as error_desc:
                     logger.error("APSxml: error parsing reference: %s" %error_desc)
 
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AIP references')
     parser.add_argument('-f', '--filename', help='the path to source file')
@@ -218,10 +216,14 @@ if __name__ == '__main__':      # pragma: no cover
     args = parser.parse_args()
     if args.filename:
         print(AIPtoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
+    elif args.buffer:
         print(AIPtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
+    elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.aip.xml')
-        print(AIPtoREFs(filename=filename).process_and_dispatch())
+        result = AIPtoREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_aip:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)

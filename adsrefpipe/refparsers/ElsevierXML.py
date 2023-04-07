@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 
 from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
@@ -21,17 +22,17 @@ class ELSEVIERreference(XMLreference):
     re_journal_GeophysRes = re.compile(r'(J. Geophys. Res|Geophys. Res. Lett.)')
     re_eid_PhysRev = re.compile(r'\(.*')
     re_clean_textref = re.compile(r'^(.*?\d{4})[a-z]?\.(.*?)\.')
-    re_repalce_amp = re.compile(r'__amp__')
     re_repalce_dash = re.compile(r'&ndash;')
     re_abstract = re.compile(r'[Aa]bstract\ ')
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
 
-        :param prevref:
         :return:
         """
         self.parsed = 0
+
+        refstr = self.dexml(self.reference_str.toxml())
 
         authors = self.parse_authors()
         host = self.xmlnode_nodescontents('host', keepxml=1)
@@ -49,7 +50,7 @@ class ELSEVIERreference(XMLreference):
 
         year = self.xmlnode_nodecontents('date')
         if not year:
-            year = self.match_year(str(self.reference_str))
+            year = self.match_year(refstr)
 
         volume = self.xmlnode_nodecontents('volume-nr').strip()
         if len(volume) > 0:
@@ -75,14 +76,14 @@ class ELSEVIERreference(XMLreference):
             eprint = self.match_arxiv_id(self.xmlnode_nodecontents('inter-ref'))
             # attempt to extract arxiv id from refstr
             if not eprint:
-                eprint = self.match_arxiv_id(str(self.reference_str))
+                eprint = self.match_arxiv_id(refstr)
         except:
             pass
         try:
             doi = self.xmlnode_nodecontents('doi').strip()
             if len(doi) == 0:
                 # attempt to extract doi from refstr
-                doi = self.match_doi(str(self.reference_str))
+                doi = self.match_doi(refstr)
         except:
             pass
 
@@ -134,7 +135,7 @@ class ELSEVIERreference(XMLreference):
             self['refplaintext'] = self.xmlnode_nodecontents('textref').strip()
             # no reference text, see if it can be extracted from the reference xml
             if not self['refplaintext']:
-                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('reference')))
+                self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -189,7 +190,7 @@ class ELSEVIERtoREFs(XMLtoREFs):
         (re.compile(r'</bib-reference>\s*</bib-reference>\s*$'), r'</bib-reference>\n')
     ]
 
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -197,7 +198,7 @@ class ELSEVIERtoREFs(XMLtoREFs):
         :param unicode:
         :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='reference', cleanup=self.block_cleanup, encoding='ISO-8859-1')
+        XMLtoREFs.__init__(self, filename, buffer, parsername=ELSEVIERtoREFs, tag='reference', encoding='ISO-8859-1', cleanup=self.block_cleanup)
 
     def cleanup(self, reference):
         """
@@ -209,11 +210,10 @@ class ELSEVIERtoREFs(XMLtoREFs):
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
         this function does reference cleaning and then calls the parser
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -221,25 +221,24 @@ class ELSEVIERtoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode':bibcode, 'references':[]}
-    
-            for reference in block_references:
-                if cleanup_process:
-                    reference = self.cleanup(reference)
+            parsed_references = []
+            for raw_reference in block_references:
+                reference = self.cleanup(raw_reference)
 
                 logger.debug("ElsevierXML: parsing %s" % reference)
                 try:
                     elsevier_reference = ELSEVIERreference(reference)
-                    references_bibcode['references'].append({**elsevier_reference.get_parsed_reference(), 'refraw':reference})
+                    parsed_references.append({**elsevier_reference.get_parsed_reference(), 'refraw': raw_reference})
                 except ReferenceError as error_desc:
                     logger.error("ELSEVIERxml:  error parsing reference: %s" %error_desc)
     
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Elsevier references')
     parser.add_argument('-f', '--filename', help='the path to source file')
@@ -247,16 +246,14 @@ if __name__ == '__main__':      # pragma: no cover
     args = parser.parse_args()
     if args.filename:
         print(ELSEVIERtoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
+    elif args.buffer:
         print(ELSEVIERtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
+    elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.elsevier.xml')
-        print(ELSEVIERtoREFs(filename=filename).process_and_dispatch())
+        result = ELSEVIERtoREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_elsevier:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)
-    # /proj/ads/references/sources/JPhG/0028/iss1.raw
-    # /proj/ads/references/sources/AtmEn/0235/iss.elsevier.xml
-    # PhLA/0308/iss2.elsevier.xml
-    # Icar/0139/iss1.elsevier.xml
-    # NewA/0012/iss6.elsevier.xml
-    # NewAR/0043/iss2.elsevier.xml

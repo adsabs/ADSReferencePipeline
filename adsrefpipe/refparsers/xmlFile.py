@@ -5,7 +5,7 @@
 
 import xml.dom.minidom as dom
 from xml.parsers.expat import ExpatError
-import re
+import regex as re
 from collections import UserList
 
 
@@ -56,6 +56,7 @@ class XmlList(dom.Element, UserList):
 
 
 class XmlString(XmlList):
+
     re_cleanup = [
         (re.compile(r'\s\s+'), r' '),
         (re.compile(r'> <'), r'><'),
@@ -90,15 +91,19 @@ class XmlString(XmlList):
                 XmlList.__init__(self, elements=xml.childNodes, name=doctype)
                 return
             except ExpatError as e:
-                match = re.findall(r'(\d+)', str(e))
-                if len(match) == 2:
-                    start = int(match[1])
-                    range = [self.re_match_open_tag.search(buffer[:start]).span()[0],
-                             self.re_match_text_between_tags.search(buffer[start:]).span()[1]+start+1]
-                    remove_text = buffer[range[0]:range[1]]
-                    if remove_text.count('<') == 1 and not (remove_text.startswith('</') or remove_text.startswith('< ')):
-                        buffer = buffer.replace(remove_text,'')
-                continue
+                try:
+                    match = re.findall(r'(\d+)', str(e))
+                    if len(match) == 2:
+                        start = int(match[1])
+                        range = [self.re_match_open_tag.search(buffer[:start]).span()[0],
+                                 self.re_match_text_between_tags.search(buffer[start:]).span()[1]+start+1]
+                        remove_text = buffer[range[0]:range[1]]
+                        if remove_text.count('<') == 1 and not (remove_text.startswith('</') or remove_text.startswith('< ')):
+                            buffer = buffer.replace(remove_text,'')
+                    continue
+                except AttributeError:
+                    return
+
         # no success, so turn xml into text, remove < and > if any, and then put one tag around it
         # to be able to extract it as text from this structure
         top_tag = buffer.split(' ',1)[0][1:]

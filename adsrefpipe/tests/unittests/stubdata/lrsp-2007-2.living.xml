@@ -1,0 +1,1167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refdb:RefList xmlns:refdb="http://dev.livingreviews.org/epubtk/refdb/import" pubNo="lrsp-2007-2" schemaVersion="1.0" created="2014-08-20T18:30:53" journal="default" source="lr_physRefDb">
+  <refdb:record ord="1" id="Andrews-2000">
+    <refdb:book>
+      <refdb:author type="person">Andrews, D. G.</refdb:author>
+      <refdb:title tex="An Introduction to Atmospheric Physics">An Introduction to Atmospheric Physics</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:publisher tex="Cambridge University Press">Cambridge University Press</refdb:publisher>
+      <refdb:address tex="Cambridge, U.K.; New York, U.S.A.">Cambridge, U.K.; New York, U.S.A.</refdb:address>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:gbs_id>GokPgjyMz1QC</refdb:gbs_id>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="2" id="Arnold-2006">
+    <refdb:article>
+      <refdb:author type="person">Arnold, F.</refdb:author>
+      <refdb:title tex="Atmospheric Aerosol and Cloud Condensation Nuclei Formation: A Possible Influence of Cosmic Rays?">Atmospheric Aerosol and Cloud Condensation Nuclei Formation: A Possible Influence of Cosmic Rays?</refdb:title>
+      <refdb:year>2006</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>125</refdb:volume>
+      <refdb:pages>169–186</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1007/s11214-006-9055-4</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2006SSRv..125..169A</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="3" id="Austin-et-al-2007">
+    <refdb:unpublished>
+      <refdb:author type="person">Austin, J.</refdb:author>
+      <refdb:author type="etal">et al.</refdb:author>
+      <refdb:title tex="Coupled chemistry climate simulations of the solar cycle in stratospheric ozone and temperature">Coupled chemistry climate simulations of the solar cycle in stratospheric ozone and temperature</refdb:title>
+      <refdb:year>2007</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:format>submitted</refdb:format>
+    </refdb:unpublished>
+  </refdb:record>
+  <refdb:record ord="4" id="Boberg-and-Lundstedt-2002">
+    <refdb:article>
+      <refdb:author type="person">Boberg, F.</refdb:author>
+      <refdb:author type="person">Lundstedt, H.</refdb:author>
+      <refdb:title tex="Solar Wind Variations Related to Fluctuations of the North Atlantic Oscillation">Solar Wind Variations Related to Fluctuations of the North Atlantic Oscillation</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>29</refdb:volume>
+      <refdb:eid>1718</refdb:eid>
+      <refdb:onlineversion scope="docSpecific">http://sunspot.lund.irf.se/</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2007-09-06</refdb:cited>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2002GL014903</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2002GeoRL..29o..13B</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="5" id="Bond-et-al-2001">
+    <refdb:article>
+      <refdb:author type="person">Bond, G.</refdb:author>
+      <refdb:author type="person">Kromer, B.</refdb:author>
+      <refdb:author type="person">Beer, J.</refdb:author>
+      <refdb:author type="person">Muscheler, R.</refdb:author>
+      <refdb:author type="person">Evans, M. N.</refdb:author>
+      <refdb:author type="person">Showers, W.</refdb:author>
+      <refdb:author type="person">Hoffmann, S.</refdb:author>
+      <refdb:author type="person">Lotti-Bond, R.</refdb:author>
+      <refdb:author type="person">Hajdas, I.</refdb:author>
+      <refdb:author type="person">Bonani, G.</refdb:author>
+      <refdb:title tex="Persistent Solar Influence on North Atlantic Climate During the Holocene">Persistent Solar Influence on North Atlantic Climate During the Holocene</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>294</refdb:volume>
+      <refdb:pages>2130–2136</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.1065680</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2001Sci...294.2130B</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="6" id="Brasseur-1993">
+    <refdb:article>
+      <refdb:author type="person">Brasseur, G.</refdb:author>
+      <refdb:title tex="The response of the middle atmosphere to long-term and short-term solar variability: A two-dimensional model">The response of the middle atmosphere to long-term and short-term solar variability: A two-dimensional model</refdb:title>
+      <refdb:year>1993</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>98</refdb:volume>
+      <refdb:pages>23079–23090</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/93JD02406</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1993JGR....9823079B</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="7" id="Burroughs-1992">
+    <refdb:book>
+      <refdb:author type="person">Burroughs, W. J.</refdb:author>
+      <refdb:title tex="Weather Cycles: Real or Imaginary">Weather Cycles: Real or Imaginary</refdb:title>
+      <refdb:year>1992</refdb:year>
+      <refdb:publisher tex="Cambridge University Press">Cambridge University Press</refdb:publisher>
+      <refdb:address tex="Cambridge, U.K.; New York, U.S.A.">Cambridge, U.K.; New York, U.S.A.</refdb:address>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="8" id="Crowley-2000">
+    <refdb:article>
+      <refdb:author type="person">Crowley, T. J.</refdb:author>
+      <refdb:title tex="Causes of Climate Change Over the Past 1000 Years">Causes of Climate Change Over the Past 1000 Years</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>289</refdb:volume>
+      <refdb:pages>270–277</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.289.5477.270</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000Sci...289..270C</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="9" id="Dickinson-1975">
+    <refdb:article>
+      <refdb:author type="person">Dickinson, R. E.</refdb:author>
+      <refdb:title tex="Solar Variability and the Lower Atmosphere">Solar Variability and the Lower Atmosphere</refdb:title>
+      <refdb:year>1975</refdb:year>
+      <refdb:journal>Bull. Am. Meteorol. Soc.</refdb:journal>
+      <refdb:volume>56</refdb:volume>
+      <refdb:pages>1240–1248</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/1520-0477(1975)056&lt;1240:SVATLA&gt;2.0.CO;2</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1975BAMS...56.1240D</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="10" id="Eddy-1976">
+    <refdb:article>
+      <refdb:author type="person">Eddy, J. A.</refdb:author>
+      <refdb:title tex="The Maunder Minimum">The Maunder Minimum</refdb:title>
+      <refdb:year>1976</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>192</refdb:volume>
+      <refdb:pages>1189–1202</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.192.4245.1189</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1976Sci...192.1189E</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="11" id="Egorova-et-al-2004">
+    <refdb:article>
+      <refdb:author type="person">Egorova, T.</refdb:author>
+      <refdb:author type="person">Rozanov, E.</refdb:author>
+      <refdb:author type="person">Manzini, E.</refdb:author>
+      <refdb:author type="person">Haberreiter, M.</refdb:author>
+      <refdb:author type="person">Schmutz, W.</refdb:author>
+      <refdb:author type="person">Zubov, V.</refdb:author>
+      <refdb:author type="person">Peter, T.</refdb:author>
+      <refdb:title tex="Chemical and dynamical response to the 11-year variability of the solar irradiance simulated with a chemistry climate model">Chemical and dynamical response to the 11-year variability of the solar irradiance simulated with a chemistry climate model</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>31</refdb:volume>
+      <refdb:pages>L06119</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2003GL019294</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2004GeoRL..3106119E</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="12" id="Foster-2004">
+    <refdb:phdthesis>
+      <refdb:author type="person">Foster, S.</refdb:author>
+      <refdb:title tex="Reconstruction of solar irradiance variations, for use in studies of global climate change: application of recent SoHO observations with historic data from the Greenwich Observatory">Reconstruction of solar irradiance variations, for use in studies of global climate change: application of recent SoHO observations with historic data from the Greenwich Observatory</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:school tex="University of Southampton">University of Southampton</refdb:school>
+      <refdb:address tex="Southampton, U.K.">Southampton, U.K.</refdb:address>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:format>phd</refdb:format>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2004PhDT.........5F</refdb:adsurl>
+    </refdb:phdthesis>
+  </refdb:record>
+  <refdb:record ord="13" id="Friis-Christensen-and-Lassen-1991">
+    <refdb:article>
+      <refdb:author type="person">Friis-Christensen, E.</refdb:author>
+      <refdb:author type="person">Lassen, K.</refdb:author>
+      <refdb:title tex="Length of the Solar Cycle: An Indicator of Solar Activity Closely Associated with Climate">Length of the Solar Cycle: An Indicator of Solar Activity Closely Associated with Climate</refdb:title>
+      <refdb:year>1991</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>254</refdb:volume>
+      <refdb:pages>698–700</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.254.5032.698</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1991Sci...254..698F</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="14" id="Gillett-and-Thompson-2003">
+    <refdb:article>
+      <refdb:author type="person">Gillett, N. P.</refdb:author>
+      <refdb:author type="person">Thompson, D. W. J.</refdb:author>
+      <refdb:title tex="Simulation of Recent Southern Hemisphere Climate Change">Simulation of Recent Southern Hemisphere Climate Change</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>302</refdb:volume>
+      <refdb:pages>273–275</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.1087440</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003Sci...302..273G</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="15" id="Gleisner-and-Thejll-2003">
+    <refdb:article>
+      <refdb:author type="person">Gleisner, H.</refdb:author>
+      <refdb:author type="person">Thejll, P.</refdb:author>
+      <refdb:title tex="Patterns of tropospheric response to solar variability">Patterns of tropospheric response to solar variability</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>30</refdb:volume>
+      <refdb:eid>1711</refdb:eid>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2003GL017129</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003GeoRL..30m..44G</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="16" id="Gray-2003">
+    <refdb:article>
+      <refdb:author type="person">Gray, L. J.</refdb:author>
+      <refdb:title tex="The influence of the equatorial upper stratosphere on sudden stratospheric warmings">The influence of the equatorial upper stratosphere on sudden stratospheric warmings</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>30</refdb:volume>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2002GL016430</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003GeoRL..30d..15G</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="17" id="Gray-et-al-2005">
+    <refdb:techreport>
+      <refdb:author type="person">Gray, L. J.</refdb:author>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:author type="person">Harrison, R. G.</refdb:author>
+      <refdb:title tex="The Influence of Solar Changes on the Earth's Climate">The Influence of Solar Changes on the Earth’s Climate</refdb:title>
+      <refdb:year>2005</refdb:year>
+      <refdb:publisher tex="Met Office">Met Office</refdb:publisher>
+      <refdb:address tex="Exeter, U.K.">Exeter, U.K.</refdb:address>
+      <refdb:url>http://www.metoffice.gov.uk/research/hadleycentre/pubs/HCTN/index.html</refdb:url>
+      <refdb:cited scope="docSpecific">2007-09-03</refdb:cited>
+      <refdb:series tex="Hadley Centre technical note">Hadley Centre technical note</refdb:series>
+      <refdb:number>62</refdb:number>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:techreport>
+  </refdb:record>
+  <refdb:record ord="18" id="Gray-et-al-2001">
+    <refdb:article>
+      <refdb:author type="person">Gray, L. J.</refdb:author>
+      <refdb:author type="person">Phipps, S. J.</refdb:author>
+      <refdb:author type="person">Dunkerton, T. J.</refdb:author>
+      <refdb:author type="person">Baldwin, M. P.</refdb:author>
+      <refdb:author type="person">Drysdale, E. F.</refdb:author>
+      <refdb:author type="person">Allen, M. R.</refdb:author>
+      <refdb:title tex="A data study of the influence of the equatorial upper stratosphere on northern-hemisphere stratospheric sudden warmings">A data study of the influence of the equatorial upper stratosphere on northern-hemisphere stratospheric sudden warmings</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>Quart. J. R. Meteorol. Soc.</refdb:journal>
+      <refdb:volume>127</refdb:volume>
+      <refdb:pages>1985–2003</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1002/qj.49712757607</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2001QJRMS.127.1985G</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="19" id="Gray-et-al-2004">
+    <refdb:article>
+      <refdb:author type="person">Gray, L. J.</refdb:author>
+      <refdb:author type="person">Crooks, S. A.</refdb:author>
+      <refdb:author type="person">Pascoe, C.</refdb:author>
+      <refdb:author type="person">Sparrow, S.</refdb:author>
+      <refdb:author type="person">Palmer, M.</refdb:author>
+      <refdb:title tex="Solar and QBO Influences on the Timing of Stratospheric Sudden Warmings">Solar and QBO Influences on the Timing of Stratospheric Sudden Warmings</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>J. Atmos. Sci.</refdb:journal>
+      <refdb:volume>61</refdb:volume>
+      <refdb:pages>2777–2796</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/JAS-3297.1</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2004JAtS...61.2777G</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="20" id="Haigh-1994">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:title tex="The role of stratospheric ozone in modulating the solar radiative forcing of climate">The role of stratospheric ozone in modulating the solar radiative forcing of climate</refdb:title>
+      <refdb:year>1994</refdb:year>
+      <refdb:journal>Nature</refdb:journal>
+      <refdb:volume>370</refdb:volume>
+      <refdb:pages>544–546</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1038/370544a0</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1994Natur.370..544H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="21" id="Haigh-1996">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:title tex="The Impact of Solar Variability on Climate">The Impact of Solar Variability on Climate</refdb:title>
+      <refdb:year>1996</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>272</refdb:volume>
+      <refdb:pages>981–984</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.272.5264.981</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1996Sci...272..981H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="22" id="Haigh-1999">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:title tex="A GCM study of climate change in response to the 11-year solar cycle">A GCM study of climate change in response to the 11-year solar cycle</refdb:title>
+      <refdb:year>1999</refdb:year>
+      <refdb:journal>Quart. J. R. Meteorol. Soc.</refdb:journal>
+      <refdb:volume>125</refdb:volume>
+      <refdb:pages>871–892</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1002/qj.49712555506</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1999QJRMS.125..871H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="23" id="Haigh-2003">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:title tex="The effects of solar variability on the Earth's climate">The effects of solar variability on the Earth’s climate</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Philos. Trans. R. Soc. London, Ser. A</refdb:journal>
+      <refdb:volume>361</refdb:volume>
+      <refdb:pages>95–111</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003RSPTA.361...95H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="24" id="Haigh-and-Blackburn-2006">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:author type="person">Blackburn, M.</refdb:author>
+      <refdb:title tex="Solar Influences on Dynamical Coupling Between the Stratosphere and Troposphere">Solar Influences on Dynamical Coupling Between the Stratosphere and Troposphere</refdb:title>
+      <refdb:year>2006</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>125</refdb:volume>
+      <refdb:pages>331–344</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>0.1007/s11214-006-9067-0</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2006SSRv..125..331H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="25" id="Haigh-et-al-2005">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:author type="person">Blackburn, M.</refdb:author>
+      <refdb:author type="person">Day, R.</refdb:author>
+      <refdb:title tex="The response of tropospheric circulation to perturbations in lower stratospheric temperature">The response of tropospheric circulation to perturbations in lower stratospheric temperature</refdb:title>
+      <refdb:year>2005</refdb:year>
+      <refdb:journal>J. Climate</refdb:journal>
+      <refdb:volume>18</refdb:volume>
+      <refdb:pages>3672–3685</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/JCLI3472.1</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="26" id="Haigh-and-Roscoe-2006">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:author type="person">Roscoe, H. K.</refdb:author>
+      <refdb:title tex="Solar influences on polar modes of variability">Solar influences on polar modes of variability</refdb:title>
+      <refdb:year>2006</refdb:year>
+      <refdb:journal>Meteorol. Z.</refdb:journal>
+      <refdb:volume>15</refdb:volume>
+      <refdb:pages>371–378</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1127/0941-2948/2006/0123</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="27" id="Hansen-et-al-1997">
+    <refdb:article>
+      <refdb:author type="person">Hansen, J. E.</refdb:author>
+      <refdb:author type="person">Sato, M.</refdb:author>
+      <refdb:author type="person">Ruedy, R.</refdb:author>
+      <refdb:title tex="Radiative forcing and climate response">Radiative forcing and climate response</refdb:title>
+      <refdb:year>1997</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>102</refdb:volume>
+      <refdb:pages>6831–6864</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/96JD03436</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1997JGR...102.6831H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="28" id="Harrison-and-Carslaw-2003">
+    <refdb:article>
+      <refdb:author type="person">Harrison, R. G.</refdb:author>
+      <refdb:author type="person">Carslaw, K. S.</refdb:author>
+      <refdb:title tex="Ion-aerosol-cloud processes in the lower atmosphere">Ion-aerosol-cloud processes in the lower atmosphere</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Rev. Geophys.</refdb:journal>
+      <refdb:volume>41</refdb:volume>
+      <refdb:eid>1012</refdb:eid>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2002RG000114</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003RvGeo..41c...2H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="29" id="Houghton-1977">
+    <refdb:book>
+      <refdb:author type="person">Houghton, J. T.</refdb:author>
+      <refdb:title tex="The Physics of Atmospheres">The Physics of Atmospheres</refdb:title>
+      <refdb:year>1977</refdb:year>
+      <refdb:publisher tex="Cambridge University Press">Cambridge University Press</refdb:publisher>
+      <refdb:address tex="Cambridge, U.K.; New York, U.S.A.">Cambridge, U.K.; New York, U.S.A.</refdb:address>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:gbs_id>PrU8AAAAIAAJ</refdb:gbs_id>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="30" id="Hoyt-and-Schatten-1998">
+    <refdb:article>
+      <refdb:author type="person">Hoyt, D. V.</refdb:author>
+      <refdb:author type="person">Schatten, K. H.</refdb:author>
+      <refdb:title tex="Group Sunspot Numbers: A New Solar Activity Reconstruction">Group Sunspot Numbers: A New Solar Activity Reconstruction</refdb:title>
+      <refdb:year>1998</refdb:year>
+      <refdb:journal>Solar Phys.</refdb:journal>
+      <refdb:volume>181</refdb:volume>
+      <refdb:pages>491–512</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1023/A:1005056326158</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1998SoPh..181..491H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="31" id="IPCC-2001">
+    <refdb:techreport>
+      <refdb:title tex="Climate Change 2001: The Scientific Basis. Contribution of Working Group I to the Third Assessment Report of the Intergovernmental Panel on Climate Change">Climate Change 2001: The Scientific Basis. Contribution of Working Group I to the Third Assessment Report of the Intergovernmental Panel on Climate Change</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:publisher tex="Cambridge University Press">Cambridge University Press</refdb:publisher>
+      <refdb:address tex="Cambridge, U.K.; New York, U.S.A.">Cambridge, U.K.; New York, U.S.A.</refdb:address>
+      <refdb:onlineversion scope="docSpecific">http://www.grida.no/climate/ipcc_tar/wg1/index.htm</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2007-09-03</refdb:cited>
+      <refdb:note tex="(Eds.) Houghton, J.T. and Ding, Y. and Griggs, D.J. and Noguer, M. and van der Linden, P.J. and Dai, X. and Maskell, K. and Johnson, C.A." scope="docSpecific">(Eds.) Houghton, J.T. and Ding, Y. and Griggs, D.J. and Noguer, M. and van der Linden, P.J. and Dai, X. and Maskell, K. and Johnson, C.A.</refdb:note>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:techreport>
+  </refdb:record>
+  <refdb:record ord="32" id="IPCC-2007">
+    <refdb:techreport>
+      <refdb:title tex="Climate Change 2007: The Physical Science Basis. Contribution of Working Group I to the Fourth Assessment Report of the Intergovernmental Panel on Climate Change">Climate Change 2007: The Physical Science Basis. Contribution of Working Group I to the Fourth Assessment Report of the Intergovernmental Panel on Climate Change</refdb:title>
+      <refdb:year>2007</refdb:year>
+      <refdb:publisher tex="Cambridge University Press">Cambridge University Press</refdb:publisher>
+      <refdb:address tex="Cambridge, U.K.; New York, U.S.A.">Cambridge, U.K.; New York, U.S.A.</refdb:address>
+      <refdb:onlineversion scope="docSpecific">http://ipcc-wg1.ucar.edu/wg1/wg1-report.html</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2007-09-03</refdb:cited>
+      <refdb:note tex="(Eds.) Solomon, S. and Qin, D. and Manning, M. and Chen, Y. and Marquis, M. and Averyt, K.B. and Tignor, M. and Miller, H.L." scope="docSpecific">(Eds.) Solomon, S. and Qin, D. and Manning, M. and Chen, Y. and Marquis, M. and Averyt, K.B. and Tignor, M. and Miller, H.L.</refdb:note>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:techreport>
+  </refdb:record>
+  <refdb:record ord="33" id="Jackman-et-al-2006">
+    <refdb:article>
+      <refdb:author type="person">Jackman, C. H.</refdb:author>
+      <refdb:author type="person">DeLand, M. T.</refdb:author>
+      <refdb:author type="person">Labow, G. J.</refdb:author>
+      <refdb:author type="person">Fleming, E. L.</refdb:author>
+      <refdb:author type="person">Lópes-Puertas, M.</refdb:author>
+      <refdb:title tex="Satellite Measurements of Middle Atmospheric Impacts by Solar Proton Events in Solar Cycle 23">Satellite Measurements of Middle Atmospheric Impacts by Solar Proton Events in Solar Cycle 23</refdb:title>
+      <refdb:year>2006</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>125</refdb:volume>
+      <refdb:pages>381–391</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2006SSRv..125..381J</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="34" id="Kiehl-and-Trenberth-1997">
+    <refdb:article>
+      <refdb:author type="person">Kiehl, J. T.</refdb:author>
+      <refdb:author type="person">Trenberth, K. E.</refdb:author>
+      <refdb:title tex="Earth's Annual Global Mean Energy Budget">Earth’s Annual Global Mean Energy Budget</refdb:title>
+      <refdb:year>1997</refdb:year>
+      <refdb:journal>Bull. Am. Meteorol. Soc.</refdb:journal>
+      <refdb:volume>78</refdb:volume>
+      <refdb:pages>197–208</refdb:pages>
+      <refdb:onlineversion scope="docSpecific">http://www.cgd.ucar.edu/cas/papers/KiehlTrenbBAMS97.pdf</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2007-09-06</refdb:cited>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/1520-0477(1997)078&lt;0197:EAGMEB&gt;2.0.CO;2</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="35" id="Kodera-1995">
+    <refdb:article>
+      <refdb:author type="person">Kodera, K.</refdb:author>
+      <refdb:title tex="On the origin and nature of the interannual variability of the winter stratospheric circulation in the northern hemisphere">On the origin and nature of the interannual variability of the winter stratospheric circulation in the northern hemisphere</refdb:title>
+      <refdb:year>1995</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>100</refdb:volume>
+      <refdb:pages>14077–14087</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/95JD01172</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1995JGR...10014077K</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="36" id="Kodera-and-Kuroda-2002">
+    <refdb:article>
+      <refdb:author type="person">Kodera, K.</refdb:author>
+      <refdb:author type="person">Kuroda, Y.</refdb:author>
+      <refdb:title tex="Dynamical response to the solar cycle">Dynamical response to the solar cycle</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>107</refdb:volume>
+      <refdb:eid>2224</refdb:eid>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2002JD002224</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2002JGRD.107x.ACL5K</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="37" id="Kristjansson-and-Kristiansen-2000">
+    <refdb:article>
+      <refdb:author type="person">Kristjansson, J. E.</refdb:author>
+      <refdb:author type="person">Kristiansen, J.</refdb:author>
+      <refdb:title tex="Is there a cosmic ray signal in recent variations in global cloudiness and cloud radiative forcing?">Is there a cosmic ray signal in recent variations in global cloudiness and cloud radiative forcing?</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>105</refdb:volume>
+      <refdb:pages>11851–11863</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2000JD900029</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000JGR...10511851K</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="38" id="Kushner-and-Polvani-2004">
+    <refdb:article>
+      <refdb:author type="person">Kushner, P. J.</refdb:author>
+      <refdb:author type="person">Polvani, L. M.</refdb:author>
+      <refdb:title tex="Stratosphere-troposphere coupling in a relatively simple AGCM: The role of eddies">Stratosphere-troposphere coupling in a relatively simple AGCM: The role of eddies</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>J. Climate</refdb:journal>
+      <refdb:volume>17</refdb:volume>
+      <refdb:pages>629–639</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/1520-0442(2004)017&lt;0629:SCIARS&gt;2.0.CO;2</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2004JCli...17..629K</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="39" id="Labitzke-and-van-Loon-1992">
+    <refdb:article>
+      <refdb:author type="person">Labitzke, K.</refdb:author>
+      <refdb:author type="person">van Loon, H.</refdb:author>
+      <refdb:title tex="On the association between the QBO and the extratropical stratosphere">On the association between the QBO and the extratropical stratosphere</refdb:title>
+      <refdb:year>1992</refdb:year>
+      <refdb:journal>J. Atmos. Terr. Phys.</refdb:journal>
+      <refdb:volume>54</refdb:volume>
+      <refdb:pages>1453–1463</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1016/0021-9169(92)90152-B</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="40" id="Labitzke-and-van-Loon-1995">
+    <refdb:article>
+      <refdb:author type="person">Labitzke, K.</refdb:author>
+      <refdb:author type="person">van Loon, H.</refdb:author>
+      <refdb:title tex="Connection between the troposphere and stratosphere on a decadal scale">Connection between the troposphere and stratosphere on a decadal scale</refdb:title>
+      <refdb:year>1995</refdb:year>
+      <refdb:journal>Tellus A</refdb:journal>
+      <refdb:volume>47</refdb:volume>
+      <refdb:pages>275–286</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1995TellA..47..275L</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="41" id="Larkin-2000">
+    <refdb:phdthesis>
+      <refdb:author type="person">Larkin, A.</refdb:author>
+      <refdb:title tex="Investigation into the effects of solar variability on climate using atmospheric models of the troposphere and stratosphere">Investigation into the effects of solar variability on climate using atmospheric models of the troposphere and stratosphere</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:school tex="University of London">University of London</refdb:school>
+      <refdb:address tex="London, U.K.">London, U.K.</refdb:address>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:format>phd</refdb:format>
+    </refdb:phdthesis>
+  </refdb:record>
+  <refdb:record ord="42" id="Larkin-et-al-2000">
+    <refdb:article>
+      <refdb:author type="person">Larkin, A.</refdb:author>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:author type="person">Djavidnia, S.</refdb:author>
+      <refdb:title tex="The Effect of Solar UV Irradiance Variations on the Earth's Atmosphere">The Effect of Solar UV Irradiance Variations on the Earth’s Atmosphere</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>94</refdb:volume>
+      <refdb:pages>199–214</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1023/A:1026771307057</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000SSRv...94..199L</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="43" id="Laut-and-Gundermann-2000">
+    <refdb:article>
+      <refdb:author type="person">Laut, P.</refdb:author>
+      <refdb:author type="person">Gundermann, J.</refdb:author>
+      <refdb:title tex="Solar cycle lengths and climate: A reference revisited">Solar cycle lengths and climate: A reference revisited</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>105</refdb:volume>
+      <refdb:pages>27489–27492</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2000JA900068</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000JGR...10527489L</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="44" id="Lean-1989">
+    <refdb:article>
+      <refdb:author type="person">Lean, J.</refdb:author>
+      <refdb:title tex="Contribution Of Ultraviolet Irradiance Variations To Changes In The Sun's Total Irradiance">Contribution Of Ultraviolet Irradiance Variations To Changes In The Sun’s Total Irradiance</refdb:title>
+      <refdb:year>1989</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>244</refdb:volume>
+      <refdb:pages>197–200</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.244.4901.197</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1989Sci...244..197L</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="45" id="Lean-2000">
+    <refdb:article>
+      <refdb:author type="person">Lean, J.</refdb:author>
+      <refdb:title tex="Evolution of the Sun's spectral irradiance since the Maunder Minimum">Evolution of the Sun’s spectral irradiance since the Maunder Minimum</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>27</refdb:volume>
+      <refdb:pages>2425–2428</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2000GL000043</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000GeoRL..27.2425L</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="46" id="Lee-and-Smith-2003">
+    <refdb:article>
+      <refdb:author type="person">Lee, H.</refdb:author>
+      <refdb:author type="person">Smith, A. K.</refdb:author>
+      <refdb:title tex="Simulation of the combined effects of solar cycle, quasi-biennial oscillation and volcanic forcing on stratospheric ozone changes in recent decades">Simulation of the combined effects of solar cycle, quasi-biennial oscillation and volcanic forcing on stratospheric ozone changes in recent decades</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>108</refdb:volume>
+      <refdb:eid>1503</refdb:eid>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2001JD001503</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003JGRD..108.4049L</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="47" id="Ludlam-1980">
+    <refdb:book>
+      <refdb:author type="person">Ludlam, F. H.</refdb:author>
+      <refdb:title tex="Clouds and Storms: The Behavior and Effect of Water in the Atmosphere">Clouds and Storms: The Behavior and Effect of Water in the Atmosphere</refdb:title>
+      <refdb:year>1980</refdb:year>
+      <refdb:publisher tex="Pennylvania State University Press">Pennylvania State University Press</refdb:publisher>
+      <refdb:address tex="University Park, U.S.A.">University Park, U.S.A.</refdb:address>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="48" id="Mann-et-al-1999">
+    <refdb:article>
+      <refdb:author type="person">Mann, M. E.</refdb:author>
+      <refdb:author type="person">Bradley, R. S.</refdb:author>
+      <refdb:author type="person">Hughes, M. K.</refdb:author>
+      <refdb:title tex="Northern hemisphere temperatures during the past millennium: Inferences, uncertainties, and limitations">Northern hemisphere temperatures during the past millennium: Inferences, uncertainties, and limitations</refdb:title>
+      <refdb:year>1999</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>26</refdb:volume>
+      <refdb:pages>759–762</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/1999GL900070</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1999GeoRL..26..759M</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="49" id="Marsh-and-Svensmark-2000">
+    <refdb:article>
+      <refdb:author type="person">Marsh, N. D.</refdb:author>
+      <refdb:author type="person">Svensmark, H.</refdb:author>
+      <refdb:title tex="Low Cloud Properties Influenced by Cosmic Rays">Low Cloud Properties Influenced by Cosmic Rays</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Phys. Rev. Lett.</refdb:journal>
+      <refdb:volume>85</refdb:volume>
+      <refdb:pages>5004–5007</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1103/PhysRevLett.85.5004</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000PhRvL..85.5004M</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="50" id="Marsh-and-Svensmark-2003">
+    <refdb:article>
+      <refdb:author type="person">Marsh, N. D.</refdb:author>
+      <refdb:author type="person">Svensmark, H.</refdb:author>
+      <refdb:title tex="Solar Influence on Earth's Climate">Solar Influence on Earth’s Climate</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>107</refdb:volume>
+      <refdb:pages>317–325</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1023/A:1025573117134</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003SSRv..107..317M</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="51" id="Matthes-et-al-2003">
+    <refdb:article>
+      <refdb:author type="person">Matthes, K.</refdb:author>
+      <refdb:author type="person">Kodera, K.</refdb:author>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:author type="person">Shindell, D. T.</refdb:author>
+      <refdb:author type="person">Shibata, K.</refdb:author>
+      <refdb:author type="person">Langematz, U.</refdb:author>
+      <refdb:author type="person">Rozanov, E.</refdb:author>
+      <refdb:author type="person">Kuroda, Y.</refdb:author>
+      <refdb:title tex="GRIPS Solar Experiments Intercomparison Project: Initial Results">GRIPS Solar Experiments Intercomparison Project: Initial Results</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Pap. Met. Geophys.</refdb:journal>
+      <refdb:volume>54</refdb:volume>
+      <refdb:pages>71–90</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.2467/mripapers.54.71</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="52" id="Matthes-et-al-2004">
+    <refdb:article>
+      <refdb:author type="person">Matthes, K.</refdb:author>
+      <refdb:author type="person">Langematz, U.</refdb:author>
+      <refdb:author type="person">Gray, L. J.</refdb:author>
+      <refdb:author type="person">Kodera, K.</refdb:author>
+      <refdb:author type="person">Labitzke, K.</refdb:author>
+      <refdb:title tex="Realistic solar signal in the FUB-CMAM">Realistic solar signal in the FUB-CMAM</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>109</refdb:volume>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2003JD004012</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="53" id="Meehl-et-al-2003">
+    <refdb:article>
+      <refdb:author type="person">Meehl, G. A.</refdb:author>
+      <refdb:author type="person">Washington, W. M.</refdb:author>
+      <refdb:author type="person">Wigley, T. M. L.</refdb:author>
+      <refdb:author type="person">Arblaster, J. M.</refdb:author>
+      <refdb:author type="person">Dai, A.</refdb:author>
+      <refdb:title tex="Solar and greenhouse gas forcing and climate response in the twentieth century">Solar and greenhouse gas forcing and climate response in the twentieth century</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>J. Climate</refdb:journal>
+      <refdb:volume>16</refdb:volume>
+      <refdb:pages>426–444</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/1520-0442(2003)016&lt;0426:SAGGFA&gt;2.0.CO;2</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003JCli...16..426M</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="54" id="Myhre-et-al-1998">
+    <refdb:inproceedings>
+      <refdb:author type="person">Myhre, G.</refdb:author>
+      <refdb:author type="person">Stordal, F.</refdb:author>
+      <refdb:author type="person">Rognerud, B.</refdb:author>
+      <refdb:author type="person">Isaksen, I. S. A.</refdb:author>
+      <refdb:editor>Bojkov, R. D. and Visconti, G.</refdb:editor>
+      <refdb:title tex="Radiative forcing due to stratospheric ozone">Radiative forcing due to stratospheric ozone</refdb:title>
+      <refdb:booktitle tex="Atmospheric Ozone">Atmospheric Ozone</refdb:booktitle>
+      <refdb:conference tex="Proceedings of the XVIII Quadrennial Ozone Symposium, L'Aquila, Italy, September 12\,--\,21, 1996">Proceedings of the XVIII Quadrennial Ozone Symposium, L’Aquila, Italy, September 12 – 21, 1996</refdb:conference>
+      <refdb:year>1998</refdb:year>
+      <refdb:publisher tex="Edigrafital S.P.A. / Parco Scientifico e Tecnologico d'Abruzzo">Edigrafital S.P.A. / Parco Scientifico e Tecnologico d’Abruzzo</refdb:publisher>
+      <refdb:address tex="Sant'Atto, Italy">Sant’Atto, Italy</refdb:address>
+      <refdb:pages>813–816</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:inproceedings>
+  </refdb:record>
+  <refdb:record ord="55" id="Petit-et-al-1999">
+    <refdb:article>
+      <refdb:author type="person">Petit, J. R.</refdb:author>
+      <refdb:author type="person">Jouzel, J.</refdb:author>
+      <refdb:author type="person">Raynaud, D.</refdb:author>
+      <refdb:author type="person">Barkov, N. I.</refdb:author>
+      <refdb:author type="person">Barnola, J. M.</refdb:author>
+      <refdb:author type="person">Basile, I.</refdb:author>
+      <refdb:author type="person">Bender, M.</refdb:author>
+      <refdb:author type="person">Chappellaz, J.</refdb:author>
+      <refdb:author type="person">Davis, M.</refdb:author>
+      <refdb:author type="person">Delaygue, G.</refdb:author>
+      <refdb:author type="person">Delmotte, M.</refdb:author>
+      <refdb:author type="person">Kotlyakov, V. M.</refdb:author>
+      <refdb:author type="person">Legrand, M.</refdb:author>
+      <refdb:author type="person">Lipenkov, V. Y.</refdb:author>
+      <refdb:author type="person">Lorius, C.</refdb:author>
+      <refdb:author type="person">Pépin, L.</refdb:author>
+      <refdb:author type="person">Ritz, C.</refdb:author>
+      <refdb:author type="person">Saltzman, E.</refdb:author>
+      <refdb:author type="person">Stiévenard, M.</refdb:author>
+      <refdb:title tex="Climate and atmospheric history of the past 420,000 years from the Vostok ice core, Antarctica">Climate and atmospheric history of the past 420,000 years from the Vostok ice core, Antarctica</refdb:title>
+      <refdb:year>1999</refdb:year>
+      <refdb:journal>Nature</refdb:journal>
+      <refdb:volume>399</refdb:volume>
+      <refdb:pages>429–436</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1038/20859</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="56" id="Polvani-and-Kushner-2002">
+    <refdb:article>
+      <refdb:author type="person">Polvani, L. M.</refdb:author>
+      <refdb:author type="person">Kushner, P. J.</refdb:author>
+      <refdb:title tex="Tropospheric response to stratospheric perturbations in a relatively simple general circulation model">Tropospheric response to stratospheric perturbations in a relatively simple general circulation model</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>29</refdb:volume>
+      <refdb:eid>1114</refdb:eid>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2001GL014284</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2002GeoRL..29g..18P</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="57" id="Randel-and-Wu-2007">
+    <refdb:article>
+      <refdb:author type="person">Randel, W. J.</refdb:author>
+      <refdb:author type="person">Wu, F.</refdb:author>
+      <refdb:title tex="A stratospheric ozone profile data set for 1979\,--\,2005: Variability, trends, and comparisons with column ozone data">A stratospheric ozone profile data set for 1979 – 2005: Variability, trends, and comparisons with column ozone data</refdb:title>
+      <refdb:year>2007</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>112</refdb:volume>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2006JD007339</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2007JGRD..11206313R</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="58" id="Ringer-and-Shine-1997">
+    <refdb:article>
+      <refdb:author type="person">Ringer, M. A.</refdb:author>
+      <refdb:author type="person">Shine, K. P.</refdb:author>
+      <refdb:title tex="Sensitivity of the Earth's radiation budget to interannual variations in cloud amount">Sensitivity of the Earth’s radiation budget to interannual variations in cloud amount</refdb:title>
+      <refdb:year>1997</refdb:year>
+      <refdb:journal>Climate Dyn.</refdb:journal>
+      <refdb:volume>13</refdb:volume>
+      <refdb:pages>213–222</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1007/s003820050161</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1997ClDy...13..213R</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="59" id="Schmidt-and-Brasseur-2006">
+    <refdb:article>
+      <refdb:author type="person">Schmidt, H.</refdb:author>
+      <refdb:author type="person">Brasseur, G. P.</refdb:author>
+      <refdb:title tex="The Response of the Middle Atmosphere to Solar Cycle Forcing in the Hamburg Model of the Neutral and Ionized Atmosphere">The Response of the Middle Atmosphere to Solar Cycle Forcing in the Hamburg Model of the Neutral and Ionized Atmosphere</refdb:title>
+      <refdb:year>2006</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>125</refdb:volume>
+      <refdb:pages>345–356</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1007/s11214-006-9068-z</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2006SSRv..125..345S</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="60" id="Shindell-et-al-2006">
+    <refdb:article>
+      <refdb:author type="person">Shindell, D. T.</refdb:author>
+      <refdb:author type="person">Faluvegi, G.</refdb:author>
+      <refdb:author type="person">Miller, R. L.</refdb:author>
+      <refdb:author type="person">Schmidt, G. A.</refdb:author>
+      <refdb:author type="person">Hansen, J. E.</refdb:author>
+      <refdb:author type="person">Sun, S.</refdb:author>
+      <refdb:title tex="Solar and anthropogenic forcing of tropical hydrology">Solar and anthropogenic forcing of tropical hydrology</refdb:title>
+      <refdb:year>2006</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>33</refdb:volume>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2006GL027468</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2006GeoRL..3324706S</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="61" id="Shindell-et-al-2001">
+    <refdb:article>
+      <refdb:author type="person">Shindell, D. T.</refdb:author>
+      <refdb:author type="person">Schmidt, G. A.</refdb:author>
+      <refdb:author type="person">Mann, M. E.</refdb:author>
+      <refdb:author type="person">Rind, D.</refdb:author>
+      <refdb:author type="person">Waple, A.</refdb:author>
+      <refdb:title tex="Solar Forcing of Regional Climate Change During the Maunder Minimum">Solar Forcing of Regional Climate Change During the Maunder Minimum</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>Science</refdb:journal>
+      <refdb:volume>294</refdb:volume>
+      <refdb:pages>2149–2152</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1126/science.1064363</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2001Sci...294.2149S</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="62" id="SOLICE-2004">
+    <refdb:article>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:author type="person">Austin, J.</refdb:author>
+      <refdb:author type="person">Butchart, N.</refdb:author>
+      <refdb:author type="person">Chanin, M.-L.</refdb:author>
+      <refdb:author type="person">Crooks, S.</refdb:author>
+      <refdb:author type="person">Gray, L. J.</refdb:author>
+      <refdb:author type="person">Halenka, T.</refdb:author>
+      <refdb:author type="person">Hampson, J.</refdb:author>
+      <refdb:author type="person">Hood, L. L.</refdb:author>
+      <refdb:author type="person">Isaksen, I. S. A.</refdb:author>
+      <refdb:author type="person">Keckhut, P.</refdb:author>
+      <refdb:author type="person">Labitzke, K.</refdb:author>
+      <refdb:author type="person">Langematz, U.</refdb:author>
+      <refdb:author type="person">Matthes, K.</refdb:author>
+      <refdb:author type="person">Palmer, M.</refdb:author>
+      <refdb:author type="person">Rognerud, B.</refdb:author>
+      <refdb:author type="person">Tourpali, K.</refdb:author>
+      <refdb:author type="person">Zerefos, C.</refdb:author>
+      <refdb:title tex="Solar variability and climate: selected results from the SOLICE project">Solar variability and climate: selected results from the SOLICE project</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>SPARC Newsletter</refdb:journal>
+      <refdb:volume>23</refdb:volume>
+      <refdb:pages>19–29</refdb:pages>
+      <refdb:url>http://www.atmosp.physics.utoronto.ca/SPARC/News23/23_Haigh.html</refdb:url>
+      <refdb:cited scope="docSpecific">2007-09-03</refdb:cited>
+      <refdb:number>23</refdb:number>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="63" id="Stauffer-2000">
+    <refdb:article>
+      <refdb:author type="person">Stauffer, B.</refdb:author>
+      <refdb:title tex="Long Term Climate Records from Polar Ice">Long Term Climate Records from Polar Ice</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>94</refdb:volume>
+      <refdb:pages>321–336</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1023/A:1026791811601</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000SSRv...94..321S</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="64" id="Stott-et-al-2003">
+    <refdb:article>
+      <refdb:author type="person">Stott, P. A.</refdb:author>
+      <refdb:author type="person">Jones, G. S.</refdb:author>
+      <refdb:author type="person">Mitchell, J. F. B.</refdb:author>
+      <refdb:title tex="Do Models Underestimate the Solar Contribution to Recent Climate Change?">Do Models Underestimate the Solar Contribution to Recent Climate Change?</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>J. Climate</refdb:journal>
+      <refdb:volume>16</refdb:volume>
+      <refdb:pages>4079–4093</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/1520-0442(2003)016&lt;4079:DMUTSC&gt;2.0.CO;2</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003JCli...16.4079S</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="65" id="Strobel-1978">
+    <refdb:article>
+      <refdb:author type="person">Strobel, D. F.</refdb:author>
+      <refdb:title tex="Parameterization of the atmospheric heating rate from 15 to 120 km due to O$_{2}$ and O$_{3}$ absorption of solar radiation">Parameterization of the atmospheric heating rate from 15 to 120 km due to O<refdb:sub>2</refdb:sub> and O<refdb:sub>3</refdb:sub> absorption of solar radiation</refdb:title>
+      <refdb:year>1978</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>83</refdb:volume>
+      <refdb:pages>6225–6230</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/JC083iC12p06225</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1978JGR....83.6225S</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="66" id="Thompson-et-al-2005">
+    <refdb:article>
+      <refdb:author type="person">Thompson, D. W. J.</refdb:author>
+      <refdb:author type="person">Baldwin, M. P.</refdb:author>
+      <refdb:author type="person">Solomon, S.</refdb:author>
+      <refdb:title tex="Stratosphere-Troposphere Coupling in the Southern Hemisphere">Stratosphere-Troposphere Coupling in the Southern Hemisphere</refdb:title>
+      <refdb:year>2005</refdb:year>
+      <refdb:journal>J. Atmos. Sci.</refdb:journal>
+      <refdb:volume>62</refdb:volume>
+      <refdb:pages>708–715</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1175/JAS-3321.1</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2005JAtS...62..708T</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="67" id="Tinsley-2000">
+    <refdb:article>
+      <refdb:author type="person">Tinsley, B. A.</refdb:author>
+      <refdb:title tex="Influence of the Solar Wind on the Global Electric Circuit and Inferred Effects on Cloud Microphysics, Temperature and Dynamics in the Troposphere">Influence of the Solar Wind on the Global Electric Circuit and Inferred Effects on Cloud Microphysics, Temperature and Dynamics in the Troposphere</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Space Sci. Rev.</refdb:journal>
+      <refdb:volume>94</refdb:volume>
+      <refdb:pages>231–258</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1023/A:1026775408875</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000SSRv...94..231T</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="68" id="Tourpali-et-al-2003">
+    <refdb:article>
+      <refdb:author type="person">Tourpali, K.</refdb:author>
+      <refdb:author type="person">Schuurmans, C. J. E.</refdb:author>
+      <refdb:author type="person">van Dorland, R.</refdb:author>
+      <refdb:author type="person">Steil, B.</refdb:author>
+      <refdb:author type="person">Brühl, C.</refdb:author>
+      <refdb:title tex="Stratospheric and tropospheric response to enhanced solar UV radiation: A model study">Stratospheric and tropospheric response to enhanced solar UV radiation: A model study</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>30</refdb:volume>
+      <refdb:pages>1231</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2002GL016650</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003GeoRL..30e..35T</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="69" id="van-Loon-et-al-2007">
+    <refdb:article>
+      <refdb:author type="person">van Loon, H.</refdb:author>
+      <refdb:author type="person">Meehl, G. A.</refdb:author>
+      <refdb:author type="person">Shea, D. J.</refdb:author>
+      <refdb:title tex="Coupled air-sea response to solar forcing in the Pacific region during northern winter">Coupled air-sea response to solar forcing in the Pacific region during northern winter</refdb:title>
+      <refdb:year>2007</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>112</refdb:volume>
+      <refdb:eid>D02108</refdb:eid>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2006JD007378</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="70" id="van-Loon-and-Shea-1999">
+    <refdb:article>
+      <refdb:author type="person">van Loon, H.</refdb:author>
+      <refdb:author type="person">Shea, D. J.</refdb:author>
+      <refdb:title tex="A probable signal of the 11-year solar cycle in the troposphere of the northern hemisphere">A probable signal of the 11-year solar cycle in the troposphere of the northern hemisphere</refdb:title>
+      <refdb:year>1999</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>26</refdb:volume>
+      <refdb:pages>2893–2896</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/1999GL900596</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1999GeoRL..26.2893V</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="71" id="Vlachogiannis-and-Haigh-1998">
+    <refdb:inproceedings>
+      <refdb:author type="person">Vlachogiannis, D.</refdb:author>
+      <refdb:author type="person">Haigh, J. D.</refdb:author>
+      <refdb:editor>Bojkov, R. D. and Visconti, G.</refdb:editor>
+      <refdb:title tex="The impact of solar proton events on lower stratospheric ozone">The impact of solar proton events on lower stratospheric ozone</refdb:title>
+      <refdb:booktitle tex="Atmospheric Ozone">Atmospheric Ozone</refdb:booktitle>
+      <refdb:conference tex="Proceedings of the XVIII Quadrennial Ozone Symposium, L'Aquila, Italy, September 12\,--\,21, 1996">Proceedings of the XVIII Quadrennial Ozone Symposium, L’Aquila, Italy, September 12 – 21, 1996</refdb:conference>
+      <refdb:year>1998</refdb:year>
+      <refdb:publisher tex="Edigrafital S.P.A. / Parco Scientifico e Tecnologico d'Abruzzo">Edigrafital S.P.A. / Parco Scientifico e Tecnologico d’Abruzzo</refdb:publisher>
+      <refdb:address tex="Sant'Atto, Italy">Sant’Atto, Italy</refdb:address>
+      <refdb:pages>275–278</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:inproceedings>
+  </refdb:record>
+  <refdb:record ord="72" id="Wang-et-al-2005">
+    <refdb:article>
+      <refdb:author type="person">Wang, Y.-M.</refdb:author>
+      <refdb:author type="person">Lean, J.</refdb:author>
+      <refdb:author type="person">Sheeley Jr, N. R.</refdb:author>
+      <refdb:title tex="Modeling the Sun's Magnetic Field and Irradiance since 1713">Modeling the Sun’s Magnetic Field and Irradiance since 1713</refdb:title>
+      <refdb:year>2005</refdb:year>
+      <refdb:journal>Astrophys. J.</refdb:journal>
+      <refdb:volume>625</refdb:volume>
+      <refdb:pages>522–538</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1086/429689</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2005ApJ...625..522W</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="73" id="White-et-al-1997">
+    <refdb:article>
+      <refdb:author type="person">White, W. B.</refdb:author>
+      <refdb:author type="person">Lean, J. L.</refdb:author>
+      <refdb:author type="person">Cayan, D. R.</refdb:author>
+      <refdb:author type="person">Dettinger, M. D.</refdb:author>
+      <refdb:title tex="Response of global upper ocean temperature to changing solar irradiance">Response of global upper ocean temperature to changing solar irradiance</refdb:title>
+      <refdb:year>1997</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>102</refdb:volume>
+      <refdb:pages>3255–3266</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/96JC03549</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1997JGR...102.3255W</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="74" id="Willson-and-Mordinov-2003">
+    <refdb:article>
+      <refdb:author type="person">Willson, R. C.</refdb:author>
+      <refdb:author type="person">Mordinov, A. V.</refdb:author>
+      <refdb:title tex="Secular total solar irradiance trend during solar cycles 21--23">Secular total solar irradiance trend during solar cycles 21–23</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>30</refdb:volume>
+      <refdb:pages>1199–1202</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2002GL016038</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003GeoRL..30e...3W</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="75" id="WMO-2007">
+    <refdb:techreport>
+      <refdb:title tex="Scientific Assessment of Ozone Depletion: 2006">Scientific Assessment of Ozone Depletion: 2006</refdb:title>
+      <refdb:year>2007</refdb:year>
+      <refdb:publisher tex="World Meteorological Organization">World Meteorological Organization</refdb:publisher>
+      <refdb:address tex="Geneva, Switzerland">Geneva, Switzerland</refdb:address>
+      <refdb:url>http://www.wmo.int/pages/prog/arep/gaw/ozone_2006/ozone_asst_report.html</refdb:url>
+      <refdb:cited scope="docSpecific">2007-09-03</refdb:cited>
+      <refdb:series tex="Global Ozone Monitoring Project -- Report">Global Ozone Monitoring Project – Report</refdb:series>
+      <refdb:number>No. 50</refdb:number>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+    </refdb:techreport>
+  </refdb:record>
+  <refdb:record ord="76" id="Wuebbles-et-al-1998">
+    <refdb:article>
+      <refdb:author type="person">Wuebbles, D. J.</refdb:author>
+      <refdb:author type="person">Wei, C.-F.</refdb:author>
+      <refdb:author type="person">Patten, K. O.</refdb:author>
+      <refdb:title tex="Effects on stratospheric ozone and temperature during the Maunder Minimum">Effects on stratospheric ozone and temperature during the Maunder Minimum</refdb:title>
+      <refdb:year>1998</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>25</refdb:volume>
+      <refdb:pages>523–526</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/98GL00057</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1998GeoRL..25..523W</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="77" id="Yu-2002">
+    <refdb:article>
+      <refdb:author type="person">Yu, F.</refdb:author>
+      <refdb:title tex="Altitude variations of cosmic ray induced production of aerosols: Implications for global cloudiness and climate">Altitude variations of cosmic ray induced production of aerosols: Implications for global cloudiness and climate</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>107</refdb:volume>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2001JA000248</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2002JGRA.107g.SIA8Y</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="78" id="Yu-and-Turco-2000">
+    <refdb:article>
+      <refdb:author type="person">Yu, F.</refdb:author>
+      <refdb:author type="person">Turco, R. P.</refdb:author>
+      <refdb:title tex="Ultrafine aerosol formation via ion-mediated nucleation">Ultrafine aerosol formation via ion-mediated nucleation</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Geophys. Res. Lett.</refdb:journal>
+      <refdb:volume>27</refdb:volume>
+      <refdb:pages>883–886</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/1999GL011151</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000GeoRL..27..883Y</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="79" id="Yu-and-Turco-2001">
+    <refdb:article>
+      <refdb:author type="person">Yu, F.</refdb:author>
+      <refdb:author type="person">Turco, R. P.</refdb:author>
+      <refdb:title tex="From molecular clusters to nanoparticles: Role of ambient ionization in tropospheric aerosol formation">From molecular clusters to nanoparticles: Role of ambient ionization in tropospheric aerosol formation</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>J. Geophys. Res.</refdb:journal>
+      <refdb:volume>106</refdb:volume>
+      <refdb:pages>4797–4814</refdb:pages>
+      <refdb:keyword scope="docSpecific">no keywords</refdb:keyword>
+      <refdb:doi>10.1029/2000JD900539</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2001JGR...106.4797Y</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="101" id="Roberts04">
+    <refdb:inproceedings>
+      <refdb:editor>Lacoste, H.</refdb:editor>
+      <refdb:booktitle tex="Proceedings of SOHO 13 `Waves, Oscillations and Small-Scale Transient Events in the Solar Atmosphere: A Joint View from SOHO and TRACE'">Proceedings of SOHO 13 ‘Waves, Oscillations and Small-Scale Transient Events in the Solar Atmosphere: A Joint View from SOHO and TRACE’</refdb:booktitle>
+      <refdb:conference tex="29 September - 3 October 2003, Palma de Mallorca, Balearic Islands, Spain">29 September - 3 October 2003, Palma de Mallorca, Balearic Islands, Spain</refdb:conference>
+      <refdb:year>2004</refdb:year>
+      <refdb:publisher tex="ESA">ESA</refdb:publisher>
+      <refdb:address tex="Noordwijk, Netherlands">Noordwijk, Netherlands</refdb:address>
+      <refdb:volume>SP-547</refdb:volume>
+      <refdb:pages>1–14</refdb:pages>
+      <refdb:series tex="ESA Conference Proceedings">ESA Conference Proceedings</refdb:series>
+      <refdb:keyword scope="docSpecific">Corona</refdb:keyword>
+      <refdb:keyword scope="docSpecific">Magnetic loops</refdb:keyword>
+      <refdb:keyword scope="docSpecific">Oscillations</refdb:keyword>
+      <refdb:keyword scope="docSpecific">Damping</refdb:keyword>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2003esasp.547....1R</refdb:adsurl>
+    </refdb:inproceedings>
+  </refdb:record>
+</refdb:RefList>

@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 
 from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
@@ -18,11 +19,10 @@ class NATUREreference(XMLreference):
     re_volume = re.compile(r"[Vv]+ol[ume.]*(?P<volume>\d+)")
     re_collabrations = re.compile(r"<reftxt>(?P<COLLAB>.*(Collaboration|Consortium|Group|Team).*)<atl>", re.IGNORECASE)
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
 
-        :param prevref: 
-        :return: 
+        :return:
         """
         self.parsed = 0
 
@@ -120,7 +120,7 @@ class NATUREreference(XMLreference):
 
 class NATUREtoREFs(XMLtoREFs):
 
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -128,13 +128,12 @@ class NATUREtoREFs(XMLtoREFs):
         :param unicode:
         :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='(reftxt|REFTXT)')
+        XMLtoREFs.__init__(self, filename, buffer, parsername=NATUREtoREFs, tag='(reftxt|REFTXT)')
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
         this function does reference cleaning and then calls the parser
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -142,25 +141,24 @@ class NATUREtoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode':bibcode, 'references':[]}
-
-            for reference in block_references:
-                if cleanup_process:
-                    reference = reference.replace('()','').replace(' . ',' ').strip()
+            parsed_references = []
+            for raw_reference in block_references:
+                reference = raw_reference.replace('()','').replace(' . ',' ').strip()
 
                 logger.debug("NatureXML: parsing %s" % reference)
                 try:
                     nature_reference = NATUREreference(reference)
-                    references_bibcode['references'].append({**nature_reference.get_parsed_reference(), 'refraw':reference})
+                    parsed_references.append({**nature_reference.get_parsed_reference(), 'refraw': raw_reference})
                 except ReferenceError as error_desc:
                     logger.error("NatureXML: error parsing reference: %s" %error_desc)
 
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Nature references')
     parser.add_argument('-f', '--filename', help='the path to source file')
@@ -168,12 +166,14 @@ if __name__ == '__main__':      # pragma: no cover
     args = parser.parse_args()
     if args.filename:
         print(NATUREtoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
+    elif args.buffer:
         print(NATUREtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
+    elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.nature.xml')
-        print(NATUREtoREFs(filename=filename).process_and_dispatch())
+        result = NATUREtoREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_nature:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)
-    # /proj/ads/references/sources/Natur/0008/iss183.nature.xml
-    # /proj/ads/references/sources/Natur/0549/iss7672.nature.xml

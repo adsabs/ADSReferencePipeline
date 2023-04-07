@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 
 from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
@@ -16,23 +17,21 @@ class WILEYreference(XMLreference):
     
     types = ['journal', 'book', 'other']
     re_first = re.compile(r'\b\w\.')
-    re_repalce_amp = re.compile(r'__amp;?')
+    re_replace_amp = re.compile(r'__amp;?')
     re_add_familyname_tag_editor = re.compile(r'^([A-Z]+[A-Za-z\'\s]+)(,\s*<givenNames>.*</givenNames>)$')
     re_series = re.compile(r'^[A-Za-z\.\s]+$')
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
         
-        :param prevref: 
-        :return: 
+        :return:
         """
-
         self.parsed = 0
 
         authors = self.parse_authors()
         year = self.xmlnode_nodecontents('pubYear')
         if not year:
-            year = self.match_year(str(self.reference_str))
+            year = self.match_year(self.dexml(self.reference_str.toxml()))
 
         try:
             type = self.xmlnode_attribute('citation', 'type')
@@ -59,7 +58,9 @@ class WILEYreference(XMLreference):
             # get the title that can be in either or both articleTitle and chapterTitle
             unique_titles = set()
             for t in ['articleTitle', 'chapterTitle']:
-                unique_titles.add(self.xmlnode_nodecontents(t).strip())
+                unique_title = self.xmlnode_nodecontents(t).strip()
+                if unique_title:
+                    unique_titles.add(unique_title)
             if len(unique_titles) > 0:
                 title = '; '.join(list(unique_titles)).strip()
             else:
@@ -143,7 +144,7 @@ class WILEYreference(XMLreference):
             author_list = group + author_list
 
         authors = ", ".join(author_list)
-        authors = self.re_repalce_amp.sub('', authors)
+        authors = self.re_replace_amp.sub('', authors)
         # we do some cleanup in author's strings that appear to
         # contain names in the form "F. Last1, O. Last2..."
         if authors and self.re_first.match(authors):
@@ -238,7 +239,7 @@ class WILEYtoREFs(XMLtoREFs):
         (re.compile(r'xml:id'), r'xmlid'),
     ]
     
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -246,13 +247,12 @@ class WILEYtoREFs(XMLtoREFs):
         :param unicode:
         :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='citation', cleanup=self.block_cleanup)
+        XMLtoREFs.__init__(self, filename, buffer, parsername=WILEYtoREFs, tag='citation', cleanup=self.block_cleanup)
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
         this function does reference cleaning and then calls the parser
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -260,23 +260,23 @@ class WILEYtoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode':bibcode, 'references':[]}
-    
+            parsed_references = []
             for reference in block_references:
     
                 logger.debug("WILEYxml: parsing %s" % reference)
                 try:
                     wiley_reference = WILEYreference(reference)
-                    references_bibcode['references'].append({**wiley_reference.get_parsed_reference(), 'refraw':reference})
+                    parsed_references.append({**wiley_reference.get_parsed_reference(), 'refraw': reference})
                 except ReferenceError as error_desc:
                     logger.error("WILEYxml: error parsing reference: %s" %error_desc)
     
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
     
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Wiley references')
     parser.add_argument('-f', '--filename', help='the path to source file')
@@ -284,11 +284,14 @@ if __name__ == '__main__':      # pragma: no cover
     args = parser.parse_args()
     if args.filename:
         print(WILEYtoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
+    elif args.buffer:
         print(WILEYtoREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
+    elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.wiley2.xml')
-        print(WILEYtoREFs(filename=filename).process_and_dispatch())
+        result = WILEYtoREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_wiley:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)
-    # /proj/ads/references/sources/JGR/0101/issD14.wiley2.xml

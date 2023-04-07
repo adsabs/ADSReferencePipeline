@@ -5,11 +5,14 @@ if project_home not in sys.path:
 
 import datetime
 import unittest
-from mock import patch
+import mock
+import json
 
 from adsrefpipe import app, tasks, utils
 from adsrefpipe.models import Base, Action, Parser, ReferenceSource, ProcessedHistory, ResolvedReference, CompareClassic
 from adsrefpipe.refparsers.handler import verify
+from adsrefpipe.tests.unittests.data_test_db_query import actions_records, parsers_records
+
 
 class TestWorkers(unittest.TestCase):
 
@@ -26,26 +29,6 @@ class TestWorkers(unittest.TestCase):
                 database=postgresql_url_dict['database']
                 )
 
-    actions = [
-        Action(status='initial'),
-        Action(status='retry'),
-        Action(status='delete'),
-    ]
-    parsers = [
-        Parser(name='arXiv', source_pattern=r'^.\d{4,5}.raw$', reference_service_endpoint='/text'),
-        Parser(name='AGU', source_pattern='^.agu.xml', reference_service_endpoint='/xml'),
-        Parser(name='AIP', source_pattern='^.aip.xml', reference_service_endpoint='/xml'),
-        Parser(name='APS', source_pattern='^.ref.xml', reference_service_endpoint='/xml'),
-        Parser(name='CrossRef', source_pattern='^.xref.xml', reference_service_endpoint='/xml'),
-        Parser(name='ELSEVIER', source_pattern='^.elsevier.xml', reference_service_endpoint='/xml'),
-        Parser(name='IOP', source_pattern='^.iop.xml', reference_service_endpoint='/xml'),
-        Parser(name='JATS', source_pattern='^.jats.xml', reference_service_endpoint='/xml'),
-        Parser(name='NATURE', source_pattern='^.nature.xml', reference_service_endpoint='/xml'),
-        Parser(name='NLM', source_pattern='^.nlm3.xml', reference_service_endpoint='/xml'),
-        Parser(name='SPRINGER', source_pattern='^.springer.xml', reference_service_endpoint='/xml'),
-        Parser(name='WILEY', source_pattern='^.wiley2.xml', reference_service_endpoint='/xml'),
-    ]
-
     def setUp(self):
         self.test_dir = os.path.join(project_home, 'adsrefpipe/tests')
         unittest.TestCase.setUp(self)
@@ -54,7 +37,8 @@ class TestWorkers(unittest.TestCase):
             'SQLALCHEMY_ECHO': False,
             'PROJ_HOME': project_home,
             'TEST_DIR': self.test_dir,
-            'COMPARE_CLASSIC': False
+            'COMPARE_CLASSIC': False,
+            'REFERENCE_PIPELINE_SERVICE_URL': 'http://0.0.0.0:5000/reference'
         })
         tasks.app = self.app # monkey-patch the app object
         Base.metadata.bind = self.app._session.get_bind()
@@ -72,10 +56,10 @@ class TestWorkers(unittest.TestCase):
 
     def add_stub_data(self):
         """ Add stub data """
-        self.stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata')
+        self.arXiv_stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata/txt/arXiv/0/')
 
         reference_source = [
-            ('2020arXiv200400014K',os.path.join(self.stubdata_dir,'00014.raw'),'00014.raw.result'),
+            ('0002arXiv.........Z',os.path.join(self.arXiv_stubdata_dir,'00002.raw'),'00002.raw.result','arXiv'),
         ]
 
         processed_history = [
@@ -90,15 +74,15 @@ class TestWorkers(unittest.TestCase):
         ]
 
         with self.app.session_scope() as session:
-            session.bulk_save_objects(self.actions)
-            session.bulk_save_objects(self.parsers)
+            session.bulk_save_objects(actions_records)
+            session.bulk_save_objects(parsers_records)
             session.commit()
 
             for i, (a_reference,a_history) in enumerate(zip(reference_source,processed_history)):
                     reference_record = ReferenceSource(bibcode=a_reference[0],
                                                  source_filename=a_reference[1],
                                                  resolved_filename=a_reference[2],
-                                                 parser_name=self.app.get_parser_name(a_reference[1]))
+                                                 parser_name=a_reference[3])
                     bibcode, source_filename = self.app.insert_reference_source_record(session, reference_record)
                     self.assertTrue(bibcode == a_reference[0])
                     self.assertTrue(source_filename == a_reference[1])
@@ -132,26 +116,37 @@ class TestWorkers(unittest.TestCase):
             {
                 "score": "1.0",
                 "bibcode": "2011LRR....14....2U",
-                "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
+                "refstr": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
                 "id": "H1I1"
             },
             {
                 "score": "1.0",
                 "bibcode": "2017RPPh...80l6902M",
-                "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
+                "refstr": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "id": "H1I2",
             }
         ]
 
-        with patch.object(utils, 'get_resolved_references') as mock_resolved_references:
-            mock_resolved_references.return_value = resolved_reference
-            filename = os.path.join(self.test_dir, 'unittests/stubdata','00013.raw')
-            parser_name = self.app.get_parser_name(filename)
-            parser = verify(parser_name)
+        with mock.patch('requests.post') as mock_resolved_references:
+            mock_resolved_references.return_value = mock_response = mock.Mock()
+            mock_response.status_code = 200
+            mock_response.content = json.dumps({"resolved": resolved_reference})
+            filename = os.path.join(self.arXiv_stubdata_dir,'00001.raw')
+            parser_dict = self.app.get_parser(filename)
+            parser = verify(parser_dict.get('name'))
             # now process the source file
-            toREFs = parser(filename=filename, buffer=None, parsername=parser_name)
+            toREFs = parser(filename=filename, buffer=None)
             self.assertTrue(toREFs)
-            tasks.task_process_references(toREFs)
+            parsed_references = toREFs.process_and_dispatch()
+            self.assertTrue(parsed_references)
+            for block_references in parsed_references:
+                self.assertTrue('bibcode' in block_references)
+                self.assertTrue('references' in block_references)
+                references = self.app.populate_tables_pre_resolved_initial_status(source_bibcode=block_references['bibcode'],
+                                                                                  source_filename=filename,
+                                                                                  parsername=parser_dict.get('name'),
+                                                                                  references=block_references['references'])
+                self.assertTrue(references)
             expected_count = [{'name': 'ReferenceSource', 'description': 'source reference file information', 'count': 2},
                               {'name': 'ProcessedHistory', 'description': 'top level information for a processed run', 'count': 2},
                               {'name': 'ResolvedReference', 'description': 'resolved reference information for a processed run', 'count': 4},
@@ -161,34 +156,53 @@ class TestWorkers(unittest.TestCase):
     def test_reprocess_subset_references(self):
         """ test reprocess_subset_references task """
 
-        reprocess_records = [
+        reprocess_record = [
             {
-                'source_bibcode': '2020arXiv200400014K',
-                'source_filename': os.path.join(project_home, 'adsrefpipe/tests', 'unittests/stubdata/00014.raw'),
+                'source_bibcode': '0002arXiv.........Z',
+                'source_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
                 'source_modified': datetime.datetime(2020, 4, 3, 18, 8, 42),
                 'parser_name': 'arXiv',
-                'references': [{'item_num': 2, 'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
+                'references': [{'item_num': 2,
+                                'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
+                                'refraw': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
             }
         ]
-        resolved_references = [
+        resolved_reference = [
             {
                 "score": "1.0",
                 "bibcode": "2019A&A...625A.136A",
-                "refstring": "Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ",
+                "refstr": "Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ",
                 "id": "H1I1"
             }
         ]
-        with patch.object(utils, 'get_resolved_references') as mock_resolved_references:
-            mock_resolved_references.return_value = resolved_references
-            parser_name = self.app.get_parser_name(reprocess_records[0]['source_filename'])
-            parser = verify(parser_name)
+        with mock.patch('requests.post') as mock_resolved_references:
+            mock_resolved_references.return_value = mock_response = mock.Mock()
+            mock_response.status_code = 200
+            mock_response.content = json.dumps({"resolved": resolved_reference})
+            parser_dict = self.app.get_parser(reprocess_record[0]['source_filename'])
+            parser = verify(parser_dict.get('name'))
             # now process the buffer
-            toREFs = parser(filename=None, buffer=reprocess_records[0], parsername=None)
-            if toREFs:
-                tasks.task_reprocess_references(toREFs)
+            toREFs = parser(filename=None, buffer=reprocess_record[0])
+            self.assertTrue(toREFs)
+            parsed_references = toREFs.process_and_dispatch()
+            self.assertTrue(parsed_references)
+            for block_references in parsed_references:
+                self.assertTrue('bibcode' in block_references)
+                self.assertTrue('references' in block_references)
+                references = self.app.populate_tables_pre_resolved_retry_status(source_bibcode=block_references['bibcode'],
+                                                                                source_filename=reprocess_record[0]['source_filename'],
+                                                                                source_modified=reprocess_record[0]['source_modified'],
+                                                                                retry_records=block_references['references'])
+                self.assertTrue(references)
+            for reference in references:
+                tasks.task_process_reference({'reference': reference,
+                                              'resolver_service_url': self.app._config['REFERENCE_PIPELINE_SERVICE_URL'] +
+                                                                      self.app.get_reference_service_endpoint(parser_dict.get('name')),
+                                              'source_bibcode': block_references['bibcode'],
+                                              'source_filename':reprocess_record[0]['source_filename']})
             expected_count = [{'name': 'ReferenceSource', 'description': 'source reference file information', 'count': 1},
-                              {'name': 'ProcessedHistory', 'description': 'top level information for a processed run', 'count': 1},
-                              {'name': 'ResolvedReference', 'description': 'resolved reference information for a processed run', 'count': 2},
+                              {'name': 'ProcessedHistory', 'description': 'top level information for a processed run', 'count': 2},
+                              {'name': 'ResolvedReference', 'description': 'resolved reference information for a processed run', 'count': 3},
                               {'name': 'CompareClassic', 'description': 'comparison of new and classic processed run', 'count': 0}]
             self.assertTrue(self.app.get_count_records() == expected_count)
 

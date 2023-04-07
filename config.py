@@ -1,12 +1,13 @@
-
 # -*- coding: utf-8 -*-
 
 LOG_STDOUT = False
 
 REFERENCE_PIPELINE_ADSWS_API_TOKEN = 'this is a secret api token!'
 REFERENCE_PIPELINE_SERVICE_URL = 'https://dev.adsabs.harvard.edu/v1/reference'
+REFERENCE_PIPELINE_SOLR_URL = 'https://dev.adsabs.harvard.edu/v1/search/query'
 
-REFERENCE_PIPELINE_MAX_NUM_REFERENCES = 16
+# for now as per Roman send a single reference at a time
+REFERENCE_PIPELINE_MAX_NUM_REFERENCES = 1
 
 # db config
 SQLALCHEMY_URL = 'postgresql+psycopg2://postgres:postgres@localhost:5432/postgres'
@@ -31,4 +32,11 @@ TASK_PROCESS_TIME = 30
 QUEUE_AUDIT_INTERVAL = 10
 
 # true if to compare the resolved records with classic
-COMPARE_CLASSIC = False
+COMPARE_CLASSIC = True
+
+# number of bibcodes/sourcefiles that can be submitted for diagnostics
+MAX_ENTRIES_DIAGNOSTICS = 5
+
+# number of times each items is requeued if not processed successfullly before quiting
+MAX_QUEUE_RETRIES = 3
+

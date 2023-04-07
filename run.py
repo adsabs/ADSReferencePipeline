@@ -1,26 +1,25 @@
 import sys
 import os, fnmatch
+import re
 
 from adsputils import setup_logging, load_config, get_date
 from datetime import datetime, timedelta
+import time
 
 import argparse
 import threading
+import pickle
 
 from adsrefpipe import tasks
 from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.utils import get_date_modified_struct_time, ReprocessQueryType
 
-
 proj_home = os.path.realpath(os.path.dirname(__file__))
 config = load_config(proj_home=proj_home)
-
 
 app = tasks.app
 logger = setup_logging('run.py')
 
-
-MAX_ENTRIES_DIAGNOSTICS = 5
 
 def run_diagnostics(bibcodes, source_filenames):
     """
@@ -29,11 +28,12 @@ def run_diagnostics(bibcodes, source_filenames):
     :param: bibcodes - list of bibcodes
     :param: source_filenames - list of source filenames
     """
+    max_entries_diagnostics = config['MAX_ENTRIES_DIAGNOSTICS']
     # make sure we only send max number of entires per bibcode/source_file to be queried
     if bibcodes:
-        bibcodes = bibcodes[:MAX_ENTRIES_DIAGNOSTICS]
+        bibcodes = bibcodes[:max_entries_diagnostics]
     if source_filenames:
-        source_filenames = source_filenames[:MAX_ENTRIES_DIAGNOSTICS]
+        source_filenames = source_filenames[:max_entries_diagnostics]
     results = app.query_reference_tbl(bibcodes, source_filenames)
     for result in results:
         print(result)
@@ -63,62 +63,88 @@ def check_queue(queued_tasks):
     :param queued_tasks:
     :return:
     """
-    def output_message(message):
-        """
-
-        :param message:
-        :return:
-        """
-        logger.info(message)
-        print(message)
-
-
     to_queue_tasks = []
-    # check to see when/if the queued tasks got processed successfully
+    # check to see if the queued tasks got processed successfully
     for queued_task in queued_tasks:
-        if queued_task['results'].state == 'SUCCESS' and queued_task['results'].result:
-            if 'filename' in queued_task:
-                output_message("Reference file %s successfully processed."%queued_task['filename'])
-            elif 'reprocess' in queued_task:
-                record = queued_task['reprocess']
-                output_message("Reprocessed %d reference(s) from source file %s successfully processed." %(len(record['references']), record['source_filename']))
-        else:
-            # queue the task to check it again in few seconds, if it has not been too long
-            if queued_task['results'].date_done:
-                if (queued_task['results'].date_done - datetime.now()).seconds > config['TASK_PROCESS_TIME']:
-                    output_message("Reference file %s was not processed in allotted time! Removed from verification queue." % queued_task['filename'])
-                    continue
-            to_queue_tasks.append(queued_task)
+        if not queued_task['results'].state == 'SUCCESS':
+            if queued_task['results'].attempts > 0:
+                queued_task['results'].attempts -= 1
+                to_queue_tasks.append(queued_task)
+            else:
+                logger.info("Unable to process reference %s with multiple attempts. Skipped!" %queued_task['reference'])
+
     if len(to_queue_tasks) > 0:
-        output_message('%d/%d task remains for processing.'%(len(to_queue_tasks),len(queued_tasks)))
+        logger.info('%d/%d task remains for processing.'%(len(to_queue_tasks),len(queued_tasks)))
         threading.Timer(config['QUEUE_AUDIT_INTERVAL'], check_queue, (to_queue_tasks,)).start()
     else:
-        output_message('All tasks consumed.')
+        logger.info('All tasks consumed.')
 
 
-def queue_files(filenames):
+def queue_references(references, source_filename, source_bibcode, parsername):
     """
-    queue all the requested files
+
+    :param reference:
+    :param source_filename:
+    :param source_bibcode:
+    :param parsername:
+    :return:
+    """
+    resolver_service_url = config['REFERENCE_PIPELINE_SERVICE_URL'] + app.get_reference_service_endpoint(parsername)
+    for reference in references:
+        reference_task = {'reference': reference,
+                          'source_bibcode': source_bibcode,
+                          'source_filename': source_filename,
+                          'resolver_service_url': resolver_service_url}
+        results = tasks.task_process_reference.delay(reference_task)
+        return {'reference': reference, 'results': results, 'attempts': config['MAX_QUEUE_RETRIES']}
+
+
+# two ways to queue references: one is to read source files
+def process_files(filenames):
+    """
+    process source reference file
 
     :param files:
     :return:
     """
-    queued_tasks = []
     for filename in filenames:
         # first figure out which parser to call
-        parser_name = app.get_parser_name(filename)
-        parser = verify(parser_name)
+        parser_dict = app.get_parser(filename)
+        # parser name
+        parser = verify(parser_dict.get('name'))
         # now read the source file
-        toREFs = parser(filename=filename, buffer=None, parsername=parser_name)
+        toREFs = parser(filename=filename, buffer=None,
+                        parsername=parser_dict.get('name'), method_identifiers=parser_dict.get('method_identifiers'))
         if toREFs:
-            results = tasks.task_process_references.delay(toREFs)
-            queued_tasks.append({'toREFs': toREFs, 'results': results})
+            # next parse the references
+            parsed_references = toREFs.process_and_dispatch()
+            if not parsed_references:
+                logger.error("Unable to parse %s." % toREFs.filename)
+                return False
+
+            queued_tasks = []
+            for block_references in parsed_references:
+                # save the initial records in the database,
+                # this is going to be useful since it allows us to be able to tell if
+                # anything went wrong with the service that we did not get back the
+                # resolved reference
+                references = app.populate_tables_pre_resolved_initial_status(source_bibcode=block_references['bibcode'],
+                                                                             source_filename=toREFs.filename,
+                                                                             parsername=parser_dict.get('name'),
+                                                                             references=block_references['references'])
+                if not references:
+                    logger.error("Unable to insert records from %s to db." % toREFs.filename)
+                    return []
+
+                queued_tasks.append(queue_references(references, filename, block_references['bibcode'], parser_dict.get('name')))
+
+            check_queue(queued_tasks)
         else:
-            logger.error("Unable to open and read %s. Skipped!" %filename)
-    check_queue(queued_tasks)
+            logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
 
-def queue_reprocess(reprocess_type, score_cutoff=0, match_bibcode='', date_cutoff=None):
+# two ways to queue references: the other is to query database
+def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_cutoff=None):
     """
 
     :param reprocess_type:
@@ -130,16 +156,35 @@ def queue_reprocess(reprocess_type, score_cutoff=0, match_bibcode='', date_cutof
     records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, date_cutoff)
     for record in records:
         # first figure out which parser to call
-        parser_name = app.get_parser_name(record['source_filename'])
-        parser = verify(parser_name)
-        # now read the source file
-        toREFs = parser(filename=None, buffer=record, parsername=None)
+        parser_dict = app.get_parser(record['source_filename'])
+        # parser name
+        parser = verify(parser_dict.get('name'))
+        # now pass the result records from query to the parser object
+        toREFs = parser(filename=None, buffer=record,
+                        parsername=parser_dict.get('name'), method_identifiers=parser_dict.get('method_identifiers'))
         if toREFs:
-            tasks.task_reprocess_references(toREFs)
-            return
-            results = tasks.task_reprocess_references.delay(toREFs)
-            queued_tasks.append({'toREFs':toREFs, 'results':results})
-    check_queue(queued_tasks)
+            # next parse the references
+            parsed_references = toREFs.dispatch()
+            if not parsed_references:
+                logger.error("Unable to parse %s." % toREFs.filename)
+                return False
+
+            queued_tasks = []
+            for block_references in parsed_references:
+                # save the retry records in the database,
+                references = app.populate_tables_pre_resolved_retry_status(source_bibcode=block_references['bibcode'],
+                                                                           source_filename=toREFs.filename,
+                                                                           source_modified=block_references['source_modified'],
+                                                                           retry_records=block_references['references'])
+                if not references:
+                    logger.error("Unable to insert records from %s to db." % toREFs.filename)
+                    return []
+
+                queued_tasks.append(queue_references(references, toREFs.filename, block_references['bibcode'], parser_dict.get('name')))
+
+            check_queue(queued_tasks)
+        else:
+            logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
 
 if __name__ == '__main__':
@@ -261,7 +306,7 @@ if __name__ == '__main__':
 
     elif args.action == 'RESOLVE':
         if args.source_filenames:
-            queue_files(args.source_filenames)
+            process_files(args.source_filenames)
         elif args.path or args.extension:
             if not args.extension:
                 print('Both path and extension are required params. Provide extention by -e <extension of files to locate in the path directory>.')
@@ -276,19 +321,19 @@ if __name__ == '__main__':
                     date_cutoff = get_date('1972')
                 source_filenames = get_source_filenames(args.path, args.extension, date_cutoff.timetuple())
                 if len(source_filenames) > 0:
-                    queue_files(source_filenames)
+                    process_files(source_filenames)
         elif args.confidence:
             date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.score, score_cutoff=float(args.confidence), date_cutoff=date_cutoff)
+            reprocess_references(ReprocessQueryType.score, score_cutoff=float(args.confidence), date_cutoff=date_cutoff)
         elif args.bibstem:
             date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.bibstem, match_bibcode=args.bibstem, date_cutoff=date_cutoff)
+            reprocess_references(ReprocessQueryType.bibstem, match_bibcode=args.bibstem, date_cutoff=date_cutoff)
         elif args.year:
             date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.year, match_bibcode=args.bibstem, date_cutoff=date_cutoff)
+            reprocess_references(ReprocessQueryType.year, match_bibcode=args.bibstem, date_cutoff=date_cutoff)
         elif args.fail:
             date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
-            queue_reprocess(ReprocessQueryType.failed, date_cutoff=date_cutoff)
+            reprocess_references(ReprocessQueryType.failed, date_cutoff=date_cutoff)
 
 
     # TODO: do we need more command for querying db

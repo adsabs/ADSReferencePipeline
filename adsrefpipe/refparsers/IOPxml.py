@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 import string
 
@@ -16,19 +17,19 @@ class IOPreference(XMLreference):
 
     re_word = re.compile(r"(\w{3,})")
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
         
-        :param prevref:
         :return:
         """
-
         self.parsed = 0
+
+        refstr = self.dexml(self.reference_str.toxml())
 
         authors = self.xmlnode_nodecontents('ref_authors').replace('-', '')
         year = self.xmlnode_nodecontents('ref_year').strip()
         if not year:
-            year = self.match_year(str(self.reference_str))
+            year = self.match_year(refstr)
         volume = self.xmlnode_nodecontents('ref_volume').strip()
         issue = self.xmlnode_nodecontents('ref_issue').strip()
         part = self.xmlnode_nodecontents('ref_part')
@@ -42,9 +43,9 @@ class IOPreference(XMLreference):
             doi = self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'doi'}).strip()
             if len(doi) == 0:
                 # attempt to extract it from refstr
-                doi = self.match_doi(str(self.reference_str))
+                doi = self.match_doi(refstr)
 
-        eprint = self.match_arxiv_id(str(self.reference_str))
+        eprint = self.match_arxiv_id(refstr)
 
         # deal with special case of JHEP where volume and year
         # coincide, in which case we treat the issue as a volume number
@@ -83,7 +84,7 @@ class IOPreference(XMLreference):
 
         self['refstr'] = self.get_reference_str()
         if not self['refstr']:
-            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('ref_citation')))
+            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -96,10 +97,10 @@ class IOPtoREFs(XMLtoREFs):
         # many IOP files have an extra </reference> closing tag, clean it up here
         (re.compile(r'<ref_issue>.*?</ref_issue>'), ''),
         (re.compile(r'__amp__#\d+;'), ''),
-        (re.compile(r'</?SU[BP]>'), ''),  # remove SUB/SUP tags
+        (re.compile(r'</?SU[BP]>', flags=re.IGNORECASE), ''),  # remove SUB/SUP tags
     ]
     
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -107,7 +108,7 @@ class IOPtoREFs(XMLtoREFs):
         :param unicode:
         :param tag:
         """
-        XMLtoREFs.__init__(self, filename, buffer, parsername, tag='reference', encoding='ISO-8859-1')
+        XMLtoREFs.__init__(self, filename, buffer, parsername=IOPtoREFs, tag='reference', encoding='ISO-8859-1')
 
     def cleanup(self, reference):
         """
@@ -119,11 +120,10 @@ class IOPtoREFs(XMLtoREFs):
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
         this function does reference cleaning and then calls the parser
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -131,37 +131,44 @@ class IOPtoREFs(XMLtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode':bibcode, 'references':[]}
-
-            for reference in block_references:
-                if cleanup_process:
-                    reference = self.cleanup(reference)
+            parsed_references = []
+            for raw_reference in block_references:
+                reference = self.cleanup(raw_reference)
 
                 logger.debug("IOPxml: parsing %s" % reference)
                 try:
-                    iopref_reference = IOPreference(reference)
-                    references_bibcode['references'].append({**iopref_reference.get_parsed_reference(), 'refraw':reference})
+                    iop_reference = IOPreference(reference)
+                    parsed_references.append({**iop_reference.get_parsed_reference(), 'refraw': raw_reference})
                 except ReferenceError as error_desc:
                     logger.error("IOPxml: error parsing reference: %s" %error_desc)
 
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse IOP references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(IOPtoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
-        print(IOPtoREFs(buffer=args.buffer).process_and_dispatch())
+        print(IOPtoREFs(filename=args.filename, buffer=None).process_and_dispatch())
+    elif args.buffer:
+        print(IOPtoREFs(buffer=args.buffer, filename=None).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
-        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.iop.xml')
-        print(IOPtoREFs(filename=filename).process_and_dispatch())
+    elif not args.filename and not args.buffer:
+        testing = [
+            ('/../tests/unittests/stubdata/test.iop.xml', parsed_references.parsed_iop),
+            ('/../tests/unittests/stubdata/test.edporiop.xml', parsed_references.parsed_edporiop),
+        ]
+        for (file, expected) in testing:
+            filename = os.path.abspath(os.path.dirname(__file__) + file)
+            result = IOPtoREFs(filename=filename, buffer=None).process_and_dispatch()
+            if result == expected:
+                print('Test `%s` passed!'%file)
+            else:
+                print('Test `%s` failed!'%file)
     sys.exit(0)
-    # /proj/ads/references/sources/JPhCS/1555/iss1.iop.xml

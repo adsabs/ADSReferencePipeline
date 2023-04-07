@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 import os
-import re
+import regex as re
 import html
 try:
     from UserDict import UserDict
@@ -124,7 +124,7 @@ class UnicodeHandler(UserDict):
     }
     re_morenum = re.compile(r'&(%s);' % '|'.join(morenum.keys()))
 
-    re_ampersand = re.compile(r'__amp__')
+    re_replace_amp = re.compile(r'__amp__')
 
     re_rsquo = re.compile(r'&rsquor?;')
     re_backslash = re.compile(r'\\')
@@ -165,7 +165,7 @@ class UnicodeHandler(UserDict):
         :param text: 
         :return: 
         """
-        text = self.re_ampersand.sub('&', text)
+        text = self.re_replace_amp.sub('&', text)
         result = self.re_entity.sub(self.__sub_asc_entity, text)
         result = self.re_numentity.sub(self.__sub_numasc_entity, result)
         result = self.re_hexnumentity.sub(self.__sub_hexnumasc_entity, result)
@@ -191,21 +191,6 @@ class UnicodeHandler(UserDict):
         result = ''.join([self.__toentity(char) for char in result])
         result = self.re_unicode.sub(self.__sub_hexnum_toent, result)
         return result
-
-    def remove_control_chars(self, input, strict=False):
-        """
-
-        :param input:
-        :param strict:
-        :return:
-        """
-        input = re.sub(RE_XML_ILLEGAL, "", input)
-        if not strict:
-            # map all whitespace to single blank
-            input = re.sub(r'\s+', ' ', input)
-        # now remove control characters
-        input = re.sub(r"[\x01-\x08\x0B-\x1F\x7F]", "", input)
-        return input
 
     def __sub_numasc_entity(self, match):
         """

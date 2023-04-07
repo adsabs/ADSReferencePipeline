@@ -1,5 +1,6 @@
+
 import sys, os
-import re
+import regex as re
 import argparse
 
 from adsrefpipe.refparsers.toREFs import TXTtoREFs
@@ -39,7 +40,7 @@ class ARXIVtoREFs(TXTtoREFs):
     ]
 
 
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
+    def __init__(self, filename, buffer):
         """
 
         :param filename:
@@ -47,7 +48,7 @@ class ARXIVtoREFs(TXTtoREFs):
         :param unicode:
         :param tag:
         """
-        TXTtoREFs.__init__(self, filename, buffer, parsername)
+        TXTtoREFs.__init__(self, filename, buffer, ARXIVtoREFs)
 
     def cleanup(self, reference):
         """
@@ -62,11 +63,10 @@ class ARXIVtoREFs(TXTtoREFs):
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self, cleanup_process=True):
+    def process_and_dispatch(self):
         """
         this function does reference cleaning and then calls the parser
 
-        :param cleanup_process:
         :return:
         """
         references = []
@@ -74,32 +74,35 @@ class ARXIVtoREFs(TXTtoREFs):
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
 
-            references_bibcode = {'bibcode': bibcode, 'references': []}
-
-            for reference in block_references:
-                if cleanup_process:
-                    reference = self.cleanup(reference)
+            parsed_references = []
+            for raw_reference in block_references:
+                reference = self.cleanup(raw_reference)
 
                 logger.debug("arXivTXT: parsing %s" % reference)
-                references_bibcode['references'].append({'refstr': reference, 'refraw': reference})
+                parsed_references.append({'refstr': reference, 'refraw': raw_reference})
 
-            references.append(references_bibcode)
+            references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
 
         return references
 
 
+from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
-    parser = argparse.ArgumentParser(description='Parse Wiley references')
+    parser = argparse.ArgumentParser(description='Parse arXiv references')
     parser.add_argument('-f', '--filename', help='the path to source file')
-    parser.add_argument('-b', '--buffer', help='xml reference(s)')
+    parser.add_argument('-b', '--buffer', help='text reference(s)')
     args = parser.parse_args()
     if args.filename:
-        print(ARXIVtoREFs(filename=args.filename).process_and_dispatch())
-    if args.buffer:
-        print(ARXIVtoREFs(buffer=args.buffer).process_and_dispatch())
+        print(ARXIVtoREFs(filename=args.filename, buffer=None).process_and_dispatch())
+    elif args.buffer:
+        print(ARXIVtoREFs(buffer=args.buffer, filename=None).process_and_dispatch())
     # if no reference source is provided, just run the source test file
-    if not args.filename and not args.buffer:
-        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/00016.raw')
-        print(ARXIVtoREFs(filename=filename).process_and_dispatch())
+    elif not args.filename and not args.buffer:
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/txt/arXiv/0/00000.raw')
+        result = ARXIVtoREFs(filename=filename, buffer=None).process_and_dispatch()
+        if result == parsed_references.parsed_arxiv:
+            print('Test passed!')
+        else:
+            print('Test failed!')
     sys.exit(0)

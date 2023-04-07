@@ -3,8 +3,8 @@ The main application object (it has to be loaded by any worker/script)
 in order to initialize the database and get a working configuration.
 """
 
-import os
 import re
+import time
 
 from builtins import str
 from adsputils import ADSCelery
@@ -24,25 +24,112 @@ from texttable import Texttable
 class ADSReferencePipelineCelery(ADSCelery):
 
     RE_PARSE_ID = re.compile(r'^H(?P<history_id>\d+)+I(?P<item_num>\d+)$')
+    RE_MATCH_EXT = re.compile(r'.*(\..*?\.[a-z]+)$')
 
-    def get_parser_name(self, source_filename):
+    default_parsers = {}
+
+    def __init__(self, app_name, *args, **kwargs):
+        """
+
+        :param app_name:
+        :param args:
+        :param kwargs:
+        """
+        ADSCelery.__init__(self, app_name, *args, **kwargs)
+
+    def init_default_parsers(self):
+        """
+        init default parsers lookup table
+
+        :return:
+        """
+        # grab the parsers with unique extension, have in memory to speed up
+        # looking it up
+        with self.session_scope() as session:
+            rows = session.query(func.min(Parser.name).label('name'),
+                                 Parser.extension_pattern.label('extension_pattern'),
+                                 func.min(Parser.reference_service_endpoint).label('reference_service_endpoint'),
+                                 func.json_agg(Parser.matches).label('matches'),
+                                 func.count(Parser.extension_pattern).label('count')
+                                 ).group_by(Parser.extension_pattern).all()
+            for row in rows:
+                # if unique
+                if row.count == 1:
+                    to_dict = {
+                        'name': row.name,
+                        'extension_pattern': row.extension_pattern,
+                        'reference_service_endpoint': row.reference_service_endpoint,
+                        'matches': row.matches,
+                    }
+                    self.default_parsers[to_dict['extension_pattern']] = to_dict
+
+    def match_parser(self, rows, journal, volume):
+        """
+
+        :param rows:
+        :param journal:
+        :param volume:
+        :return:
+        """
+        for row in rows:
+            for match in row.get_matches():
+                if match.get('journal', '') == journal:
+                    # could be one of the following formats
+                    # {"journal":"ARA&A", "all_volume":True}
+                    # {"journal":"ASPC", "volume_begin":93, "volume_end":261}
+                    # {"journal":"ASPC", "volume_number":305}
+                    # {"journal":"CONF", "partial_bibcode":"1999sf99.proc"}
+                    if match.get('all_volume', False) or match.get('partial_bibcode', '') == volume or \
+                       match.get('volume_string') == volume:
+                        return row.toJSON()
+                    if not isinstance(volume, int) and not volume.isdigit():
+                        continue
+                    volume = int(volume)
+                    if (match.get('volume_begin', 9999) <= volume and match.get('volume_end', 0) >= volume) or \
+                        match.get('volume_number', -1) == volume:
+                        return row.toJSON()
+        return {}
+
+    def get_parser(self, source_filename):
         """
 
         :param source_filename:
         :return:
         """
-        parts = os.path.basename(source_filename).split('.')
-        source_pattern = '.%s.%s'%(parts[-2],parts[-1])
-        if source_pattern:
+        if not self.default_parsers:
+            self.init_default_parsers()
+
+        journal, volume, basefile = source_filename.split('/')[-3:]
+        if journal and volume and basefile:
+            match = self.RE_MATCH_EXT.search(basefile)
+            if match:
+                # with multiple extensions
+                extension = match.group(1)
+            else:
+                # with single extension
+                extension = ".%s"%basefile.rsplit('.', 1)[-1]
+
+            # if one of the default ones
+            if self.default_parsers.get(extension, None):
+                return self.default_parsers[extension]
+
             with self.session_scope() as session:
-                rows = session.query(Parser).filter(literal(source_pattern).op('~')(Parser.source_pattern)).all()
+                # start_time = time.time()
+                rows = session.query(Parser).filter(and_(Parser.extension_pattern == extension,
+                                                         Parser.matches.contains([{"journal": journal}]))).all()
+                # if no records, try with single extension, if possible
+                if not rows and extension.count('.') >= 2:
+                    rows = session.query(Parser).filter(and_(Parser.extension_pattern == extension[extension.rfind('.'):],
+                                                             Parser.matches.contains([{"journal": journal}]))).all()
                 if len(rows) == 1:
-                    return rows[0].get_name()
-                else:
-                    self.logger.error("No unique record found in table `Parser` matching extension %s."%source_pattern)
+                    return rows[0].toJSON()
+                if len(rows) > 1:
+                    match = self.match_parser(rows, journal, volume)
+                    if match:
+                        return match
         else:
             self.logger.error("Unrecognizable source file %s."%source_filename)
-        return ''
+        return {}
 
     def get_reference_service_endpoint(self, parsername):
         """
@@ -229,7 +316,6 @@ class ADSReferencePipelineCelery(ADSCelery):
                     self.logger.info("Source file %s for bibcode %s with %d references, processed successfully." % (source_filename, source_bibcode, len(references)))
                     return references
         except SQLAlchemyError as e:
-            session.rollback()
             self.logger.info("Source file %s information failed to get added to database. Error: %s" % (source_filename, str(e.__dict__['orig'])))
         return []
 
@@ -287,18 +373,19 @@ class ADSReferencePipelineCelery(ADSCelery):
                     match = self.RE_PARSE_ID.match(ref['id'])
                     history_id = int(match.group('history_id'))
                     item_num = int(match.group('item_num'))
+                    # TODO change refstring to refraw for reference_raw
                     resolved_record = ResolvedReference(history_id=history_id,
                                                item_num=item_num,
                                                reference_str=ref.get('refstring', None),
                                                bibcode=ref.get('bibcode', None),
                                                score=ref.get('score', None),
-                                               reference_raw=None)
+                                               reference_raw=ref.get('refstring', None))
                     resolved_records.append(resolved_record)
                     if resolved_classic:
                         compare_record = CompareClassic(history_id=history_id,
                                                  item_num=item_num,
                                                  bibcode=resolved_classic[i][1],
-                                                 score=resolved_classic[i][2],
+                                                 score=int(resolved_classic[i][2]),
                                                  state=resolved_classic[i][3])
                         compare_records.append(compare_record)
                 if resolved_classic:

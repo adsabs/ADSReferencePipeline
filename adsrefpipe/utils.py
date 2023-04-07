@@ -63,19 +63,18 @@ def get_resolved_filename(source_filename):
     return source_filename.replace('sources','retrieve') + '.result'
 
 
-def get_resolved_references(references, service_url):
+def get_resolved_references(reference, service_url):
     """
     send a request to reference service
 
-    :param references: list of references
+    :param reference: dict containing one reference info
     :param service_url
     :return:
     """
     if service_url.endswith('text'):
-        str_references,ids = map(list, zip(*[ref.values() for ref in references]))
-        payload = {'reference': str_references, 'id': ids}
+        payload = {'reference': reference['refstr'], 'id': reference['id']}
     elif service_url.endswith('xml'):
-        payload = {'parsed_reference': references}
+        payload = {'parsed_reference': reference}
     else:
         logger.error('Unrecognizable service url `%s`.'%service_url)
         return None
@@ -89,14 +88,14 @@ def get_resolved_references(references, service_url):
             resolved = json.loads(r.content)['resolved']
             logger.debug('Resolved %d references successfully.' % (len(resolved)))
             return resolved
-        logger.error('Attempt at resolving %d %s references failed with status code %s.' % (len(references), type, r.status_code))
+        logger.error('Attempt at resolving a %s reference failed with status code %s.' % (type, r.status_code))
         return None
     except requests.exceptions.RequestException as e:
         logger.error('Unable to connect to the service: %s'%str(e))
         return None
 
-
-def read_classic_resolved_file(source_bibcode, filename):
+# this function shall be removed from final product, no need to unittest
+def read_classic_resolved_file(source_bibcode, filename): # pragma: no cover
     """
     read classic resolved file
 
@@ -107,7 +106,7 @@ def read_classic_resolved_file(source_bibcode, filename):
     try:
         resolved = []
         found = False
-        with open(filename, 'r', encoding='utf-8') as f:
+        with open(filename, 'r', encoding="utf-8") as f:
             for line in f:
                 if found:
                     if line.startswith('---<'):
@@ -116,13 +115,15 @@ def read_classic_resolved_file(source_bibcode, filename):
                 else:
                     if line.startswith('---<') and line[4:-5] == source_bibcode:
                         found = True
+
         logger.debug('Read %d references from classic resolved file %s successfully.' % (len(resolved), filename))
         return resolved
     except:
         logger.error('Unable to read references from classic resolved file %s.' % (filename))
         return None
 
-def get_compare_state(service_bibcode, classic_bibcode, classic_score):
+# this function shall be removed from final product, no need to unittest
+def get_compare_state(service_bibcode, classic_bibcode, classic_score):  # pragma: no cover
     """
     compare service and classic resolved bibcodes and return descriptive state
     :param service_bibcode:
@@ -149,7 +150,8 @@ def get_compare_state(service_bibcode, classic_bibcode, classic_score):
             return 'NEW'
         return 'NONE'
 
-def compare_classic_and_service(service, source_bibcode, classic_filename):
+# this function shall be removed from final product, no need to unittest
+def compare_classic_and_service(service, source_bibcode, classic_filename):  # pragma: no cover
     """
     compare the result of service and classic resolved references
 
@@ -187,3 +189,47 @@ def compare_classic_and_service(service, source_bibcode, classic_filename):
                     classic.remove(c)
                     break
     return compare
+
+def get_bibcode(doi):
+    """
+    send a request to solr service to get the bibcode from doi
+
+    :param doi
+    :return:
+    """
+    headers = {'Authorization': 'Bearer ' + config['REFERENCE_PIPELINE_ADSWS_API_TOKEN']}
+    try:
+        params = {'fl': 'bibcode', 'q': 'doi:"%s"'%doi}
+        r = requests.get(url=config['REFERENCE_PIPELINE_SOLR_URL'], params=params, headers=headers)
+        if (r.status_code == 200):
+            docs = json.loads(r.text)["response"].get("docs")
+            if docs:
+                bibcode = docs[0].get('bibcode')
+                return bibcode
+        logger.error('Attempt at fetch bibcode from doi %s failed with status code %s.' % (doi, r.status_code))
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.error('Unable to connect to the solr service: %s'%str(e))
+        return None
+
+def verify_bibcode(bibcode):
+    """
+    send a request to solr service to verify the bibcode is correct
+
+    :param doi
+    :return:
+    """
+    headers = {'Authorization': 'Bearer ' + config['REFERENCE_PIPELINE_ADSWS_API_TOKEN']}
+    try:
+        params = {'fl': 'bibcode', 'q': 'identifier:"%s"'%bibcode}
+        r = requests.get(url=config['REFERENCE_PIPELINE_SOLR_URL'], params=params, headers=headers)
+        if (r.status_code == 200):
+            docs = json.loads(r.text)["response"].get("docs")
+            if docs:
+                bibcode = docs[0].get('bibcode')
+                return bibcode
+        logger.error('Attempt at verify bibcode %s failed with status code %s.' % (bibcode, r.status_code))
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.error('Unable to connect to the solr service: %s'%str(e))
+        return None
