@@ -113,8 +113,7 @@ def process_files(filenames):
         # parser name
         parser = verify(parser_dict.get('name'))
         # now read the source file
-        toREFs = parser(filename=filename, buffer=None,
-                        parsername=parser_dict.get('name'), method_identifiers=parser_dict.get('method_identifiers'))
+        toREFs = parser(filename=filename, buffer=None)
         if toREFs:
             # next parse the references
             parsed_references = toREFs.process_and_dispatch()
