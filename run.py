@@ -67,8 +67,8 @@ def check_queue(queued_tasks):
     # check to see if the queued tasks got processed successfully
     for queued_task in queued_tasks:
         if not queued_task['results'].state == 'SUCCESS':
-            if queued_task['results'].attempts > 0:
-                queued_task['results'].attempts -= 1
+            if queued_task['attempts'] > 0:
+                queued_task['attempts'] -= 1
                 to_queue_tasks.append(queued_task)
             else:
                 logger.info("Unable to process reference %s with multiple attempts. Skipped!" %queued_task['reference'])
