@@ -90,13 +90,15 @@ def queue_references(references, source_filename, source_bibcode, parsername):
     :return:
     """
     resolver_service_url = config['REFERENCE_PIPELINE_SERVICE_URL'] + app.get_reference_service_endpoint(parsername)
+    queued_tasks = []
     for reference in references:
         reference_task = {'reference': reference,
                           'source_bibcode': source_bibcode,
                           'source_filename': source_filename,
                           'resolver_service_url': resolver_service_url}
         results = tasks.task_process_reference.delay(reference_task)
-        return {'reference': reference, 'results': results, 'attempts': config['MAX_QUEUE_RETRIES']}
+        queued_tasks.append({'reference': reference, 'results': results, 'attempts': config['MAX_QUEUE_RETRIES']})
+    return queued_tasks
 
 
 # two ways to queue references: one is to read source files
@@ -121,7 +123,6 @@ def process_files(filenames):
                 logger.error("Unable to parse %s." % toREFs.filename)
                 return False
 
-            queued_tasks = []
             for block_references in parsed_references:
                 # save the initial records in the database,
                 # this is going to be useful since it allows us to be able to tell if
@@ -135,7 +136,7 @@ def process_files(filenames):
                     logger.error("Unable to insert records from %s to db." % toREFs.filename)
                     return []
 
-                queued_tasks.append(queue_references(references, filename, block_references['bibcode'], parser_dict.get('name')))
+                queued_tasks = queue_references(references, filename, block_references['bibcode'], parser_dict.get('name'))
 
             check_queue(queued_tasks)
         else:

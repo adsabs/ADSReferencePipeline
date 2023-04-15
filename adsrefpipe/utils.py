@@ -74,7 +74,7 @@ def get_resolved_references(reference, service_url):
     if service_url.endswith('text'):
         payload = {'reference': reference['refstr'], 'id': reference['id']}
     elif service_url.endswith('xml'):
-        payload = {'parsed_reference': reference}
+        payload = {'parsed_reference': [reference]}
     else:
         logger.error('Unrecognizable service url `%s`.'%service_url)
         return None

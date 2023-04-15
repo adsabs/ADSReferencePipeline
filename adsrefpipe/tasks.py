@@ -43,3 +43,6 @@ def task_process_reference(reference_task):
         return True
     except KeyError:
         return False
+
+if __name__ == '__main__':
+    app.start()
