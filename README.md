@@ -26,7 +26,7 @@ This pipeline is to process source reference files, if xml to parse them first a
 
 
 ## Queues
-    - task_process_reference: from input filename a reference at a time is queued for processing
+    - task_process_reference: from input filename one reference at a time is queued for processing
 
 ## Command lines:
 
