@@ -10,6 +10,11 @@ reference resolver processing pipeline
 This pipeline is to process source reference files, if xml to parse them first and then send to reference resolver to get matched with solr record. If reference source file is of type raw, it is sent to reference resolver to get parsed and matched there.
 
 
+## Required software
+
+    - Redis, RabbitMQ and PostgreSQL
+    
+    
 ## Setup (recommended)
 
     $ virtualenv python
@@ -17,12 +22,11 @@ This pipeline is to process source reference files, if xml to parse them first a
     $ pip install -r requirements.txt
     $ pip install -r dev-requirements.txt
     $ vim local_config.py # edit, edit
+    $ ./start-celery.sh
 
 
 ## Queues
-    - process_references: input filename is collected and processed
-    - reprocess_subset_references: input collection is collected and references are procossed
-
+    - task_process_reference: from input filename a reference is queued for processing
 
 ## Command lines:
 
