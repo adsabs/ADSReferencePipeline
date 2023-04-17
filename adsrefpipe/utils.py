@@ -73,8 +73,10 @@ def get_resolved_references(reference, service_url):
     """
     if service_url.endswith('text'):
         payload = {'reference': reference['refstr'], 'id': reference['id']}
+        type = 'reference text'
     elif service_url.endswith('xml'):
         payload = {'parsed_reference': [reference]}
+        type = 'parsed xml'
     else:
         logger.error('Unrecognizable service url `%s`.'%service_url)
         return None
@@ -88,7 +90,7 @@ def get_resolved_references(reference, service_url):
             resolved = json.loads(r.content)['resolved']
             logger.debug('Resolved %d references successfully.' % (len(resolved)))
             return resolved
-        logger.error('Attempt at resolving a %s reference failed with status code %s.' % (type, r.status_code))
+        logger.error('Attempt at resolving a `%s` reference failed with status code %d.' % (type, r.status_code))
         return None
     except requests.exceptions.RequestException as e:
         logger.error('Unable to connect to the service: %s'%str(e))
