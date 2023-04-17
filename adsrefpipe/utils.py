@@ -72,7 +72,7 @@ def get_resolved_references(reference, service_url):
     :return:
     """
     if service_url.endswith('text'):
-        payload = {'reference': reference['refstr'], 'id': reference['id']}
+        payload = {'reference': [reference['refstr']], 'id': [reference['id']]}
         type = 'reference text'
     elif service_url.endswith('xml'):
         payload = {'parsed_reference': [reference]}
