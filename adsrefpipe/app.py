@@ -282,8 +282,8 @@ class ADSReferencePipelineCelery(ADSCelery):
             results = []
             for row in rows:
                 results.append({
-                    'num_references': row.num_references,
-                    'num_resolved_references': row.num_resolved_references,
+                    'last_run_num_references': row.num_references,
+                    'last_run_num_resolved_references': row.num_resolved_references,
                     'history_id': row.history_id,
                 })
             return results

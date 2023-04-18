@@ -165,8 +165,8 @@ class TestDatabase(unittest.TestCase):
                 'parser_name': 'arXiv',
                 'num_runs': 1,
                 'last_run_date': '2020-05-11 11:13:36',
-                'num_references': 2,
-                'num_resolved_references': 2
+                'last_run_num_references': 2,
+                'last_run_num_resolved_references': 2
             }, {
                 'bibcode': '0002arXiv.........Z',
                 'source_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
@@ -174,8 +174,8 @@ class TestDatabase(unittest.TestCase):
                 'parser_name': 'arXiv',
                 'num_runs': 1,
                 'last_run_date': '2020-05-11 11:13:53',
-                'num_references': 2,
-                'num_resolved_references': 2
+                'last_run_num_references': 2,
+                'last_run_num_resolved_references': 2
             }, {
                 'bibcode': '0003arXiv.........Z',
                 'source_filename': os.path.join(self.arXiv_stubdata_dir,'00003.raw'),
@@ -183,8 +183,8 @@ class TestDatabase(unittest.TestCase):
                 'parser_name': 'arXiv',
                 'num_runs': 1,
                 'last_run_date': '2020-05-11 11:14:28',
-                'num_references': 2,
-                'num_resolved_references': 2
+                'last_run_num_references': 2,
+                'last_run_num_resolved_references': 2
             }
         ]
 
