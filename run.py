@@ -34,7 +34,7 @@ def run_diagnostics(bibcodes, source_filenames):
         bibcodes = bibcodes[:max_entries_diagnostics]
     if source_filenames:
         source_filenames = source_filenames[:max_entries_diagnostics]
-    results = app.query_reference_tbl(bibcodes, source_filenames)
+    results = app.query_reference_source_tbl(bibcodes, source_filenames)
     for result in results:
         print(result)
     return
