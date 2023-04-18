@@ -163,50 +163,62 @@ class TestDatabase(unittest.TestCase):
                 'source_filename': os.path.join(self.arXiv_stubdata_dir,'00001.raw'),
                 'resolved_filename': os.path.join(self.arXiv_stubdata_dir,'00001.raw.result'),
                 'parser_name': 'arXiv',
+                'num_runs': 1,
+                'last_run_date': '2020-05-11 11:13:36',
+                'num_references': 2,
+                'num_resolved_references': 2
             }, {
                 'bibcode': '0002arXiv.........Z',
                 'source_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
                 'resolved_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw.result'),
                 'parser_name': 'arXiv',
+                'num_runs': 1,
+                'last_run_date': '2020-05-11 11:13:53',
+                'num_references': 2,
+                'num_resolved_references': 2
             }, {
                 'bibcode': '0003arXiv.........Z',
                 'source_filename': os.path.join(self.arXiv_stubdata_dir,'00003.raw'),
                 'resolved_filename': os.path.join(self.arXiv_stubdata_dir,'00003.raw.result'),
                 'parser_name': 'arXiv',
+                'num_runs': 1,
+                'last_run_date': '2020-05-11 11:14:28',
+                'num_references': 2,
+                'num_resolved_references': 2
             }
         ]
 
         # test querying bibcodes
         bibcodes = ['0001arXiv.........Z', '0002arXiv.........Z', '0003arXiv.........Z']
-        result_got = self.app.query_reference_source_tbl(bibcode_list=bibcodes)
+        result_got = self.app.diagnostic_query(bibcode_list=bibcodes)
         self.assertTrue(result_expected == result_got)
 
         # test querying filenames
         filenames = [os.path.join(self.arXiv_stubdata_dir,'00001.raw'),
                      os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
                      os.path.join(self.arXiv_stubdata_dir,'00003.raw')]
-        result_got = self.app.query_reference_source_tbl(source_filename_list=filenames)
+        result_got = self.app.diagnostic_query(source_filename_list=filenames)
         self.assertTrue(result_expected == result_got)
 
         # test querying both bibcodes and filenames
-        result_got = self.app.query_reference_source_tbl(bibcode_list=bibcodes, source_filename_list=filenames)
+        result_got = self.app.diagnostic_query(bibcode_list=bibcodes, source_filename_list=filenames)
         self.assertTrue(result_expected == result_got)
 
         # test if nothing is passed, which return 10 records max
-        result_got = self.app.query_reference_source_tbl()
+        result_got = self.app.diagnostic_query()
         self.assertTrue(result_expected == result_got)
 
     def test_query_reference_tbl_when_non_exits(self):
         """ verify non existence reference_source record """
 
         # test when bibcode does not exist
-        self.assertTrue(self.app.query_reference_source_tbl(bibcode_list=['0004arXiv.........Z']) == [])
+        self.assertTrue(self.app.diagnostic_query(bibcode_list=['0004arXiv.........Z']) == [])
 
         # test when filename does not exist
-        self.assertTrue(self.app.query_reference_source_tbl(source_filename_list=os.path.join(self.arXiv_stubdata_dir,'00004.raw')) == [])
+        self.assertTrue(self.app.diagnostic_query(source_filename_list=os.path.join(self.arXiv_stubdata_dir,'00004.raw')) == [])
 
         # test when both bibcode and filename are passed and nothing is returned
-        self.assertTrue(self.app.query_reference_source_tbl(bibcode_list=['0004arXiv.........Z'],
+        self.assertTrue(self.app.diagnostic_query(bibcode_list=['0004arXiv.........Z'],
                                                      source_filename_list=os.path.join(self.arXiv_stubdata_dir,'00004.raw')) == [])
 
     def test_insert_reference_record(self):
@@ -388,7 +400,7 @@ class TestDatabaseNoStubdata(unittest.TestCase):
 
     def test_query_reference_tbl_when_empty(self):
         """ verify reference_source table being empty """
-        self.assertTrue(self.app.query_reference_source_tbl() == [])
+        self.assertTrue(self.app.diagnostic_query() == [])
 
     def test_populate_tables(self):
         """ test populating all tables """

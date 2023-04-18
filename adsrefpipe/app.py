@@ -146,45 +146,38 @@ class ADSReferencePipelineCelery(ADSCelery):
                 self.logger.error("No unique record found in table `Parser` matching name %s." % parsername)
         return ''
 
-    def query_reference_source_tbl(self, bibcode_list=None, source_filename_list=None, parsername=None):
+    def query_reference_source_tbl(self, bibcode_list=None, source_filename_list=None):
         """
         Queries reference table and returns results.
 
-        :param bibcode_list
-        :param source_filename_list
-        :param parsername
-        :return: list of json records or None
+        :param bibcode_list:
+        :param source_filename_list:
+        :return:
         """
         with self.session_scope() as session:
             if bibcode_list and source_filename_list:
                 rows = session.query(ReferenceSource) \
                     .filter(and_(ReferenceSource.bibcode.in_(bibcode_list),
-                                 ReferenceSource.source_filename.in_(source_filename_list))).all()
-                self.logger.info("Fetched records for bibcode = %s and source_filename = %s." % (
-                bibcode_list, source_filename_list))
+                                 ReferenceSource.source_filename.in_(source_filename_list))) \
+                    .order_by(ReferenceSource.bibcode).all()
+                self.logger.info("Fetched records for bibcode = %s and source_filename = %s." % (','.join(bibcode_list), ','.join(source_filename_list)))
             elif bibcode_list:
-                rows = session.query(ReferenceSource).filter(ReferenceSource.bibcode.in_(bibcode_list)).all()
-                self.logger.info("Fetched records for bibcode = %s." % (bibcode_list))
+                rows = session.query(ReferenceSource).filter(ReferenceSource.bibcode.in_(bibcode_list)).order_by(ReferenceSource.bibcode).all()
+                self.logger.info("Fetched records for bibcode = %s." % (','.join(bibcode_list)))
             elif source_filename_list:
-                rows = session.query(ReferenceSource).filter(ReferenceSource.source_filename.in_(source_filename_list)).all()
-                self.logger.info("Fetched records for source_filename = %s." % (source_filename_list))
-            elif parsername:
-                rows = session.query(ReferenceSource).filter(and_(ReferenceSource.parser_name == parsername)).all()
-                self.logger.info("Fetched records for parser = %s." % (parsername))
+                rows = session.query(ReferenceSource).filter(ReferenceSource.source_filename.in_(source_filename_list)).order_by(ReferenceSource.source_filename).all()
+                self.logger.info("Fetched records for source_filename = %s." % (','.join(source_filename_list)))
             else:
-                rows = session.query(ReferenceSource).limit(10).all()
+                rows = session.query(ReferenceSource).order_by(ReferenceSource.bibcode).limit(10).all()
                 self.logger.info("Fetched records for 10 records.")
 
             if len(rows) == 0:
                 if bibcode_list and source_filename_list:
-                    self.logger.error("No records found for bibcode = %s and source_filename = %s." % (
-                    bibcode_list, source_filename_list))
+                    self.logger.error("No records found for bibcode = %s and source_filename = %s." % (','.join(bibcode_list), ','.join(source_filename_list)))
                 elif bibcode_list:
-                    self.logger.error("No records found for bibcode = %s." % (bibcode_list))
+                    self.logger.error("No records found for bibcode = %s." % (','.join(bibcode_list)))
                 elif source_filename_list:
-                    self.logger.error("No records found for source_filename = %s." % (source_filename_list))
-                elif parsername:
-                    self.logger.error("No records found for parser = %s." % (parsername))
+                    self.logger.error("No records found for source_filename = %s." % (','.join(source_filename_list)))
                 else:
                     self.logger.error("No records found in table `ReferenceSource`.")
 
@@ -192,6 +185,149 @@ class ADSReferencePipelineCelery(ADSCelery):
             for row in rows:
                 results.append(row.toJSON())
             return results
+
+    def query_processed_history_tbl(self, bibcode_list=None, source_filename_list=None):
+        """
+        Queries history table and returns results.
+
+        :param bibcode_list:
+        :param source_filename_list:
+        :return:
+        """
+        with self.session_scope() as session:
+            if bibcode_list and source_filename_list:
+                rows = session.query(func.max(ProcessedHistory.bibcode).label('bibcode'),
+                                     func.max(ProcessedHistory.source_filename).label('source_filename'),
+                                     func.count(ProcessedHistory.bibcode).label('num_runs'),
+                                     func.max(ProcessedHistory.date).label('last_run_date'),
+                                     func.max(ProcessedHistory.id).label('history_id')) \
+                    .filter(and_(ProcessedHistory.bibcode.in_(bibcode_list),
+                                 ProcessedHistory.source_filename.in_(source_filename_list))) \
+                    .group_by(ProcessedHistory.bibcode) \
+                    .order_by(ProcessedHistory.bibcode).all()
+                self.logger.info("Fetched records for bibcode = %s and source_filename = %s." % (','.join(bibcode_list), ','.join(source_filename_list)))
+            elif bibcode_list:
+                rows = session.query(func.max(ProcessedHistory.bibcode).label('bibcode'),
+                                     func.max(ProcessedHistory.source_filename).label('source_filename'),
+                                     func.count(ProcessedHistory.bibcode).label('num_runs'),
+                                     func.max(ProcessedHistory.date).label('last_run_date'),
+                                     func.max(ProcessedHistory.id).label('history_id')) \
+                    .filter(ProcessedHistory.bibcode.in_(bibcode_list)) \
+                    .group_by(ProcessedHistory.bibcode) \
+                    .order_by(ProcessedHistory.bibcode).all()
+                self.logger.info("Fetched records for bibcode = %s." % (','.join(bibcode_list)))
+            elif source_filename_list:
+                rows = session.query(func.max(ProcessedHistory.bibcode).label('bibcode'),
+                                     func.max(ProcessedHistory.source_filename).label('source_filename'),
+                                     func.count(ProcessedHistory.bibcode).label('num_runs'),
+                                     func.max(ProcessedHistory.date).label('last_run_date'),
+                                     func.max(ProcessedHistory.id).label('history_id')) \
+                    .filter(ProcessedHistory.source_filename.in_(source_filename_list)) \
+                    .group_by(ProcessedHistory.source_filename) \
+                    .order_by(ProcessedHistory.source_filename).all()
+                self.logger.info("Fetched records for source_filename = %s." % (','.join(source_filename_list)))
+            else:
+                rows = session.query(func.max(ProcessedHistory.bibcode).label('bibcode'),
+                                     func.max(ProcessedHistory.source_filename).label('source_filename'),
+                                     func.count(ProcessedHistory.bibcode).label('num_runs'),
+                                     func.max(ProcessedHistory.date).label('last_run_date'),
+                                     func.max(ProcessedHistory.id).label('history_id')) \
+                    .group_by(ProcessedHistory.id) \
+                    .order_by(ProcessedHistory.id).limit(10).all()
+                self.logger.info("Fetched records for 10 records.")
+
+            if len(rows) == 0:
+                if bibcode_list and source_filename_list:
+                    self.logger.error("No records found for bibcode = %s and source_filename = %s." % (','.join(bibcode_list), ','.join(source_filename_list)))
+                elif bibcode_list:
+                    self.logger.error("No records found for bibcode = %s." % (','.join(bibcode_list)))
+                elif source_filename_list:
+                    self.logger.error("No records found for source_filename = %s." % (','.join(source_filename_list)))
+                else:
+                    self.logger.error("No records found in table `ProcessedHistory`.")
+
+            results = []
+            for row in rows:
+                results.append({
+                    'bibcode': row.bibcode,
+                    'source_filename': row.source_filename,
+                    'num_runs': row.num_runs,
+                    'last_run_date': str(row.last_run_date),
+                    'history_id': row.history_id,
+                })
+            return results
+
+    def query_resolved_reference_tbl(self, history_id_list=None):
+        """
+        Queries resolved table and returns results.
+
+        :param history_id_list:
+        :return:
+        """
+        with self.session_scope() as session:
+            if history_id_list:
+                rows = session.query(func.count(ResolvedReference.item_num).label('num_references'),
+                                     func.count(ResolvedReference.score).filter(ResolvedReference.score > 0).label('num_resolved_references'),
+                                     func.max(ResolvedReference.history_id).label('history_id')) \
+                    .filter(ResolvedReference.history_id.in_(history_id_list)) \
+                    .group_by(ResolvedReference.history_id).all()
+                self.logger.info("Fetched records for history ids = %s." % (','.join(str(h) for h in history_id_list)))
+
+            if len(rows) == 0:
+                if history_id_list:
+                    self.logger.error("No records found for history ids = %s." % (','.join(str(h) for h in history_id_list)))
+                else:
+                    self.logger.error("No records found in table `ResolvedReference`.")
+
+            results = []
+            for row in rows:
+                results.append({
+                    'num_references': row.num_references,
+                    'num_resolved_references': row.num_resolved_references,
+                    'history_id': row.history_id,
+                })
+            return results
+
+    def diagnostic_query(self, bibcode_list=None, source_filename_list=None):
+        """
+
+        :param bibcode_list
+        :param source_filename_list
+        :return: list of json records or None
+        """
+        results = []
+
+        reference_source = self.query_reference_source_tbl(bibcode_list, source_filename_list)
+        processed_history = self.query_processed_history_tbl(bibcode_list, source_filename_list)
+        # get history_ids
+        history_ids = [item['history_id'] for item in processed_history]
+        if history_ids:
+            resolved_reference = self.query_resolved_reference_tbl(history_ids)
+
+            # get bibcodes from both sources
+            reference_bibcodes = [item['bibcode'] for item in reference_source]
+            history_bibcodes = [item['bibcode'] for item in processed_history]
+            # find unique bibcodes
+            bibcodes = sorted(list(set(reference_bibcodes) | set(history_bibcodes)))
+            # go through the list and combine records from all three sources
+            for bibcode in bibcodes:
+                result = {}
+                reference_record = next(item for item in reference_source if item['bibcode'] == bibcode)
+                if reference_record:
+                    result = reference_record
+                history_record = next(item for item in processed_history if item['bibcode'] == bibcode)
+                if history_record:
+                    history_id = history_record.pop('history_id')
+                    resolved_record = next(item for item in resolved_reference if item.get('history_id') == history_id)
+                    result.update(history_record)
+                    if resolved_record:
+                        resolved_record.pop('history_id')
+                        result.update(resolved_record)
+                if result:
+                    results.append(result)
+
+        return results
+
 
     def insert_reference_source_record(self, session, reference):
         """
