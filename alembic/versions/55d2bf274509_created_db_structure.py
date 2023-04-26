@@ -36,7 +36,6 @@ def upgrade():
     )
     op.create_index('extension_pattern_fk_idx', 'parser', ['extension_pattern'])
 
-    # "living.xml"
     op.bulk_insert(parser_table, [
         {'name': 'AAS', 'extension_pattern': '.raw', 'reference_service_endpoint': '/xml', 'matches': [
             {"journal": "AJ", "volume_begin": 115, "volume_end": 134},{"journal": "ApJ", "volume_begin": 474, "volume_end": 689},

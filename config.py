@@ -40,3 +40,5 @@ MAX_ENTRIES_DIAGNOSTICS = 5
 # number of times each items is requeued if not processed successfullly before quiting
 MAX_QUEUE_RETRIES = 3
 
+# indication that this is considered an incomplete reference
+INCOMPLETE_REFERENCE = ' --- Incomplete'

@@ -152,7 +152,6 @@ def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_
     :param date_cutoff:
     :return:
     """
-    queued_tasks = []
     records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, date_cutoff)
     for record in records:
         # first figure out which parser to call
@@ -160,8 +159,7 @@ def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_
         # parser name
         parser = verify(parser_dict.get('name'))
         # now pass the result records from query to the parser object
-        toREFs = parser(filename=None, buffer=record,
-                        parsername=parser_dict.get('name'), method_identifiers=parser_dict.get('method_identifiers'))
+        toREFs = parser(filename=None, buffer=record)
         if toREFs:
             # next parse the references
             parsed_references = toREFs.dispatch()

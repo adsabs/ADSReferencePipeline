@@ -11,6 +11,11 @@ from adsrefpipe.refparsers.xmlFile import XmlString
 from adsrefpipe.refparsers.unicode import UnicodeHandler
 unicode_handler = UnicodeHandler()
 
+from adsputils import load_config
+
+config = {}
+config.update(load_config())
+
 
 class ReferenceError(Exception):
     """
@@ -483,7 +488,7 @@ class XMLreference(Reference):
                 valid += 1
         if valid == len(self.re_valid_refstr):
             return self.re_extra_whitespace.sub(' ', refstr)
-        return None
+        return self.re_extra_whitespace.sub(' ', refstr) + config['INCOMPLETE_REFERENCE']
 
     def xmlnode_nodecontents(self, name, keepxml=0, attrs={}):
         """
