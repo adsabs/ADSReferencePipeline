@@ -97,7 +97,7 @@ class TestReferenceParsers(unittest.TestCase):
 
     def test_crossrefxml_parser(self):
         """ test parser for crossrefxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.ref.xml')
+        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.xref.xml')
         references = CrossRefToREFs(filename=reference_source, buffer=None).process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_crossref)
 

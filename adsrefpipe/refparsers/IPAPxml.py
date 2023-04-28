@@ -147,16 +147,17 @@ class IPAPtoREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for raw_reference in block_references:
+            for i, raw_reference in enumerate(block_references):
                 cleaned_references = self.cleanup(raw_reference)
 
                 logger.debug("IPAPxml: parsing %s" % cleaned_references)
                 try:
                     for reference in cleaned_references:
                         ipap_reference = IPAPreference(reference)
-                        parsed_references.append({**ipap_reference.get_parsed_reference(), 'refraw': raw_reference})
+                        parsed_references.append(self.merge({**ipap_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("IPAPxml: error parsing reference: %s" %error_desc)
 

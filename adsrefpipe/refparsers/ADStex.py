@@ -35,14 +35,13 @@ class ADStexToREFs(TEXtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
-
-            # self.tmp_count_references(bibcode, self.filename, block_references)
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 reference = self.latex_reference.cleanup(reference)
                 logger.debug("confTEX: parsing %s" % reference)
-                parsed_references.append({'refstr': reference, 'refraw': reference})
+                parsed_references.append(self.merge({'refstr': reference, 'refraw': reference}, self.any_item_num(item_nums, i)))
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))

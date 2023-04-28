@@ -73,13 +73,14 @@ class ARXIVtoREFs(TXTtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for raw_reference in block_references:
+            for i, raw_reference in enumerate(block_references):
                 reference = self.cleanup(raw_reference)
 
                 logger.debug("arXivTXT: parsing %s" % reference)
-                parsed_references.append({'refstr': reference, 'refraw': raw_reference})
+                parsed_references.append(self.merge({'refstr': reference, 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))

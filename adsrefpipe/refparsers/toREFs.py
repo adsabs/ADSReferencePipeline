@@ -62,7 +62,7 @@ class toREFs():
         return bibcodes
 
     @abstractmethod
-    def prcess_and_dispatch(self, cleanup_process=False):
+    def prcess_and_dispatch(self):
         return
 
     def dispatch(self):
@@ -70,7 +70,7 @@ class toREFs():
         this function just calls the parser
         :return:
         """
-        return self.process_and_dispatch(cleanup_process=False)
+        return self.process_and_dispatch()
 
     def has_arXiv_id(self, reference):
         """
@@ -84,6 +84,32 @@ class toREFs():
             return True
         return False
 
+    def any_item_num(self, item_nums, idx):
+        """
+        when references are reprocess, the original item_num is used
+        if references are being processed for the first time, there is no item_num
+
+        :param item_nums:
+        :param idx:
+        :return:
+        """
+        try:
+            item_num = item_nums[idx]
+            return {'item_num': item_num}
+        except:
+            pass
+        return {}
+
+    def merge(self, dict1, dict2):
+        """
+        combine dict2 into dict1 and return dict1
+
+        :param dict1:
+        :param dict2:
+        :return:
+        """
+        dict1.update(dict2)
+        return dict1
 
 class TXTtoREFs(toREFs):
 
@@ -166,8 +192,8 @@ class TXTtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            references = [ref['refraw'] for ref in buffer['references']]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': references})
+            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
+            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -216,7 +242,7 @@ class TXTtoREFs(toREFs):
         # ignore anything after %
         line = line.split('%')[0].replace('\n', '')
         if line:
-            reference += (' ' + self.re_remove_spaces.sub(' ', self.re_enumeration.sub(r'\2', line)).replace('\r', '').replace('\n', '').replace('\&', '&'))
+            reference += (' ' + self.re_remove_spaces.sub(' ', self.re_enumeration.sub(r'\2', line)).replace('\r', '').replace('\n', '').replace(r'\&', '&'))
             reference = reference.strip()
             reference = self.cleanup(reference)
             # if next line is a new reference or we are at the end of reference list,
@@ -365,7 +391,8 @@ class XMLtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': buffer['references']})
+            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
+            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -611,7 +638,8 @@ class OCRtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': buffer['references']})
+            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
+            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -941,8 +969,8 @@ class TEXtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            references = [ref['refraw'] for ref in buffer['references']]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': references})
+            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
+            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -1167,8 +1195,8 @@ class HTMLtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            references = [ref['refraw'] for ref in buffer['references']]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': references})
+            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
+            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername

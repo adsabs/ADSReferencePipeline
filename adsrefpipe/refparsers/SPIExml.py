@@ -215,15 +215,16 @@ class SPIEtoREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 reference = self.cleanup(reference)
 
                 logger.debug("SPIExml: parsing %s" % reference)
                 try:
                     spie_reference = SPIEreference(reference)
-                    parsed_references.append({**spie_reference.get_parsed_reference(), 'refraw': reference})
+                    parsed_references.append(self.merge({**spie_reference.get_parsed_reference(), 'refraw': reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("SPIExml: error parsing reference: %s" % error_desc)
 

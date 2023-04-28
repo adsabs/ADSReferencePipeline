@@ -173,6 +173,7 @@ class APStoREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             # remove closing '</reference>' tag at end of file
             if block_references and len(block_references):
@@ -180,13 +181,13 @@ class APStoREFs(XMLtoREFs):
     
             parsed_references = []
             prev_reference = ''
-            for raw_reference in block_references:
+            for i, raw_reference in enumerate(block_references):
                 reference, prev_reference = self.cleanup(raw_reference, prev_reference)
 
                 logger.debug("APSXML: parsing %s" % reference)
                 try:
                     aps_reference = APSreference(reference)
-                    parsed_references.append({**aps_reference.get_parsed_reference(), 'refraw': raw_reference})
+                    parsed_references.append(self.merge({**aps_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("APSxml: error parsing reference: %s" %error_desc)
     

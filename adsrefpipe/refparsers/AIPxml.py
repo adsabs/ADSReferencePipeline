@@ -84,13 +84,7 @@ class AIPreference(XMLreference):
             refstr = self.to_ascii(self.xmlnode_nodecontents('ref').strip())
             # remove any url from unstructured string if any
             refstr = self.re_unstructured_url.sub('', refstr).strip()
-            valid = 0
-            for one_set in self.re_valid_refstr:
-                match = one_set.search(refstr)
-                if match:
-                    valid += 1
-            if valid == len(self.re_valid_refstr):
-                self['refplaintext'] = self.re_extra_whitespace.sub(' ',refstr)
+            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -189,16 +183,17 @@ class AIPtoREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
             prev_reference = ''
-            for raw_reference in block_references:
+            for i, raw_reference in enumerate(block_references):
                 reference, prev_reference = self.cleanup(raw_reference, prev_reference)
 
                 logger.debug("AIPxml: parsing %s" % reference)
                 try:
                     aip_reference = AIPreference(reference)
-                    parsed_references.append({**aip_reference.get_parsed_reference(), 'refraw': raw_reference})
+                    parsed_references.append(self.merge({**aip_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("APSxml: error parsing reference: %s" %error_desc)
 

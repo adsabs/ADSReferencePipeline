@@ -10,7 +10,6 @@ config.update(load_config())
 
 from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.refparsers.toREFs import XMLtoREFs
-from adsrefpipe.refparsers.unicode import tostr
 
 
 class JSTAGEreference(XMLreference):
@@ -46,7 +45,10 @@ class JSTAGEreference(XMLreference):
         self['jrlstr'] = journal
         self['volume'] = volume
         self['pages'] = pages
-        self['refstr'] = refstr
+
+        self['refstr'] = self.get_reference_str()
+        if not self['refstr']:
+            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -73,13 +75,14 @@ class JSTAGEtoREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 logger.debug("JSTAGExml: parsing %s" % reference)
                 try:
                     jstage_reference = JSTAGEreference(reference)
-                    parsed_references.append({**jstage_reference.get_parsed_reference(), 'refraw': reference})
+                    parsed_references.append(self.merge({**jstage_reference.get_parsed_reference(), 'refraw': reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("JSTAGExml: error parsing reference: %s" % error_desc)
 

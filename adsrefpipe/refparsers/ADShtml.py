@@ -60,12 +60,13 @@ class ADSHTMLtoREFs(HTMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 reference = unicode_handler.ent2asc(reference).strip()
                 logger.debug("adsHTML: parsing %s" % reference)
-                parsed_references.append({'refstr': reference, 'refraw': reference})
+                parsed_references.append(self.merge({'refstr': reference, 'refraw': reference}, self.any_item_num(item_nums, i)))
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
@@ -379,16 +380,17 @@ class PASJHTMLtoREFs(ADSHTMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 # some references appear in the same line with seprator `(RC\d)`
                 # split them
                 possible_multi = self.re_multiplies.split(reference)
                 for single_reference in possible_multi:
                     reference = unicode_handler.ent2asc(single_reference.strip()).strip()
                     logger.debug("adsHTMLpasj: parsing %s" % reference)
-                    parsed_references.append({'refstr': reference, 'refraw': reference})
+                    parsed_references.append(self.merge({'refstr': reference, 'refraw': reference}, self.any_item_num(item_nums, i)))
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))

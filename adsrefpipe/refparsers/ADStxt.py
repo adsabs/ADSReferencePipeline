@@ -38,12 +38,13 @@ class ADStxtToREFs(TXTtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 reference = self.latex_reference.cleanup(unicode_handler.ent2asc(reference))
                 logger.debug("ADStxt: parsing %s" % reference)
-                parsed_references.append({'refstr': reference, 'refraw': reference})
+                parsed_references.append(self.merge({'refstr': reference, 'refraw': reference}, self.any_item_num(item_nums, i)))
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
@@ -353,15 +354,16 @@ class PairsTXTtoREFs(ADStxtToREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 if type(reference) == str:
                     logger.debug("ADSpairs: parsing %s" % reference)
-                    parsed_references.append({'refstr': reference, 'bibcode': reference})
+                    parsed_references.append(self.merge({'refstr': reference, 'bibcode': reference}, self.any_item_num(item_nums, i)))
                 elif type(reference) == tuple:
                     logger.debug("ADSpairs: parsing %s" % ';'.join(reference))
-                    parsed_references.append({'refstr': ';'.join(reference), 'bibcode': reference[0]})
+                    parsed_references.append(self.merge({'refstr': ';'.join(reference), 'bibcode': reference[0]}, self.any_item_num(item_nums, i)))
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))

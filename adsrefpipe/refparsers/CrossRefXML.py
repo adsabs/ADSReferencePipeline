@@ -238,9 +238,10 @@ class CrossRefToREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for raw_reference in block_references:
+            for i, raw_reference in enumerate(block_references):
                 if self.re_skip.search(self.re_linefeed.sub('', raw_reference)):
                     continue
                 reference = self.cleanup(raw_reference)
@@ -248,7 +249,7 @@ class CrossRefToREFs(XMLtoREFs):
                 logger.debug("CrossRefxml: parsing %s" % reference)
                 try:
                     crossref_reference = CrossRefreference(reference)
-                    parsed_references.append({**crossref_reference.get_parsed_reference(), 'refraw': raw_reference})
+                    parsed_references.append(self.merge({**crossref_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("CrossRefxml: error parsing reference: %s" % error_desc)
 
@@ -270,7 +271,7 @@ if __name__ == '__main__':      # pragma: no cover
         print(CrossRefToREFs(buffer=args.buffer).process_and_dispatch())
     # if no reference source is provided, just run the source test file
     elif not args.filename and not args.buffer:
-        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.ref.xml')
+        filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.xref.xml')
         result = CrossRefToREFs(filename=filename, buffer=None).process_and_dispatch()
         if result == parsed_references.parsed_crossref:
             print('Test passed!')

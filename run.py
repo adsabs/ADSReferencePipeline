@@ -109,11 +109,17 @@ def process_files(filenames):
     :param files:
     :return:
     """
+    queued_tasks = []
+
     for filename in filenames:
         # first figure out which parser to call
         parser_dict = app.get_parser(filename)
         # parser name
         parser = verify(parser_dict.get('name'))
+        if not parser:
+            logger.error("Unable to detect which parser to use for the file %s." % filename)
+            continue
+
         # now read the source file
         toREFs = parser(filename=filename, buffer=None)
         if toREFs:
@@ -121,7 +127,7 @@ def process_files(filenames):
             parsed_references = toREFs.process_and_dispatch()
             if not parsed_references:
                 logger.error("Unable to parse %s." % toREFs.filename)
-                return False
+                continue
 
             for block_references in parsed_references:
                 # save the initial records in the database,
@@ -129,18 +135,19 @@ def process_files(filenames):
                 # anything went wrong with the service that we did not get back the
                 # resolved reference
                 references = app.populate_tables_pre_resolved_initial_status(source_bibcode=block_references['bibcode'],
-                                                                             source_filename=toREFs.filename,
+                                                                             source_filename=filename,
                                                                              parsername=parser_dict.get('name'),
                                                                              references=block_references['references'])
                 if not references:
                     logger.error("Unable to insert records from %s to db." % toREFs.filename)
-                    return []
+                    continue
 
                 queued_tasks = queue_references(references, filename, block_references['bibcode'], parser_dict.get('name'))
 
-            check_queue(queued_tasks)
         else:
             logger.error("Unable to process %s. Skipped!" % toREFs.filename)
+
+        check_queue(queued_tasks)
 
 
 # two ways to queue references: the other is to query database
@@ -152,12 +159,18 @@ def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_
     :param date_cutoff:
     :return:
     """
+    queued_tasks = []
+
     records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, date_cutoff)
     for record in records:
         # first figure out which parser to call
         parser_dict = app.get_parser(record['source_filename'])
         # parser name
         parser = verify(parser_dict.get('name'))
+        if not parser:
+            logger.error("Unable to detect which parser to use for the file %s." % record['source_filename'])
+            continue
+
         # now pass the result records from query to the parser object
         toREFs = parser(filename=None, buffer=record)
         if toREFs:
@@ -165,25 +178,24 @@ def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_
             parsed_references = toREFs.dispatch()
             if not parsed_references:
                 logger.error("Unable to parse %s." % toREFs.filename)
-                return False
+                continue
 
-            queued_tasks = []
             for block_references in parsed_references:
                 # save the retry records in the database,
                 references = app.populate_tables_pre_resolved_retry_status(source_bibcode=block_references['bibcode'],
-                                                                           source_filename=toREFs.filename,
-                                                                           source_modified=block_references['source_modified'],
+                                                                           source_filename=record['source_filename'],
+                                                                           source_modified=record['source_modified'],
                                                                            retry_records=block_references['references'])
                 if not references:
-                    logger.error("Unable to insert records from %s to db." % toREFs.filename)
-                    return []
+                    logger.error("Unable to reprocess records from file %s." % toREFs.filename)
+                    continue
 
-                queued_tasks.append(queue_references(references, toREFs.filename, block_references['bibcode'], parser_dict.get('name')))
+                queued_tasks = queue_references(references, toREFs.filename, block_references['bibcode'], parser_dict.get('name'))
 
-            check_queue(queued_tasks)
         else:
             logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
+        check_queue(queued_tasks)
 
 if __name__ == '__main__':
 

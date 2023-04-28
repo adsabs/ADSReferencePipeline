@@ -175,8 +175,8 @@ class JATSreference(XMLreference):
         self['ext_link'] = ext_links
 
         self['refstr'] = self.get_reference_str()
-        if not self['refstr'] and type not in ['website', 'supplementary-material']:
-            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(self.xmlnode_nodecontents('mixed-citation')))
+        if not self['refstr']:
+            self['refplaintext'] = self.get_reference_plain_text(self.to_ascii(refstr))
 
         self.parsed = 1
 
@@ -337,15 +337,16 @@ class JATStoREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for raw_reference in block_references:
+            for i, raw_reference in enumerate(block_references):
                 reference = self.cleanup(raw_reference)
 
                 logger.debug("JATSxml: parsing %s" % reference)
                 try:
                     jats_reference = JATSreference(reference)
-                    parsed_references.append({**jats_reference.get_parsed_reference(), 'refraw': raw_reference})
+                    parsed_references.append(self.merge({**jats_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("JATSxml: error parsing reference: %s" %error_desc)
 

@@ -169,13 +169,14 @@ class PASAtoREFs(XMLtoREFs):
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
             block_references = raw_block_references['block_references']
+            item_nums = raw_block_references.get('item_nums', [])
 
             parsed_references = []
-            for reference in block_references:
+            for i, reference in enumerate(block_references):
                 logger.debug("PASAxml: parsing %s" % reference)
                 try:
                     pasa_reference = PASAreference(reference)
-                    parsed_references.append({**pasa_reference.get_parsed_reference(), 'refraw': reference})
+                    parsed_references.append(self.merge({**pasa_reference.get_parsed_reference(), 'refraw': reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
                     logger.error("PASAxml: error parsing reference: %s" % error_desc)
 
