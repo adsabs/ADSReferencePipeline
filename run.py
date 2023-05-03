@@ -304,7 +304,7 @@ if __name__ == '__main__':
 
     if args.action == 'DIAGNOSTICS':
         if args.parse_filename:
-            name = app.get_parser_name(args.parse_filename)
+            name = app.get_parser(args.parse_filename)
             if name:
                 print('Source file `%s` shall be parsed using `%s` parser.' % (args.parse_filename, name))
             else:
@@ -356,7 +356,7 @@ if __name__ == '__main__':
             print('Num References Resolved:', num_resolved)
             print('\n')
         elif args.publisher:
-            records = app.query_reference_tbl(parser_type=args.publisher)
+            records = app.query_reference_source_tbl(parsername=args.publisher)
             if not records:
                 print('No records found for parser %s.'%args.publisher)
             else:

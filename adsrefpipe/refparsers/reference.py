@@ -447,6 +447,8 @@ class XMLreference(Reference):
                     if self.get('pages', None):
                         refstr += ", %s" % self.get('pages', None)
                     refstr += "."
+                elif (self.get('doi', None) or self.get('eprint', None)):
+                    refstr = "%s, %s." % (self.get('authors', None), self.get('year', None))
         except:
             pass
 
@@ -463,7 +465,7 @@ class XMLreference(Reference):
                     if 'arxiv' not in self['eprint'].lower():
                         refstr += " arXiv:%s"%self['eprint']
                     else:
-                        refstr = " %s"%self['eprint']
+                        refstr += " %s"%self['eprint']
             except:
                 pass
 

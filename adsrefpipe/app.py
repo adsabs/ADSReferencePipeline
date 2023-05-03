@@ -146,12 +146,13 @@ class ADSReferencePipelineCelery(ADSCelery):
                 self.logger.error("No unique record found in table `Parser` matching name %s." % parsername)
         return ''
 
-    def query_reference_source_tbl(self, bibcode_list=None, source_filename_list=None):
+    def query_reference_source_tbl(self, bibcode_list=None, source_filename_list=None, parsername=None):
         """
         Queries reference table and returns results.
 
         :param bibcode_list:
         :param source_filename_list:
+        :param parsername:
         :return:
         """
         with self.session_scope() as session:
@@ -167,6 +168,9 @@ class ADSReferencePipelineCelery(ADSCelery):
             elif source_filename_list:
                 rows = session.query(ReferenceSource).filter(ReferenceSource.source_filename.in_(source_filename_list)).order_by(ReferenceSource.source_filename).all()
                 self.logger.info("Fetched records for source_filename = %s." % (','.join(source_filename_list)))
+            elif parsername:
+                rows = session.query(ReferenceSource).filter(and_(ReferenceSource.parser_name == parsername)).all()
+                self.logger.info("Fetched records for parser = %s." % (parsername))
             else:
                 rows = session.query(ReferenceSource).order_by(ReferenceSource.bibcode).limit(10).all()
                 self.logger.info("Fetched records for 10 records.")
@@ -178,6 +182,8 @@ class ADSReferencePipelineCelery(ADSCelery):
                     self.logger.error("No records found for bibcode = %s." % (','.join(bibcode_list)))
                 elif source_filename_list:
                     self.logger.error("No records found for source_filename = %s." % (','.join(source_filename_list)))
+                elif parsername:
+                    self.logger.error("No records found for parser = %s." % (parsername))
                 else:
                     self.logger.error("No records found in table `ReferenceSource`.")
 
@@ -677,7 +683,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                         row.append(item)
                     table.add_row(row)
                 return table.draw(), len(results), num_resolved
-        return 'Unable to fetch data for reference source file `%s` from database!'%source_filename
+        return 'Unable to fetch data for reference source file `%s` from database!'%source_filename, -1, -1
 
     def get_reprocess_records(self, type, score_cutoff, match_bibcode, date_cutoff):
         """

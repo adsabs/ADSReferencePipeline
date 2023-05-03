@@ -111,6 +111,7 @@ class toREFs():
         dict1.update(dict2)
         return dict1
 
+
 class TXTtoREFs(toREFs):
 
     re_stacks_iop_org = re.compile('http://stacks.iop.org')
