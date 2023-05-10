@@ -625,13 +625,20 @@ class ADSReferencePipelineCelery(ADSCelery):
         # given reference source (bibcodes and filenames), have query that would contain
         # all resolved records ids, and if we have reprocessed records, it contains one
         # set of records for those
-        resolved_reference_ids = session.query(ResolvedReference.history_id.label('history_id'),
-                             ResolvedReference.item_num.label('item_num')) \
-            .filter(and_(ProcessedHistory.id == ResolvedReference.history_id,
-                         literal(source_bibcode).op('~')(ProcessedHistory.bibcode),
-                         literal(source_filename).op('~')(ProcessedHistory.source_filename))) \
-            .distinct().subquery()
+        if source_bibcode and source_filename:
+            filter = and_(ProcessedHistory.id == ResolvedReference.history_id,
+                          literal(source_bibcode).op('~')(ProcessedHistory.bibcode),
+                          literal(source_filename).op('~')(ProcessedHistory.source_filename))
+        elif source_bibcode:
+            filter = and_(ProcessedHistory.id == ResolvedReference.history_id,
+                          literal(source_bibcode).op('~')(ProcessedHistory.bibcode))
+        elif source_filename:
+            filter = and_(ProcessedHistory.id == ResolvedReference.history_id,
+                             literal(source_filename).op('~')(ProcessedHistory.source_filename))
 
+        resolved_reference_ids = session.query(ResolvedReference.history_id.label('history_id'),
+                                               ResolvedReference.item_num.label('item_num')) \
+            .filter(filter).distinct().subquery()
         return session.query(func.max(case([(CompareClassic.state == 'MATCH', 'MATCH')])).label('MATCH'),
                             func.max(case([(CompareClassic.state == 'MISS', 'MISS')])).label('MISS'),
                             func.max(case([(CompareClassic.state == 'NEW', 'NEW')])).label('NEW'),
