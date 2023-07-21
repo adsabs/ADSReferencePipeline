@@ -22,8 +22,6 @@ LOGGING_LEVEL = 'DEBUG'
 # celery config
 CELERY_INCLUDE = ['adsrefpipe.tasks']
 CELERY_BROKER = 'pyamqp://'
-# for result backend
-REDIS_BACKEND = "redis://localhost:6379/0"
 
 
 # if task did not finish in this many seconds, abort
@@ -37,7 +35,7 @@ COMPARE_CLASSIC = True
 # number of bibcodes/sourcefiles that can be submitted for diagnostics
 MAX_ENTRIES_DIAGNOSTICS = 5
 
-# number of times each items is requeued if not processed successfullly before quiting
+# number of times each items is requeued if not processed unsuccessfully before quiting
 MAX_QUEUE_RETRIES = 3
 
 # indication that this is considered an incomplete reference

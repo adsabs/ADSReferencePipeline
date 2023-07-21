@@ -1,14 +1,10 @@
 import sys
 import os, fnmatch
-import re
 
 from adsputils import setup_logging, load_config, get_date
-from datetime import datetime, timedelta
-import time
+from datetime import timedelta
 
 import argparse
-import threading
-import pickle
 
 from adsrefpipe import tasks
 from adsrefpipe.refparsers.handler import verify
@@ -56,30 +52,6 @@ def get_source_filenames(source_file_path, file_extension, date_cutoff):
     return list_files
 
 
-def check_queue(queued_tasks):
-    """
-    every few seconds check the tasks to see if it was processed
-
-    :param queued_tasks:
-    :return:
-    """
-    to_queue_tasks = []
-    # check to see if the queued tasks got processed successfully
-    for queued_task in queued_tasks:
-        if not queued_task['results'].state == 'SUCCESS':
-            if queued_task['attempts'] > 0:
-                queued_task['attempts'] -= 1
-                to_queue_tasks.append(queued_task)
-            else:
-                logger.info("Unable to process reference %s with multiple attempts. Skipped!" %queued_task['reference'])
-
-    if len(to_queue_tasks) > 0:
-        logger.info('%d/%d task remains for processing.'%(len(to_queue_tasks),len(queued_tasks)))
-        threading.Timer(config['QUEUE_AUDIT_INTERVAL'], check_queue, (to_queue_tasks,)).start()
-    else:
-        logger.info('All tasks consumed.')
-
-
 def queue_references(references, source_filename, source_bibcode, parsername):
     """
 
@@ -90,31 +62,39 @@ def queue_references(references, source_filename, source_bibcode, parsername):
     :return:
     """
     resolver_service_url = config['REFERENCE_PIPELINE_SERVICE_URL'] + app.get_reference_service_endpoint(parsername)
-    queued_tasks = []
     for reference in references:
         reference_task = {'reference': reference,
                           'source_bibcode': source_bibcode,
                           'source_filename': source_filename,
                           'resolver_service_url': resolver_service_url}
-        results = tasks.task_process_reference.delay(reference_task)
-        queued_tasks.append({'reference': reference, 'results': results, 'attempts': config['MAX_QUEUE_RETRIES']})
-    return queued_tasks
+        tasks.task_process_reference.delay(reference_task)
 
 
-# two ways to queue references: one is to read source files
 def process_files(filenames):
     """
-    process source reference file
+    two ways to queue references: one is to read source files, the other is to query database
+    this is to read the source reference file and queue each reference for processing
 
     :param files:
     :return:
     """
-    queued_tasks = []
-
     for filename in filenames:
-        # first figure out which parser to call
+        # from filename get the parser info
+        # file extension, and bibstem and volume directories are used to query database and return the parser info
+        # ie for filename `adsrefpipe/tests/unittests/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw`
+        # extension ref.raw, bibstem directory ARA+A and volume directory 0 is used and the
+        # parser info is {'name': 'ThreeBibsTxt',
+        #                 'extension_pattern': '.ref.raw',
+        #                 'reference_service_endpoint': '/text',
+        #                 'matches': [[{'journal': 'AnRFM', 'volume_end': 37, 'volume_begin': 34},
+        #                              {'journal': 'ARA+A', 'volume_end': 43, 'volume_begin': 40},
+        #                              {'journal': 'ARNPS', 'volume_end': 56, 'volume_begin': 52}]]}
         parser_dict = app.get_parser(filename)
-        # parser name
+        # now map parser name to the class (see adsrefpipe/refparsers/handler.py)
+        # ie parser name ThreeBibsTxt is mapped to ThreeBibstemsTXTtoREFs
+        # 'ThreeBibsTxt': ThreeBibstemsTXTtoREFs,
+        # note that from the class name it is clear which type of parser this is
+        # (ie, this is a TXT parser implemented in module adsrefpipe/refparsers/ADStxt.py)
         parser = verify(parser_dict.get('name'))
         if not parser:
             logger.error("Unable to detect which parser to use for the file %s." % filename)
@@ -142,30 +122,40 @@ def process_files(filenames):
                     logger.error("Unable to insert records from %s to db." % toREFs.filename)
                     continue
 
-                queued_tasks = queue_references(references, filename, block_references['bibcode'], parser_dict.get('name'))
+                queue_references(references, filename, block_references['bibcode'], parser_dict.get('name'))
 
         else:
             logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
-        check_queue(queued_tasks)
 
-
-# two ways to queue references: the other is to query database
 def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_cutoff=None):
     """
+    two ways to queue references: one is to read source files, the other is to query database
+    this is to query the db and queue each reference for processing
 
     :param reprocess_type:
     :param param:
     :param date_cutoff:
     :return:
     """
-    queued_tasks = []
-
     records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, date_cutoff)
     for record in records:
-        # first figure out which parser to call
+        # from filename get the parser info
+        # file extension, and bibstem and volume directories are used to query database and return the parser info
+        # ie for filename `adsrefpipe/tests/unittests/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw`
+        # extension ref.raw, bibstem directory ARA+A and volume directory 0 is used and the
+        # parser info is {'name': 'ThreeBibsTxt',
+        #                 'extension_pattern': '.ref.raw',
+        #                 'reference_service_endpoint': '/text',
+        #                 'matches': [[{'journal': 'AnRFM', 'volume_end': 37, 'volume_begin': 34},
+        #                              {'journal': 'ARA+A', 'volume_end': 43, 'volume_begin': 40},
+        #                              {'journal': 'ARNPS', 'volume_end': 56, 'volume_begin': 52}]]}
         parser_dict = app.get_parser(record['source_filename'])
-        # parser name
+        # now map parser name to the class (see adsrefpipe/refparsers/handler.py)
+        # ie parser name ThreeBibsTxt is mapped to ThreeBibstemsTXTtoREFs
+        # 'ThreeBibsTxt': ThreeBibstemsTXTtoREFs,
+        # note that from the class name it is clear which type of parser this is
+        # (ie, this is a TXT parser implemented in module adsrefpipe/refparsers/ADStxt.py)
         parser = verify(parser_dict.get('name'))
         if not parser:
             logger.error("Unable to detect which parser to use for the file %s." % record['source_filename'])
@@ -190,12 +180,11 @@ def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_
                     logger.error("Unable to reprocess records from file %s." % toREFs.filename)
                     continue
 
-                queued_tasks = queue_references(references, toREFs.filename, block_references['bibcode'], parser_dict.get('name'))
+                queue_references(references, toREFs.filename, block_references['bibcode'], parser_dict.get('name'))
 
         else:
             logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
-        check_queue(queued_tasks)
 
 if __name__ == '__main__':
 
@@ -289,11 +278,11 @@ if __name__ == '__main__':
                         default=None,
                         help='Statistics of source reference, comparing classic and service reference resolvering if available')
     stats.add_argument('-p',
-                        '--publisher',
-                        dest='publisher',
+                        '--parser',
+                        dest='parser',
                         action='store',
                         default=None,
-                        help='To list all source filenames resolved from a specific publisher')
+                        help='To list all source filenames resolved from a specific parser')
     stats.add_argument('-c',
                        '--count',
                        dest='count',
@@ -355,10 +344,10 @@ if __name__ == '__main__':
             print('Num References:', num_references)
             print('Num References Resolved:', num_resolved)
             print('\n')
-        elif args.publisher:
-            records = app.query_reference_source_tbl(parsername=args.publisher)
+        elif args.parser:
+            records = app.query_reference_source_tbl(parsername=args.parser)
             if not records:
-                print('No records found for parser %s.'%args.publisher)
+                print('No records found for parser %s.'%args.parser)
             else:
                 for record in records:
                     print(record['source_filename'])

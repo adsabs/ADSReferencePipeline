@@ -4,7 +4,6 @@ in order to initialize the database and get a working configuration.
 """
 
 import re
-import time
 
 from builtins import str
 from adsputils import ADSCelery
@@ -39,7 +38,7 @@ class ADSReferencePipelineCelery(ADSCelery):
 
     def init_default_parsers(self):
         """
-        init default parsers lookup table
+        read into memory parser info from the lookup table
 
         :return:
         """
@@ -334,7 +333,6 @@ class ADSReferencePipelineCelery(ADSCelery):
 
         return results
 
-
     def insert_reference_source_record(self, session, reference):
         """
         check to see if the record already exists in the db first, if not, then add it in
@@ -458,6 +456,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                     self.logger.info("Source file %s for bibcode %s with %d references, processed successfully." % (source_filename, source_bibcode, len(references)))
                     return references
         except SQLAlchemyError as e:
+            session.rollback()
             self.logger.info("Source file %s information failed to get added to database. Error: %s" % (source_filename, str(e.__dict__['orig'])))
         return []
 
@@ -487,6 +486,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                     self.logger.info("Source file %s for bibcode %s with %d references, for reprocessing added successfully." % (source_filename, source_bibcode, len(references)))
                     return references
         except SQLAlchemyError as e:
+            session.rollback()
             self.logger.info("Source file %s information for reprocessing failed to get added to database." % (source_filename, str(e.__dict__['orig'])))
         return []
 
@@ -539,6 +539,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                 self.logger.info("Updated %d resolved reference records successfully." % len(resolved_reference))
                 return True
         except SQLAlchemyError as e:
+            session.rollback()
             self.logger.info("Failed to update %d resolved reference records successfully. Error %s" % (len(resolved_reference), str(e)))
             return False
 

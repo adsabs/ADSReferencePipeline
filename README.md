@@ -12,7 +12,7 @@ This pipeline is to process source reference files, if xml to parse them first a
 
 ## Required software
 
-    - Redis, RabbitMQ and PostgreSQL
+    - RabbitMQ and PostgreSQL
     
     
 ## Setup (recommended)

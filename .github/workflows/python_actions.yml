@@ -38,11 +38,6 @@ jobs:
           - 5672:5672
 
     steps:
-    - name: Start Redis
-      uses: supercharge/redis-github-action@1.2.0
-      with:
-        redis-version: 6
-
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
