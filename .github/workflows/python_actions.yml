@@ -22,7 +22,6 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-
         ports:
           - 5432:5432
         # Set health checks to wait until postgres has started
@@ -31,6 +30,12 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:3.11.13
+        ports:
+          - 15672:15672
+          - 5672:5672
 
     steps:
     - uses: actions/checkout@v2
@@ -43,11 +48,9 @@ jobs:
         python -m pip install --upgrade setuptools pip
         pip install -r requirements.txt
         pip install -r dev-requirements.txt
-
     - name: Test with pytest
       run: |
         py.test
-
     - name: Upload coverage data to coveralls.io
       run: coveralls
       env:

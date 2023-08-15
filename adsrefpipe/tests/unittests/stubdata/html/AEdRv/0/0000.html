@@ -1,0 +1,646 @@
+<html>
+
+<head>
+  <title>Astronomy Education Review </title>
+  <link rel="stylesheet" href="/aer.css" type="text/css" />  
+  <style type="text/css" media="all">@import "/aer2.css";</style> 
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+</head>
+
+<body>
+
+<img src="/images/tag.gif"
+  alt="A Lively Electronic Compendium of Research, News, Resources, and Opinion" 
+  width="555" height="20" border="0" class="tag" />
+<br clear="all" />
+
+<img src="/images/aer_title2.gif" 
+  alt="Astronomy Education Review"
+  width="582" height="61" border="0" class="aertitle" />
+
+<div id="masthead">
+<div class="left">Volume 5, Apr 2006 - Oct 2006</div>
+<div class="right">Issue 1</div>
+<div class="spacer"></div>
+</div>
+
+<br /> 
+<div id="nav"> 
+ 
+ 
+    <a href="/cgi-bin/new.pl">Home</a>   
+    <a href="/cgi-bin/issue.pl">Latest Issue</a>   
+    <a href="/cgi-bin/backissues.pl">Back Issues</a>   
+    <a href="/cgi-bin/opps.pl">Opportunities</a>   
+    <a href="/cgi-bin/search.pl">Search Tools</a>   
+    <a href="/aerreg.php">Subscribe</a>   
+    <a href="/about.html">About&nbsp;the&nbsp;&AElig;R&nbsp;site</a>   
+    <a href="/mission.html">Mission</a>   
+    <a href="/edit_board.html">Editorial Board</a>   
+    <a href="/edit_process.html">Journal&nbsp;Sections</a>   
+    <a href="/submit.html">How&nbsp;to&nbsp;Submit</a>   
+    <a href="/contact.html">How&nbsp;to&nbsp;Reach&nbsp;Us</a>   
+    <a href="/terms.html">Copyright Policy</a>  
+
+  <div id="search">
+    <form method="post" action="/cgi-bin/search.pl">
+      <input type="text" name="bsterm" size="10" />
+      <input type="submit" name="basicsearch" value="Search" />
+      <input type="hidden" name="bstypeid" value="4" />
+      <input type="hidden" name="search" value="Search" />
+      <input type="hidden" name="source" value="quicksearch" />
+    </form>
+  </div>
+
+</div>
+
+<div id="content">
+
+<h1 class="title">The Design and Development of a Simple Spreadsheet-Based Tool that Enables Students to Make Measurements on Astronomical Images</h1>  
+ 
+
+<p class="author">
+by 
+<strong>Richard  Beare</strong><br /> University of Warwick, United Kingdom<br />	  
+Received: 03/09/06, Revised: 07/24/06, Posted: 09/18/06</p> 
+
+<p id="biblio-cite">
+The Astronomy Education Review, 
+Issue 1, Volume 5:110-137,  2006
+</p>
+
+<p id="copy">
+&copy; 2006, Richard Beare.
+Copyright assigned to the Association of Universities for Research in 
+Astronomy, Inc.
+</p>
+
+<p class="pdf">Download 
+<a href="/figures/v05i01/05-01-02-06.pdf">PDF version of this article</a></p> 
+
+<div class="abstract">
+<h4>Abstract</h4>
+This article describes the need for a software tool to make simple
+measurements on JPEG images, such as those obtained by students from
+robotic telescopes. Specifications for such software are given, followed
+by a description of a spreadsheet-based tool called the JPEG Viewer that
+was developed to meet these specifications. The main underlying aim was
+to enable students to carry out meaningful scientific projects using
+astronomical JPEG images. An evaluation is described of a project that
+involved students in measuring a spiral galaxy. Evidence is presented
+that it was successful in engendering interest, motivation, and
+understanding.
+</div> 
+
+<br />
+
+<!--CTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//E-->
+<h3>1. MOTIVATION</h3>
+<h3>1.1 Using Images for Scientific Investigations</h3>
+<p>The easy availability of beautiful high-quality images from large telescopes has helped make learning astronomy a much more exciting and interesting experience for students in recent years (Beare 2004a, 2004b). Such images come from large ground-based telescopes such as the European Southern Observatory's 8.2-meter telescopes in Chile and those in space, like the Hubble Space Telescope. They are made freely available because agencies such as NASA and its European counterpart, the European Space Agency, have a certain proportion of their funding earmarked for education and outreach, as does the UK's Particle Physics and Astronomy Research Council (PPARC). (See Note 1.)</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00151.jpg" /></td>
+</tr>
+<tr>
+  <td><b>Figure 1.</b> An example of an image that students could measure: the
+   Crab Nebula as imaged by the Faulkes Telescope in Hawaii. These are
+   the remains of an exploding star or supernova, which was seen by
+   Chinese astronomers in 1054. It is about 10 light years across and
+   about 6,000 light years away.</td>
+</tr>
+</table>
+<p>Furthermore, the development of telescopes that produce digital (CCD) images in a similar (but not identical) way to a digital camera has recently opened up new possibilities for students to obtain their own images of astronomical objects and to manipulate these on a computer. In particular, various Internet-controlled robotic teleeuscopes have been developed specifically for education. These telescopes enable students to obtain images even if their school does not possess its own telescope (McKinnon &amp; Geissinger 2002; Beare et al. 2003; PPARC 2004). Some, such as the Liverpool Telescope in the Canary Islands (Beare et al.; PPARC; also see National Schools Observatory Web site), enable students to request images that are sent to them the following day.</p>
+<p>Others, such as the Faulkes Telescopes in Hawaii and Australia (Beare et al. 2003; Beare 2004b; Szymanek 2005), the Charles Sturt Remote Telescope in Australia (McKinnon &amp; Geissinger 2002), and the Telescopes in Education telescope in California (Bartosh, Duff, &amp; Gibson 2000) can be operated in real time, with students obtaining images back immediately.</p>
+<p>The JPEG Viewer software described in this article was developed specifically for the Faulkes Telescopes, which have 2-meter-diameter primary mirrors and are capable of producing high- quality images of faint objects such as galaxies, star-forming regions, and the remains of exploded stars (Figure 1). They are controlled remotely over the Internet by students, and 1024 x 1024-pixel JPEG images are then sent straight back to the user. These images are processed automatically by software at the telescope in order to enhance features of interest, which in the case of spiral galaxies includes the spiral arms. The full astronomical data files in FITS format (see NASA/GSFC Web site) become available within an hour or so.</p>
+<p>High-quality JPEG images are exciting and inspirational in their own right, and even more so if the students have obtained the images for themselves using a remote telescope. Previously, there was little that students could do in the way of investigative work using these images because of the lack of appropriate software tools. This was the main motivation for development of the JPEG Viewer software described in this article.</p>
+<p>The intention was to produce a software tool that would provide opportunities for students at all secondary ages (and, it is hoped, older primary age as well) to carry out scientific analysis and measurement on JPEG images. It was hoped that this would enable a much deeper level of engagement with the science involved than would otherwise be the case. This is in line with studies suggesting that learning, and particularly understanding, is greatly enhanced by tasks that require the science to be thought about and applied.</p>
+<p>It was also thought that the opportunities for investigative work that would be provided by a JPEG measuring tool would be motivating for students, giving them a sense of involvement, ownership, and challenge to which they would respond positively.</p>
+<p>The underlying aim was that the investigations made possible by the software would make a contribution to encouraging more positive attitudes toward science, and physical science in particular. The importance of changing attitudes toward science, mathematics, and technology, and encouraging students to go on and study these subjects has been emphasized by several reports in the United Kingdom (Woolnough 1991; OST/Wellcome 2000; House of Commons 2002; Roberts 2002), and several initiatives have been put in place. The aims of the JPEG Viewer software are therefore very much in line with current imperatives in science and technology education. They are also in line with the views of students and parents, reported by Osborne and Collins (2000), that they would like to see more investigative practical work in school science. </p>
+<p>Investigative project work in astronomy has been developed by several groups, including Hollow (2002), McKinnon &amp; Geissinger (2002), Project CLEA, Hands on Universe, and European Space Agency (2005) projects. The evidence from these projects is that they provide rich scientific learning experiences, provide good insight into what &quot;real&quot; science is all about, and are motivating and popular.</p>
+<h3>1.2 The Lack of Suitable Software for Schools to Use</h3>
+<p>The software normally used for astronomical image analysis is not available on computers found in schools and, for the most part, is not easy to use. Professional astronomers use powerful but complex software that is not particularly intuitive, such as IRAF (NOAO 2006), and they also tend to use UNIX or Linux-based operating systems.</p>
+<p>Nowadays, amateur astronomers are increasingly making use of CCD devices attached to their telescopes to produce digital images. They normally process their images using Windows-based software, much of which is excellent and extremely powerful. However, such software takes time to learn and uses images saved in the special file format used by astronomers (FITS; NASA/GSFC) rather than JPEGs. Furthermore, it is beyond the capabilities of younger or less able students. One also must take the cost into account (except for those such as IRIS and SIP, which are free), and this varies from a few to several hundred dollars, making the total cost very substantial if class sets are required. Examples are AIP4WIN (Berry 2000); IRIS; Sky Image Processor (SIP); MaximDL, GAIA, Starlink, Software Bisque, and Graystel, details of all of which are easily found on the Web using a search.</p>
+<p>Two educational projects that enable students to obtain their own images and that have also developed their own software are Hands On Universe and the Liverpool Telescope/National Schools Observatory (LTImage). However, both of these sets of software packages use the professional (FITS) file format for images, rather than JPEGs, which the Faulkes Telescopes automatically provide in real time.</p>
+<p>The need for software capable of analyzing JPEG images from robotic telescopes such as the Faulkes Telescopes was therefore deemed to be urgent. An additional benefit of developing such software was that it would enable students to analyze JPEG images from any source, including those downloaded from sites such as the <em>Astronomy Picture of the Day</em> Web site, provided the distances to the objects imaged were known.</p>
+<h3>1.3 A Sense of Scale</h3>
+<p>A second motivation for the JPEG Viewer software was to help students get a sense of relative scale in the universe. Astronomical objects encompass a tremendously wide range of scales&mdash;a factor of a hundred million million or so between a planet and a galaxy, for example, with other objects being both smaller (asteroids) and much larger (clusters of galaxies). It is difficult for students to get a sense of relative sizes. How much larger is a galaxy than an individual star, or a planet, or the distance to the nearest star, for example?</p>
+<p>The JPEG Viewer helps students acquire a sense of scale through its ability to overlay shapes representing comparison objects, such as the circle to represent the size of the Earth in the image of Saturn in Figure 2. If the comparison object is too large or too small, the software says by how much. Trying to compare the Milky Way galaxy with Saturn, for example, results in the message, &quot;This object is 1.8 million million times too big to show.&quot; Feedback like this typically elicits amazed responses from students&mdash;such as &quot;I had no idea that the Solar System was such a tiny part of the universe&quot;&mdash;which illustrate the potential of the software for conveying a sense of scale. A worksheet was written (see Beare 2006a) that makes use of sample images and the JPEG Viewer to develop students' sense of scale in the universe.</p>
+<p>That getting an idea of scale in the universe is difficult, both for students and the general public, is borne out by the experience of talking to others. An extensive list of common misconceptions in astronomy, compiled by Comins (2001) and continually updated on the Web, includes some related to size and scale in the universe. However, there is no indication as to how common such misconceptions are because the list is simply a compilation of wrong ideas held by individuals. </p>
+<p>Indeed, there seems to be little research available to substantiate the assertion that a sense of scale in the universe is difficult to grasp and generally poorly understood. Scrutiny of an extensive review of research papers in astronomy education (Bailey &amp; Slater 2003) indicates that most research has been concerned with astronomical topics very close to home, such as day and night, seasons, Moon phases, and so on, with very little relating to more distant entities such as stars and galaxies, or to cosmology and scale in the larger universe. No doubt this is a reflection of the topics in astronomy that have traditionally been taught in schools, a notable exception being the National Curriculum for Science in England (DfEE/QCA; 1999).</p>
+<p>The lack of research focused on the larger scale nature of the universe is also seen in most questionnaires developed to test students' understanding of astronomy&mdash;for example, Osborne, Wadsworth, Black, and Meadows (1994) and Osborne (1995). An exception is the Astronomy Diagnostic Test (Hufnagel 2002; Deming 2002) aimed at college students in the United States.</p>
+<p>Various strategies have been used to aid the understanding of scale in the universe, such as scale models of the Solar System using everyday objects (AAE &amp; ASE 1990), and lavishly illustrated books that go up in powers of 10 from elementary particles all the way to superclusters of galaxies (Morrison 1994; Thomas 1977).</p>
+<h3>2. SPECIFICATIONS</h3>
+<p>Given all this, the need was identified for a software tool that meets the following main criteria: </p>
+<p>1. runs on an ordinary Windows PC or a Macintosh using software commonly found on school and home computers</p>
+<p>2. has a straightforward and intuitive user interface, making it easily usable by students aged 11 and preferably younger</p>
+<p>3. enables students to browse JPEG, GIF, and other images, automatically resizing them to make full use of the available screen space</p>
+<p>4. enables students to make measurements of distances, sizes and angles, giving the answers directly in appropriate angular units, such as degrees or arcminutes</p>
+<p>5. enables students to read off absolute sizes of objects if their distances from Earth are known</p>
+<p>In addition, it was felt that it would be interesting and motivating for students if measurements could be made on the spiral arms in galaxies, giving this additional requirement:</p>
+<p>6. has the ability to measure lengths and pitch angles of spiral arms in galaxies</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00152.gif" /></td>
+</tr>
+<tr>
+  <td><b>Figure 2.</b> Measuring the diameters of Saturn and its rings. The
+   small circle above and slightly to the left of Saturn shows the Earth
+   on the same scale. It appears in red on the computer screen.</td>
+</tr>
+</table>
+<p>Additional functionality was also identified as being desirable:</p>
+<p>7. the ability to make quick size comparisons with well-known objects, such as the Earth, Earth's orbit, the Milky Way galaxy, provided that the distance away of the object in the image is known</p>
+<p>8. &quot;blinking&quot; of two images (i.e., alternating between them so as to identify a fast-moving object such as an asteroid, or to compare images taken using different color filters, for example)</p>
+<p>9. zooming in and out on detail <table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00153.gif" /></td>
+</tr>
+<tr>
+  <td><b>Figure 3.</b> The toolbar buttons for measuring images</td>
+</tr>
+</table> </p>
+<h3>3. BASIC FEATURES OF THE JPEG VIEWER</h3>
+<p>The JPEG Viewer enables students to make distance, size, shape, and angle measurements on objects in astronomical images. It is intended to be intuitive and easy to use. In addition, it allows the spiral arms of spiral galaxies to be measured.</p>
+<p>The JPEG Viewer can be downloaded from <a href="http://www.beares.net/r/astro/viewer">http://www.beares.net/r/astro/viewer</a>. In addition to a link to a brief introductory worksheet, this page includes a link to a worksheet that uses the Viewer to explore scale in the universe and the life cycles of stars, and to measure spiral arms in galaxies. A further link goes to a page from which all the JPEGs used in the worksheets can be downloaded (the software is free, but the author should be acknowledged when referred to in publications). It is an Excel workbook consisting of two separate worksheets (Figure 2); one contains the image to be viewed and measured, and the other displays the measurements that have been made and allows the user to specify the image width and the distance away of the object in the image (if known), both using whatever units are most appropriate. In addition, a floating toolbar attached to the workbook opens and closes with it. This can be seen in Figure 2 (bottom right) and in Figure 3. The buttons on the toolbar activate short programs (macros) written in Visual Basic for Applications (VBA; Jacobson 1999).</p>
+<p>The first button allows a new image to be imported into the Viewer and works exactly like the File/Open menu option in any program. Each new image is automatically zoomed so that it exactly fills the available window area, obviating the need to resize it manually to make best use of the screen.</p>
+<p>The toolbar displays buttons that enable the user to superimpose simple shapes (straight lines, ellipses/circles, rectangles/squares) that are then used to make measurements of distance, size, shape, and angle. The shapes can be dragged across the image, resized, and rotated until they fit the feature that is to be measured. On clicking the <strong>Measure</strong> button, the measurements appear in the right-hand window. In Figure 2, for example, an ellipse has been fitted around the rings of Saturn, and this has been used to measure the outer diameter of the rings (actually, the outer A ring) and their angle of inclination to the observer. A straight line has been used to measure the diameter of the planet.</p>
+<p>As can be seen in Figure 2, the ring and planet diameters are given in arcminutes (angular size) and in absolute size (km). (An arcminute is 1/60th of a degree and is suitable for many telescope images; the Moon, for example, has a diameter of about 30 arcminutes.) Being able to specify the absolute size depends, of course, on knowing how far away the object is, and the user specifies this in the measurements window using whatever units are most appropriate (km in this instance). The values for ring and planet diameters obtained on this occasion were 257,000 km and 114,000 km, in good agreement with the accepted values of 274,000 km and 121,000 km, considering the simplicity of the procedure. The method is simple enough to be carried out by young secondary school students and gives them the satisfaction of actually being able to measure a planet or other object using their own image data.</p>
+<p>If the distance away is not known, no absolute size is shown. For many objects, including moving ones such as planets, distances can be obtained from planetarium software such as Starry Night Pro). </p>
+<p>For objects such as galaxies and nebulae, which do not have any definite outer edge, it is important that students are made aware that what they are measuring is the size of the visible part of the object, not necessarily its true size, and that this can also be dependent on how the JPEG image has been processed. For galaxies in particular, it is important to emphasize that dark matter can extend well beyond the visible outer edge as defined by the presence of stars. This does not detract from the validity of making measurements using the JPEG Viewer; rather, it provides an opportunity for discussing the important scientific issues surrounding the notion of sizes in the case of diffuse astronomical objects.</p>
+<p>Distances to galaxies are generally not known with any great precision, so the values obtained from Starry Night are only approximate. Therefore, the galaxy sizes determined using the JPEG Viewer will also be approximate, and students should be made aware of this. (For a resume of methods that have been used to determine galaxy distances, see Binney &amp; Merrifield 1998). The sample data for the JPEG Viewer worksheet is based on more accurate distances obtained for 72,000 nearby galaxies by Marinoni, Monaco, Giuricin, and Costatini (1998).</p>
+<h3>4. ADDITIONAL FEATURES OF THE JPEG VIEWER</h3>
+<h3>4.1 Comparing the Sizes of Well-Known Objects</h3>
+<p>Figure 2 shows how well-known objects can be superimposed on images to help students gain a sense of relative size in the universe. The small red circle represents the Earth on the same scale. If the comparison object is too large to fit on the image or too small to be seen, the user sees a message stating how many times too large or too small it is. The idea is to help students build a sense of relative sizes within the universe.</p>
+<h3>4.2 Comparing Two Images</h3>
+<p>By clicking the <strong>Blink</strong> button, students can switch rapidly between two separate but related images. In Figure 4, finding an asteroid because it is moving adds an element of challenge and excitement, and is scientifically effective. (It does require the two images to be closely aligned, of course.) To positively identify an asteroid requires more than two images to remove the possibility of confusion with cosmic rays and so on, and because the JPEG Viewer can only blink two images, one would need to follow up with other software dedicated to this task, such as Astrometrica.</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00154.jpg" /></td>
+</tr>
+<tr>
+  <td><b>Figure 4.</b> Blinking these images shows clearly that the brightest
+   object (an asteroid) is moving.</td>
+</tr>
+</table>
+<p>In addition to the detection of moving objects, there are other important educational uses for blinking. In Figure 5, the spiral arms of a galaxy show up much better in blue light than they do in red light because they contain many young, bright, hot blue stars. Giving students the opportunity to work out for themselves why two images are different (having been given appropriate background information, of course) is intended to ensure that they engage with the science and so develop their understanding more effectively. Blinking is therefore a powerful tool pedagogically and scientifically.</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00155.jpg" /></td>
+</tr>
+<tr>
+  <td><b>Figure 5.</b> Spiral galaxy M61 using a red filter (left) and a
+   blue filter (right). Notice how details in the spiral arms show up
+   better in blue.</td>
+</tr>
+</table>
+<h3>4.3 Measuring Spiral Arms in Spiral Galaxies</h3>
+<p>Figure 6 shows a spiral galaxy with several logarithmic spiral arcs fitted over the spiral arms in order to find their pitch angles and their lengths (the angles that they subtend at the center of the galaxy; Note 2).</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00156.jpg" /></td>
+</tr>
+<tr>
+  <td><b>Figure 6.</b> Using the JPEG Viewer to measure the spiral arms
+   in a galaxy</td>
+</tr>
+</table> <table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00157.jpg" /></td>
+</tr>
+<tr>
+  <td><b>Figure 7.</b> How students fit a log spiral arc to a spiral arm.
+   Left: after clicking the <b>Add spiral arc</b> button. Right: after
+   dragging the three colored blobs to the correct positions and
+   clicking the <b>Measure</b> button.</td>
+</tr>
+</table>
+<p>Some spiral galaxies have tightly wound spiral arms and large central bulges. Others have long, open spiral arms and small bulges. By making measurements of this type and by comparing their images visually with images of &quot;typical&quot; galaxies, students can try to fit different galaxies into a simple version of the commonly used Hubble Classification of Galaxies (see Sparke &amp; Gallagher 2000 or, for a more in- depth discussion, Binney &amp; Merrifield 1998). Because there are various versions of the Hubble Classification, a summary of the main points and a simple interactive version of the classification have been made available to students via the Internet (Beare 2004c).</p>
+<p>Figure 7 shows what happens when one clicks the toolbar button to add a new spiral arc. Three colored blobs appear on the image and a segment of a log spiral. The user drags the red blob to the center of the galaxy, the green blob to the start of a spiral arm, and the magenta blob to the end of the arm, and then clicks the <strong>Measure</strong> button, giving a result like that shown on the right. Details of all the toolbar buttons used for fitting spiral arms are shown in Figure 8.</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00158.gif" /></td>
+</tr>
+<tr>
+  <td><b>Figure 8.</b> Details of the toolbar buttons for measuring
+   spiral arms.</td>
+</tr>
+</table>
+<p>Fitting a spiral arc in this way is intended to be a very instructive process and, as reported later, students commented that it made them look much more closely at the spiral arms in a galaxy than they would otherwise have done. They are noticing such things as the young, hot, bright blue stars in the spiral arms, the dark dust lanes often found just inside spiral arms, and the small pink blobs seen in some spiral arms, which are &quot;emission nebulae&quot; around regions where new stars are forming. In other words, it was intended that looking at features like these and trying to decide where best to place a spiral arc would make students think about the science involved and therefore actively engage them in learning more about galaxies.</p>
+<p>Fitting logarithmic spiral arcs to spiral arms in galaxies has been used in the past as an undergraduate laboratory exercise, employing a microdensitometer to measure galaxy images on photographic plates. This took the best part of an afternoon (P. O'Brien, Department of Physics and Astronomy, Leicester University, personal communication). The JPEG Viewer software enables even young students to achieve the same result in the space of few minutes.</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00159.jpg" /></td>
+</tr>
+<tr>
+  <td><b>Figure 9.</b> Two log spiral arcs fitted to tilted barred spiral
+   galaxy NGC1300.</td>
+</tr>
+</table>
+<p>Figure 9 shows how logarithmic spiral arcs can also be fitted to spiral arms in galaxies that are tilted to our line of sight. In this case, an ellipse is first fitted around the edge of the galaxy to measure the viewing angle (0 degrees = face-on; 90 degrees = edge- on). The angle of the tilt axis to the horizontal is also measured. It is helpful to use a second image of the galaxy that has been &quot;posterized&quot; using Paint Shop Pro or Photoshop, or otherwise modified to show brightness contours, before fitting an ellipse to measure the viewing angle. (The blink feature helps here by allowing students to alternate between the normal image and the one showing the contours.)</p>
+<h3>5. TECHNICAL NOTE: HOW THE SOFTWARE MEASURES IMAGES</h3>
+<p>A new technique had to be developed to use simple shapes to make measurements on images on an Excel spreadsheet. Details of how this was done will be given in a separate paper. In essence, the method involves using Excel's screen measurement unit, &quot;points,&quot; to measure both the image size and the superimposed shapes (see Figure 10).</p>
+<p>Because the angular size of the image is known (e.g., in degrees or arcminutes), the angular size of the superimposed shape can be calculated by the software. If the user has entered the distance to the object shown in the image, then the &quot;small angle formula&quot; allows its actual dimensions to be calculated as well (e.g., in km if a planet, or in thousands of light years if a galaxy). (The small angle formula <em>d</em> = <em>r</em> [theta] gives the length <em>d</em> of the arc subtending a small angle [theta] (in radians) at the center of a circle of radius <em>r</em>.)</p>
+<p>Drawing logarithmic spirals on top of an image provided a different challenge, and another new technique was devised to do this. In essence, the technique consists of superimposing an Excel graph on the image with the x- and y-axes coinciding exactly with two sides of the image (Figure 11; details will be given in the previously mentioned additional paper). Using these coordinates, the software then plots logarithmic spiral arcs on top of the underlying galaxy image.</p>
+<h3>6. USE OF THE JPEG VIEWER BY YOUNGER STUDENTS</h3>
+<p>The JPEG Viewer has been used extensively with students of all secondary ages in conjunction with observing using the Faulkes Telescope in Hawaii, and it has been found to be easy to use and effective, generating significant interest among students in the astronomical objects being measured.</p>
+<p>In one instance, it was used with year 7 students (11 years of age) on the topic of spirals, as part of a cross-curricular day at Derby High School in England. In addition to measuring spiral galaxies and adding log spiral arcs, students also undertook work in mathematics, chemistry, art, and fashion. See Cleave (2005) for a description of the day written by the science teacher involved.</p>
+<h3>7. EVALUATION OF USE OF THE JPEG VIEWER BY OLDER STUDENTS FOR PROJECT WORK ON MEASURING GALAXIES</h3>
+<h3>7.1 Context</h3>
+<p>The JPEG Viewer was used by trainee teachers at Warwick University in a project to study spiral galaxies that they imaged with the Faulkes Telescope in Hawaii.</p>
+<p>The 17 students involved were in the third year of a four-year concurrent training course equipping them to teach in primary schools, and they were all specializing in science for the academic (non&ndash;teacher training) component of their degree. Although academically able, only one had an upper secondary-level qualification in physics, and most had taken a combination of biology and other nonscience subjects for their three of four subjects of study at ages<br />16 to 18 (&quot;A-levels&quot; in England).</p>
+<p>This student group was chosen because of their availability and the ease with which the experimental situation could be controlled. Although similar to students in the upper secondary school in their background understanding of the science involved, their scientific and general intellectual maturity could have been greater. Nevertheless, it is to be expected that many of these student teachers would have the same attitudes as school students. Use of the JPEG Viewer by students in schools is the focus of on-going research.</p>
+<h3>7.2 Description of Project Task</h3>
+<p>Two galaxy projects formed 50% of the assessed work for the 30-hour third-year academic science module on astronomy (the other 50% consisted of a PowerPoint presentation on a planet, moon, or other object in the Solar System). The first project, described here, was worth 20% of the total grade and involved students using the JPEG Viewer to make measurements of the galaxy that they had imaged using the Faulkes Telescope. The second part (30%) involved analysis of the surface brightness profile of the galaxy and will be described in a separate paper. (For details of research to determine whether both projects taken together were successful in inspiring interest in astronomy, see Beare, in press.)</p>
+<p>The galaxy-measuring task first required students to image a spiral galaxy using the Faulkes Telescope and then print out a color image of it. They had to use the JPEG Viewer to measure the diameters of the visible disc of the spiral galaxy and its central bulge, and then find the disc-to- bulge ratio. If the galaxy was barred, they also measured the length and width of the central bar (Figure 9 shows a good example of a barred spiral galaxy, this one also being tilted with respect to our line of sight to it).v </p>
+<p>The students next had to fit logarithmic spiral arcs to the spiral arms of the galaxy using the JPEG Viewer. This enabled them to measure how tightly each arm was wound (the pitch angle) and how long it was (the angle subtended at the center of the galaxy). They were asked to comment on the quality of the fits obtained (i.e., how closely the spiral arms followed a logarithmic spiral shape). Because this was the first time this had been tried with students, it was decided to keep matters simple by only using face-on galaxies. (Most spiral galaxies we see through telescopes are tilted relative to our line of sight, and some are even edge-on because galaxies are randomly oriented in space. The JPEG Viewer is capable of fitting tilted log spirals to tilted galaxy images, as already mentioned, but this was not done on this occasion.)</p>
+<p>After making the measurements, the image had to be labeled with scientific explanations of the features that were visible in it (e.g., spiral arms, central bulge, dark dust lanes, and so on).</p>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00160.gif" /></td>
+</tr>
+<tr>
+  <td><b>Figure 10.</b> How the JPEG Viewer measures objects in an image by
+   superimposing simple shapes.</td>
+</tr>
+</table> <table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00161.gif" /></td>
+</tr>
+<tr>
+  <td><b>Figure 11.</b> How the JPEG Viewer plots spiral arcs on top of an
+   image.</td>
+</tr>
+</table>
+<p>Students were asked to make their measurements and fit the spiral arms before labeling their images. The intent was that the making of the measurements would cause students to look carefully at the features of their galaxy and think scientifically about these before commenting. The students' evaluations showed that for many, this strategy was successful, and the use of the JPEG Viewer did in fact cause them to look closely at the features of a spiral galaxy and hence deepen both their knowledge and their understanding.</p>
+<p>An example of a student's labeled image is shown in Figure 12. <table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00162.jpg" /></td>
+</tr>
+<tr>
+  <td><b>Figure 12.</b> A student's labeled image of a spiral galaxy. The
+   instructions asked students to do this work after using the JPEG
+   Viewer to measure their galaxy, the idea being that this latter
+   activity would encourage careful observation and scientific thought.
+   Although there are two small inaccuracies in the labeling, the
+   student has looked carefully at details in the image.</td>
+</tr>
+</table> </p>
+<h3>7.3 Evaluation</h3>
+<p>In designing the JPEG Viewer and the project tasks based on it, it was hoped that the following learning benefits would result from being able to make measurements on an astronomical image.</p>
+<p>1. Students would (a) look carefully at features of the object(s) in the image, and (b) think deeply about the scientific aspects of what they were seeing. Put another way, it was hypothesized that use of the JPEG Viewer would enable students to engage deeply with the science.</p>
+<p>2. Students would feel a sense of involvement, achievement, and ownership by being able to analyze images. </p>
+<p>3. This sense of involvement, achievement, and ownership would be enhanced if the images were ones that they themselves had obtained using a telescope. </p>
+<p>4. Students would gain insight into the nature of scientific research. </p>
+<p>Given the small numbers of students available (17), it was decided not to attempt a comparison between a group who used the JPEG Viewer for the chosen activities, and a control group who did not. </p>
+<p>In any case, it was of less interest that the above aims were achieved than that the students felt that they had been achieved. A major motivation for the development of robotic telescopes, and projects that make use of them, has been to encourage interest in and enthusiasm for science, mathematics, and technology through stimulating investigations in an area of science that students find intrinsically interesting, namely astronomy and space. A questionnaire was therefore devised that attempted to elucidate students' attitudes toward the galaxy-measuring tasks that they undertook, particularly as they related to the above four aims. These questions were included in a larger evaluation of the whole astronomy module that they took.</p>
+<p>Additional questions were included to find out the answers to these questions:</p>
+<p>5. Was the JPEG Viewer easy to use? </p>
+<p>6. Did the JPEG Viewer enable students to make the measurements intended? </p>
+<p>Additional evidence on these last two questions was provided by the project reports that the students handed in to be assessed, and by observations of students working on their projects in the mulitmedia laboratory. The project reports also provided additional evidence on the aims (1&ndash;4 above) through student comments included in the evaluation section of their reports.</p>
+<p>The evaluation questions (questions 16&ndash;20; see Table 1) were administered to the students in spreadsheet form. Each question took the form of a statement to which the students had to respond by entering an X on a five-point Likert scale representing various degrees of agreement or disagreement. This is illustrated in Figure 13. </p>
+<p><strong>Table 1.</strong> Likert scale responses to statements about the JPEG Viewer</p>
+<table cellspacing="5" cellpadding="5" border="1">
+    <tbody>
+        <tr>
+            <td>&nbsp;</td>
+            <td>Strongly<br />Disagree</td>
+            <td>Disagree</td>
+            <td>Neutral</td>
+            <td>Agree</td>
+            <td>Strongly<br />Agree</td>
+        </tr>
+        <tr>
+            <td>16. I found the project to measure a galaxy using the JPEG Viewer interesting</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>7</td>
+            <td>8</td>
+        </tr>
+        <tr>
+            <td>17. I found the project to measure a galaxy using the JPEG Viewer challenging</td>
+            <td>1</td>
+            <td>1</td>
+            <td>2</td>
+            <td>5</td>
+            <td>6</td>
+        </tr>
+        <tr>
+            <td>18. I found the project to measure a galaxy using the JPEG Viewer rewarding</td>
+            <td>0</td>
+            <td>0</td>
+            <td>1</td>
+            <td>7</td>
+            <td>7</td>
+        </tr>
+        <tr>
+            <td>19. The project to measure a galaxy using the JPEG Viewer taught me a lot about galaxies</td>
+            <td>0</td>
+            <td>0</td>
+            <td>3</td>
+            <td>5</td>
+            <td>5</td>
+        </tr>
+        <tr>
+            <td>20. I found the JPEG Viewer easy to use</td>
+            <td>0</td>
+            <td>1</td>
+            <td>3</td>
+            <td>9</td>
+            <td>1</td>
+        </tr>
+    </tbody>
+</table>
+<table>
+<tr>
+  <td><img src="http://aer.noao.edu//figures/v05i01/00205_00163.gif" /></td>
+</tr>
+<tr>
+  <td><b>Figure 13.</b> Layout of a question on the spreadsheet-based
+   questionnaire</td>
+</tr>
+</table>
+<p>In addition, space was provided after each Likert scale for students to enter any explanatory comments they wished to make. This invitation was deliberately open-ended so that students would feel encouraged to record whatever aspects seemed relevant to them. This had the disadvantage, relative to an interview, that interesting responses could not be followed up or probed by further questions from the interviewer. On the other hand, the face-to-face nature of an interview may sometimes have an inhibiting effect on the responses that are obtained, whereas a questionnaire is more impersonal and therefore more likely to generate candid opinions from some students. Another advantage of a written response, of course, is that it obviates the need for transcription of oral responses and enables the opinions of many more respondents to be quickly and easily obtained. </p>
+<p>The questionnaire was administered in online form at the start of the last session of the course so that there would be no incentive to fill it in quickly and leave early. As it happens, 2 of the 17 students were absent that day, so only 15 completed the questionnaires.</p>
+<h3>7.4 Results of the Evaluation</h3>
+<p>The results obtained for the five questions relevant to the galaxy-measuring task, questions 16&ndash;20, are described below. Not all explanatory comments added can be shown here because of lack of space.</p>
+<p><em>Question 16: Interesting?</em> Question 16 shows that all 15 students found the project interesting, and half said it was very interesting. The written comments included references to the task being enjoyable, exciting, and even amazing. One person mentioned that it was &quot;nice to look in depth at a galaxy,&quot; and two mentioned liking that they could actually measure a galaxy for themselves. This excitement and interest in carrying out the galaxy-measuring task was also very evident from watching the students as they worked in the computer laboratory.</p>
+<p><em>Question 17: Challenging?</em> Question 17 showed a range of answers. Three quarters of the students said that they found the task challenging to some degree, and only two said that they did not find it challenging. It is clear from the text comments and from student comments in their project reports that the challenge lay not in the use of the JPEG Viewer software (which they appeared to find straightforward) but in deciding exactly where to place the log spiral arcs in order to fit the spiral arms.</p>
+<p>This challenge was very much intentional, because trying to fit a spiral arc to a spiral arm required careful observation of the spiral arm, and decisions needed to be made regarding what constituted the most appropriate fit. For example, was it best to get a good fit to a short length of the spiral arm, or a less good fit to a longer length? Should the spiral arc have been fitted to the brightest part in the middle of a spiral arm, to the outer edge of the arm, or to the edge of the dark dust lane often found just inside the arm?</p>
+<p>Consideration of questions like these puts students very much in the position of real scientific researchers who have to decide for themselves the best way of conducting an experiment or investigation. From the evaluations in the students' project reports, it is clear that they particularly appreciated this challenge and the element of scientific reality, and this was also very clear from watching them working. Interestingly, a few students, however, commented in their written reports that it was hard to know exactly where the spiral arcs &quot;ought to go,&quot; and it was clear that for these students, the idea of there not being just one right or correct answer was an unfamiliar one. To the greatest extent possible, the tutor used the workshop sessions when the students were working at the computers to explain the scientific nature of their task and that real research often involves making decisions and looking for best fits rather than correct answers.</p>
+<p>Four students working on a barred spiral galaxy erroneously had the idea that they needed to start all their log spiral arcs at the ends of the bar in the center of the galaxy, something that was not possible in the case of one spiral arm. Not surprisingly, two of these students commented that they found the arc-fitting exercise difficult. It will need to be more clearly explained in the future that a spiral arc may only fit well to part of a spiral arm and that the start of it does not need to coincide with the center of the galaxy or the end of a bar; after all, the fact that spiral arms are often close to logarithmic spirals is only an empirical observation, not a scientific law.</p>
+<p><em>Question 18: Rewarding?</em> A total of 13 out of 15 students found the task rewarding, with half of these saying it was very rewarding. Comments on this question and others indicated that this was because students felt they were making some &quot;real measurements&quot; and doing some &quot;real science&quot; rather than carrying out set exercises. This was borne out by conversations with students during the workshop sessions and by student comments about this project and the other galaxies project on surface brightness. One student commented, &quot;The opportunity to use and maneuver the Faulkes Telescope and take our own images of the galaxies helped promote ownership and enthusiasm for the task. Measuring 'our' galaxy was more meaningful and exciting, and the fact that our actions were moving a telescope in Hawaii capable of taking such amazing images.&quot;</p>
+<p><em>Question 19: Learning</em>. A total of 12 of the15 students felt that they had learned a lot about galaxies, with 7 agreeing strongly with this statement, and 3 neutral on the issue. Of the students who felt that they had learned a lot, relevant explanations included, &quot;Now I could confidently explain the characteristics of a galaxy,&quot; &quot;It made me look more closer at aspects of the galaxy,&quot; &quot;I found that there were different parts of galaxies that I didn't even know existed,&quot; and &quot;Yes, as before this course I knew very little about galaxies, and having to calculate and observe them has taught me a lot about galaxies.&quot; Most pleasing were the two comments that indicated that the galaxy-measuring task made the students keen to learn more: &quot;Yes, however, I do now feel that I want to learn more,&quot; and &quot;Observing and taking measurements made me want to learn more about galaxies.&quot;</p>
+<p><em>Question 20: Ease of Use of JPEG Viewer.</em> A total of 10 students indicated that the JPEG Viewer was easy or very easy to use, 3 were neutral on this question, 1 thought it was not easy, and 1 did not give a response. In hindsight, it is evident that the statement that the students were asked to comment on was ambiguous: &quot;I found the JPEG Viewer easy to use.&quot; Did this refer to operation of the software, or to how easy it was to use it to fit log spiral arcs to spiral arms? This is borne out by the fact that the student who said it was not easy was also one who commented both in her evaluation and in her report that she found spiral arcs hard to fit. Observation of the students actually using the software indicated that they did in fact all find it easy to operate, and students as young as 11 have been able to use it without any difficulty, including fitting spiral arcs (Cleave 2005; Poole 2005).</p>
+<p>Several students commented on how clear they found the instructions for the JPEG Viewer, and this was clearly an important factor in helping to make the project a success.</p>
+<p>A further factor that became evident from reading the students' project reports is that a project centered on studying galaxies can result in a great deal of wider understanding of astronomical topics apart from galaxies themselves, namely star formation and stellar life cycles; properties of stars (including the color-brightness relationship); distance and scale in the universe; the way that color images are composed of red, green, and blue components; how different features are emphasized in images of different colors; and how telescopes work and are affected by atmospheric blurring. These are topics that feature prominently in many school science courses, so even if galaxies only get a marginal mention in syllabuses, they actually provide a very good way of studying these other topics.</p>
+<h3>7.5 Conclusions</h3>
+<p>From the preceding evidence, we can conclude that:</p>
+<p>1. The JPEG Viewer works reliably and is easy to use. </p>
+<p>2. The JPEG Viewer enables astronomical images to be measured successfully; in particular, it enables the pitch angles and lengths of spiral arms in galaxies to be measured by superposition of logarithmic spiral arcs. </p>
+<p>3. The JPEG Viewer enabled open-ended and investigative science to be carried out, which added a new dimension of engagement with the science contained in galaxy images and resulted in many students feeling that they learned a great deal about galaxies. </p>
+<p>4. All students found using the JPEG Viewer to measure a galaxy interesting, and some indicated that it had encouraged them to learn more about galaxies. </p>
+<p>5. A project to study a galaxy with the help of the JPEG Viewer is a good way of learning about many other aspects of astronomy. </p>
+<p>6. Students appreciated the challenge of a project that they perceived as being akin to &quot;real science,&quot; with an element of decision making on their part. </p>
+<p>7. Use of the Faulkes Telescope to obtain their own images was an important factor in students' attitudes to what they did. </p>
+<h3>8. FUTURE DEVELOPMENTS</h3>
+<p>The most obvious future development is modification of the JPEG Viewer to make measurements on images in general, not just astronomical ones, using distance units ranging from the atomic scale up to astronomical scales. A trial version has already been produced, and its application to topics in a number of subject areas is currently being explored, including maps in geography, proportions in art and architecture, and the dimensions of plants and animals in biology. </p>
+<p>A second modification useful for upper secondary mathematics courses involves generalizing the JPEG Viewer's logarithmic spiral curves to any curves for which an equation can be specified. One could then, for example, check whether the trajectory of a ball in a time-lapse photograph was close to being a parabola, or whether a hanging rope or cable (as in a photograph of a suspsension bridge) was close to being a catenary.</p>
+<p>Applications such as these would provide an interesting, memorable, empirical way of demonstrating or testing applications of mathematics taught in theory lessons. </p>
+<h3>Notes</h3>
+<p><strong>Note 1.</strong> See the appendix for links to the Web sites of various telescopes and projects mentioned in this article.</p>
+<p><strong>Note 2.</strong> Logarithmic spirals are common in nature and have the defining characteristic that they intersect any circle centered on the center of the galaxy at a constant angle called the pitch angle. Effectively, pitch angle is a measure of how tightly wound or open a spiral arm is; 10 degrees is considered tightly wound, as in a Sa galaxy, and 20 degrees is considered quite open, as in a Sc galaxy.</p>
+</div> 
+ 
+
+<div id="references">
+<h3>References</h3> 
+
+<p class="reference">
+<span class="refauth"></span>    
+</p> 
+<p class="reference">
+<span class="refauth"></span>    
+</p> 
+<p class="reference">
+<span class="refauth"></span>    
+</p> 
+<p class="reference">
+<span class="refauth"></span>    
+</p> 
+<p class="reference">
+<span class="refauth"></span>    
+</p> 
+<p class="reference">
+<span class="refauth">Association for Astronomy Education and Association for Science Education (AAE & ASE).</span> 1990, 
+<span class="reftitle"><em>Earth and Space Workpack for Primary and Middle Schools</em>,</span>   
+<span class="refpub">London: Association for Astronomy Education and Association for Science Education</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Bailey, J. M., & Slater, T. F.</span> 2003, 
+<span class="reftitle">"A Review of Astronomy Education Research," <em>Astronomy Education Review</em>, 2, 20,</span>   
+<span class="refpub">http://aer.noao.edu/cgi-bin/article.pl?id=63</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Bartosh, B., Duff, B. & Gibson, H.</span> 2000, 
+<span class="reftitle"><em>The TIE User's Guide and Workbook for Scholastic Programs and Amateur Studies</em>,Version 3.0,</span>   
+<span class="refpub">Pasadena, CA: TIE Project. Also available from http://www.telescopesineducation.com/</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Beare, R. A.</span> 2004a, 
+<span class="reftitle">"Resources to Enliven the Teaching of Astronomy to Upper Secondary Students," <em>School Science Review</em>,</span>   
+<span class="refpub">85(313), 115</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Beare, R. A.</span> 2004b, 
+<span class="reftitle">"Astronomy Related Content in Upper Secondary Physics Courses," <em>School Science Review</em>,</span>   
+<span class="refpub">86(314), 113</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Beare, R. A.</span> 2004c, 
+<span class="reftitle">Simplified Version of Hubble Classification of Galaxies as Provided to Students,</span>   
+<span class="refpub">http://www.beares.net/r/astro/galaxies/galaxies_docs/hubble</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Beare, R. A.</span> 2006, 
+<span class="reftitle">JPEG Viewer home page,</span>   
+<span class="refpub">http://www.beares.net/r/astro/viewer</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Beare, R. A.</span> in preparation, 
+<span class="reftitle">"An Investigation into the Potential of Investigative Projects Involving Powerful Robotic Telescopes to Inspire Interest in Science,"<em>International Journal of Science Education</em>,</span>   
+</p> 
+<p class="reference">
+<span class="refauth">Beare, R. A., Bowdley, D., Newsom, A., & Roche, P.</span> 2003, 
+<span class="reftitle">"Remote Access Astronomy," <em>Physics Education</em>,</span>   
+<span class="refpub">38(3), 232</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Berry, R., & Burnell, J.</span> 2000, 
+<span class="reftitle"><em>he Handbook of Astronomical Image Processing</em>,</span>   
+<span class="refpub">Richmond, VA: Willmann-Bell</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Binney, J., & Merrifield, M.</span> 1998, 
+<span class="reftitle"><em>Galactic Astronomy</em>,</span>   
+<span class="refpub">Princeton, NJ: Princeton Univ. Press</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Cleave, C.</span> 2005, 
+<span class="reftitle">"A Cross-curricular Theme Day on Spirals," <em>School Science Review</em>,</span>   
+<span class="refpub">87(319), 58</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Comins, N. F.</span> 2001, 
+<span class="reftitle"><em>Heavenly Errors: Misconceptions about the Real Nature of the Universe</em>,</span>   
+<span class="refpub">Columbia University Press: New York. See also: www.physics.umaine.edu/ncomins/miscon.htm</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Deming, G. L.</span> 2002, 
+<span class="reftitle">"Results from the Astronomy Diagnostic Test National Project," <em>Astronomy Education Review</em>,</span>   
+<span class="refpub">1(1), 52. http://aer.noao.edu/cgi-bin/article.pl?id=5</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">DfEE/QCA.</span> 1999, 
+<span class="reftitle"><em>National Curriculum for England: Science</em>,</span>   
+<span class="refpub">London: HMSO</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Hollow, R. P.</span> 2000, 
+<span class="reftitle">"The Student as Scientist: Secondary Student Research Projects in Astronomy," <em>Publications of the Astronomical Society of Australia</em>,</span>   
+<span class="refpub">17(2), 162</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">House of Commons.</span> 2002, 
+<span class="reftitle"><em>Science Education 14 to 19; Third Report of Session 2001-2</em>,</span>   
+<span class="refpub">London: HMSO</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Hufnagel, B.</span> 2002, 
+<span class="reftitle">"Development of the Astronomy Diagnostic Test," <em>Astronomy Education Review</em>,</span>   
+<span class="refpub">1(1), 47. http://aer.noao.edu/cgi-bin/article.pl?id=4. See also http;//solar.physics.montana.edu/aae/adt/</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Jacobson, R.</span> 1999, 
+<span class="reftitle"><em>Microsoft Excel 2000 Visual Basic for Applications Fundamentals</em>,</span>   
+<span class="refpub">Redmond, WA: Microsoft Press</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Jacobson, R.</span> 1999, 
+<span class="reftitle"><em>Microsoft Excel 2000 Visual Basic for Applications Fundamentals</em>,</span>   
+<span class="refpub">Redmond, WA: Microsoft Press</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Marinoni, C., Monaco, P., Giuricin, G., & Costatini, B.</span> 1998, 
+<span class="reftitle">"Galaxy Distances in the Nearby Universe: Corrections for Peculiar Motions," <em>Astrophysical Journal</em>,</span>   
+<span class="refpub">505, 484</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">McKinnon, D., & Geissinger, H.</span> 2002, 
+<span class="reftitle">"Interactive Astronomy in Elementary Schools," <em>Educational Technology and Society</em>,</span>   
+<span class="refpub">5(1), 124</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">McKinnon, D., & Geissinger, H.</span> 2002, 
+<span class="reftitle">"Interactive Astronomy in Elementary Schools," <em>Educational Technology and Society</em>,</span>   
+<span class="refpub">5(1), 124</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Morrison, P.</span> 1994, 
+<span class="reftitle"><em>Powers of Ten : a Book About the Relative Size of Things in the Universe and the Effect of Adding Another Zero</em>,</span>   
+<span class="refpub">New York: Scientific American Library</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">National Optical Astronomy Observatory (NOAO)</span> 2006, 
+<span class="reftitle">Home page for Image Reduction and Analysis Facility (IRAF),</span>   
+<span class="refpub">http://iraf.noao.edu/</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Osborne, J.</span> 1995, 
+<span class="reftitle"><em>Common Ideas in Astronomy Questionnaire</em>,</span>   
+<span class="refpub">London: Kings College</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Osborne, J., & Collins, S.</span> 2000, 
+<span class="reftitle"><em>Pupils' and Parents' Views of the School Science Curriculum</em>,</span>   
+<span class="refpub">London: King's College/Wellcome Trust</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Osborne, J., Wadsworth, P., Black, P., & Meadows, J.</span> 1995, 
+<span class="reftitle"><em>Primary Space Project Research Report: The Earth in Space</em>,</span>   
+<span class="refpub">Liverpool, UK: Liverpool University Press</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Particle Physics and Astronomy Research Council (PPARC).</span> 2004, 
+<span class="reftitle"><em>Robotic Telescopes: Real-time Astronomy for Research and Education</em>,</span>   
+<span class="refpub">Swindon, UK: PPARCC</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Poole, A. L.</span> 2005, 
+<span class="reftitle">"An Investigation into the Impact of Powerful Robotic Telescopes on the Motivation and Learning of Year 8 Pupils Studying Galaxies.",</span>   
+<span class="refpub">Master's thesis, University of Warwick, Coventry, UK</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Roberts, G.</span> 2002, 
+<span class="reftitle"><em>Set for Success: the Supply of People with Science, Technology, Engineering and Mathematics Skills</em>,</span>   
+<span class="refpub">Report from HM Treasury (April 2002). London: HMSO</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Sparke, L. S., & Gallagher, J. S.</span> 2000, 
+<span class="reftitle"><em>Galaxies in the Universe: an Introduction</em>,</span>   
+<span class="refpub">Cambridge, UK: Cambridge Univ. Press</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Szymanek, N.</span> 2005, 
+<span class="reftitle">"A Night on the Faulkes," <em>Astronomy Now</em>,</span>   
+<span class="refpub">May, 58</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Thomas, E.</span> 1977, 
+<span class="reftitle"><em>From Quarks to Quasars : an Outline of Modern Physics</em>,</span>   
+<span class="refpub">London: Athlone Press</span>. 
+</p> 
+<p class="reference">
+<span class="refauth">Woolnough</span> 1991, 
+<span class="reftitle"><em>The Making of Scientists and Engineers</em>,</span>   
+<span class="refpub">Oxford, UK: Department of Educational Studies</span>. 
+</p> 
+</div>  
+
+<div id="appendices"> <hr>
+<h3><div align="center"><strong>APPENDIX</strong></div></h3> 
+
+<p><B>Alphabetical List of Web Sites Cited in This Article</B></p>
+<p>Astronomy Diagnostic Test: <a href="http://solar.physics.montana.edu/aae/adt/">http://solar.physics.montana.edu/aae/adt/</a></p>
+
+<p>Astronomy Picture of the Day (APOD) home page:  <a href="http://antwrp.gsfc.nasa.gov/apod/astropix.html">http://antwrp.gsfc.nasa.gov/apod/astropix.html</a> 
+</p>
+
+<p>European Southern Observatory (ESO) Paranal Observatory:  <a href="http://www.eso.org/paranal/">http://www.eso.org/paranal/</a> </p>
+
+<p>European Space Agency (ESA): <a href="http://www.esa.int/esaCP/index.html">http://www.esa.int/esaCP/index.html</a></p>
+
+<p>European Space Agency's educational projects:  <a href="http://sci.esa.int/science-e/www/object/index.cfm?fobjectid=35011">http://sci.esa.int/science-e/www/object/index.cfm?fobjectid=35011</a></p>
+
+
+<p>Faulkes Telescope Project: <a href="http://www.faulkes-telescope.com">http://www.faulkes-telescope.com</a></p>
+
+<p>Hands on Universe (HOU):  <a href="http://www.handsonuniverse.org/">http://www.handsonuniverse.org/</a></p>
+
+<p>Hubble classification of galaxies, simplified version, as provided to students: <a href="http://www.beares.net/r/astro/galaxies/galaxies_docs/hubble">http://www.beares.net/r/astro/galaxies/galaxies_docs/hubble</a></p>
+
+<p>Hubble Space Telescope (HST): <a href="http://hubblesite.org/">http://hubblesite.org/</a></p>
+
+<p>IRIS (image processing software): <a href="http://www.astrosurf.org/buil/us/iris/iris.htm">http://www.astrosurf.org/buil/us/iris/iris.htm</a></p>
+
+<p>JPEG Viewer home page: <a href="http://www.beares.net/r/astro/viewer">http://www.beares.net/r/astro/viewer</a> </p>
+
+<p>NASA/GSFC (FITS format data files): <a href="http://fits.gsfc.nasa.gov/fits_home.html">http://fits.gsfc.nasa.gov/fits_home.html</a></p>
+
+<p>National Optical Astronomy Observatory, Image Reduction and Analysis Facility (IRAF): <a href="http://iraf.noao.edu/">http://iraf.noao.edu/</a> </p>
+
+<p>National Schools Observatory (NSO), The Study: Science page: <a href="http://www.schoolsobservatory.org.uk/study/sci/">http://www.schoolsobservatory.org.uk/study/sci/</a></p>
+
+
+<p>Project CLEA (Contemporary Laboratory Experiences in Astronomy): <a href="http://www.gettysburg.edu/academics/physics/clea/CLEAhome.html">http://www.gettysburg.edu/academics/physics/clea/CLEAhome.html</a> </p>
+        
+<p>Sky Image Processor (SIP), a Web-based image processing program from the Virginia Tech Department of Physics: <a href="http://www.phys.vt.edu/~jhs/SIP/">http://www.phys.vt.edu/~jhs/SIP/</a></p>
+
+<p>Space Telescope Science Institute: <a href="http://www.stsci.edu/resources/">http://www.stsci.edu/resources/</a></p>
+
+<p>Starry Night Pro: <a href="http://www.starrynight.com/">http://www.starrynight.com/</a></p>
+
+<p>Telescopes in Education (TIE): <a href="http://www.telescopesineducation.com/">http://www.telescopesineducation.com/</a></p>
+</div> 
+
+<br clear="all" /> 
+<div id="footer">
+<div class="left">&AElig;R</div>
+<div class="right">110 - 137</div>
+<div class="spacer"></div>
+</div>
+
+</body>
+
+</html>

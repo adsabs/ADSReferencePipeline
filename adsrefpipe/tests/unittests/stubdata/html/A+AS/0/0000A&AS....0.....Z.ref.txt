@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.1//EN">
+<!--Converted with LaTeX2HTML 96.1-h (September 30, 1996) by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds -->
+<HTML>
+<HEAD>
+<TITLE>References</TITLE>
+<META NAME="description" CONTENT="References">
+<META NAME="keywords" CONTENT="ds6150">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<LINK REL=STYLESHEET HREF="ds6150.css">
+</HEAD>
+<BODY BGCOLOR="FFFFFF" TEXT="000000" LANG="EN" >
+ <IMG WIDTH=37 HEIGHT=24 ALIGN=BOTTOM ALT="next" SRC="/icons/next_motif.gif"> <A NAME="tex2html115" HREF="node9.html"><IMG WIDTH=63 HEIGHT=24 ALIGN=BOTTOM ALT="previous" SRC="/icons/previous_motif.gif"></A><BR>
+<B>Up:</B> <A NAME="tex2html120" HREF="ds6150.html">Modeling echelle spectrographs</A>
+<BR> <HR>
+ <P><A NAME="SECTIONREF"><H2>References</H2></A><P>
+<UL>
+<LI><A NAME="ref1"><STRONG> </STRONG></A> Ballester P., 1994, A&amp;A 206, 1108
+<LI><A NAME="ref2"><STRONG> </STRONG></A> Ballester P., 1996, in: Proc. High Resolution
+            Data Processing Workshop,  Iye M., Takata T. &amp; Wampler E.J.
+	    (eds.), Subaru Telescope Technical Report No. 55, p. 17
+<LI><A NAME="ref3"><STRONG> </STRONG></A> Bushouse H., Rosa M.R., Mueller Th., 1995, in: 
+            Astronomical Data Analysis Software and Systems, Shaw R.A.,
+            Payne H.E. &amp; Hayes J.J.E. (eds.), ASP Conf. Ser.  77, p. 345
+<LI><A NAME="ref4"><STRONG> </STRONG></A> Dahlem M., Rosa M.R., 1997, HST FOS Instrument Science Report
+            Ser., STScI (in press)
+<LI><A NAME="ref5"><STRONG> </STRONG></A> D'Odorico S., 1997, Proceedings of the ESO 
+            Workshop &quot;The Early Universe with the VLT&quot;,  Bergeron J.
+	    (ed.). Springer Verlag (in press)
+<LI><A NAME="ref6"><STRONG> </STRONG></A> Goodrich R.W., Veilleux S., 1988, PASP 100, 1572
+	<A NAME="tex2html8" HREF="http://adsabs.harvard.edu/cgi-bin/bib_query?1988PASP..100.1572G">NASA ADS</A>
+<LI><A NAME="ref7"><STRONG> </STRONG></A> Hall J.C., Fulton E.E., Huenemoerder D.P., Welty A.D.,
+            Neff J.E., 1994, PASP 106, 315         
+	<A NAME="tex2html9" HREF="http://adsabs.harvard.edu/cgi-bin/bib_query?1994PASP..106..315H">NASA ADS</A>
+<LI><A NAME="ref8"><STRONG> </STRONG></A> Hasan H., Burrows C.J., 1994, in: Calibrating Hubble Space
+            Telescope, Blades J.C. &amp; Osmer S.J. (eds.), STScI, p. 395
+<LI><A NAME="ref9"><STRONG> </STRONG></A> Hensberge H., Verschueren W., 1990, A&amp;A 240, 216
+<LI><A NAME="ref10"><STRONG> </STRONG></A> Randich S., Pasquini L., 1997, ESO CASPEC Operating Manual
+<LI><A NAME="ref11"><STRONG> </STRONG></A> Rosa M.R., 1994, in: Calibrating Hubble Space
+	     Telescope, Blades J.C. &amp; Osmer S.J. (eds.), STScI, p. 190
+<LI><A NAME="ref12"><STRONG> </STRONG></A> Rosa M.R., 1995, in: Calibrating and Understanding HST and
+            ESO Instruments, Benvenuti P. (ed.), ESO, p. 43
+<LI><A NAME="ref13"><STRONG> </STRONG></A> Schroeder 1987, &quot;Astronomical Optics'', AP, San Diego
+<LI><A NAME="ref14"><STRONG> </STRONG></A> Verschueren W., Brown A.G.A., Hensberge H., David M.,
+             Lepoole R.S., de Geus E.J., de Zeeuw P.T., 1997, PASP
+             (in press)
+</UL><BR> <HR>
+<P><ADDRESS>
+Copyright by the European Southern Observatory (ESO) <BR>web@ed-phys.fr<BR>
+</ADDRESS>
+</BODY>
+</HTML>

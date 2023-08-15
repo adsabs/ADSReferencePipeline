@@ -1,0 +1,36 @@
+%R 0000PThPS...0.....U
+%A Uechi, L.; Akutsu, T.
+%J Progress of Theoretical Physics Supplement, No. 194, pp. 210-222
+%D 2012
+%L 222
+%T Conservation Laws and Symmetries in Competitive Systems
+%C (c) 2012 Progress of Theoretical Physics
+%U http://ptp.ipap.jp/link?PTPS/194/210/
+%W PHY
+%B  We investigate a conservation law of a system of symmetric $2n$-dimensional nonlinear differential equations. We use Lagrangian approach and Noether's theorem to analyze Lotka-Volterra type of competitive system. We observe that the coefficients of the $2n$-dimensional nonlinear differential equations are strictly restricted when the system has a conserved quantity, and the relation between a conserved system and Lyapunov function is shown in terms of Noether's theorem. We find that a system of the $2n$-dimensional first-order nonlinear differential equations in a symmetric form should appear in a binary-coupled form (BCF), and a BCF has a conserved quantity if parameters satisfy certain conditions. The conservation law manifests characteristic properties of a system of nonlinear differential equations and can be employed to check the accuracy of numerical solutions in the BCF.
+%Z S. A. Kauffman, {\it The Origins of Order} (Oxford University Press, New York, 1993).
+I. Prigogine and I. Stengers, {\it Order Out of Chaos} (Bantam, 1984).
+R. Fujie and T. Odagaki, Physica A {\bf 389} (2010), 1471.
+T. Shimada, S. Yukawa and N. Ito, Artificial Life and Robotics {\bf 6} (2002), 78.
+G. Nicolis and I. Prigogine, {\it Self-Organization in Nonequilibrium Systems} (John Wiley \& Sons, New York, 1977).
+A. Lotka, {\it Elements of Physical Biology} (Williams and Wilkins, Baltimore, 1925).
+M. Taniguchi, M. Bando and A. Nakayama, J. Phys. Soc. Jpn. {\bf 77} (2008), 114001.
+E. Gonz\'{a}lez and M. Villena, Euro. J. of Operational Research {\bf 210} (2011), 707.
+V. Volterra, ``Variazioni e fluttuazioni del numero di individui in specie animali conviventi'', Mem. Acad. Linc. {\bf2} (1926), 31.
+N. H. Ibragimov and T. Kolsrud,  Nonlinear Dynamics {\bf 36} (2004), 29.
+N. M. Ivanova, Nonlinear Dynamics {\bf 49} (2007), 71.
+A. H. Kara and F. M. Mahomed, Nonlinear Dynamics {\bf 45} (2006), 367.
+J. Fern\'{a}ndez-N\'{u}\~{n}ez, Int. J.  Theor. Phys. {\bf 37} (1998), 2457.
+A. G. Johnpillai,  A. H. Kara and F. M. Mahomed, J. Comput. Appl. Math. {\bf 223} (2009), 508.
+R. Cherniha and V. Davydovych, Mathematical and Computer Modelling {\bf 54} (2011), 1238.
+F. X. Mei, Acta Mechanica {\bf 141} (2000), 135.
+K. Constandinides and  P. A. Damianou, Regular and Chaotic Dynamics {\bf 16} (2011), 311.
+M. A. Tavel's English translation of `Invariant Variation Problemes' Nachr. d. K\"{o}nig. Gesellsch. d. Wiss. zu G\"{o}ttingen, Math-phys. Klasse (1918), 235.
+J. D. Logan, {\it Invariant Variational Principles} (Academic Press, New York, 1977).
+F. Mazenc and M. Malisoff, IEEE Trans. Automatic Control {\bf 55} (2010), 841.
+I. Ispolatov and M. Doebeli, Theor Ecol. {\bf 4} (2011), 55.
+Y. Murase, T. Shimada and N. Ito, New J. Phys. {\bf 12} (2010), 063021.
+A. Mochizuki, J. of Theoretical Biology {\bf 250} (2008), 307.
+L. Ironi et al., Physica D {\bf 240} (2011), 779.
+L. Qian, E. Winfree and J. Bruck, Nature  {\bf 475} (2011), 368.
+J. D. Logan, Aequationes Mathematicae {\bf 9} (1973), 210.

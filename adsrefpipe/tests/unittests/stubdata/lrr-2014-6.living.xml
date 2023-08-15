@@ -1,0 +1,984 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refdb:RefList xmlns:refdb="http://dev.livingreviews.org/epubtk/refdb/import" pubNo="lrr-2014-6" schemaVersion="1.0" created="2014-08-20T22:25:50" journal="default" source="lr_physRefDb">
+  <refdb:record ord="1" id="PBDH">
+    <refdb:article>
+      <refdb:author type="person">Bender, P. L.</refdb:author>
+      <refdb:author type="person">Hils, D.</refdb:author>
+      <refdb:title tex="Confusion noise level due to galactic and extragalactic binaries">Confusion noise level due to galactic and extragalactic binaries</refdb:title>
+      <refdb:year>1997</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>14</refdb:volume>
+      <refdb:pages>1439–1444</refdb:pages>
+      <refdb:doi>10.1088/0264-9381/14/6/008</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1997CQGra..14.1439B</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="2" id="ETA">
+    <refdb:article>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Low-Frequency Gravitational Wave Searches Using Spacecraft Doppler Tracking">Low-Frequency Gravitational Wave Searches Using Spacecraft Doppler Tracking</refdb:title>
+      <refdb:year>2006</refdb:year>
+      <refdb:journal>Living Rev. Relativity</refdb:journal>
+      <refdb:volume>9</refdb:volume>
+      <refdb:eid>lrr-2006-1</refdb:eid>
+      <refdb:url>http://www.livingreviews.org/lrr-2006-1</refdb:url>
+      <refdb:cited scope="docSpecific">2014-02-25</refdb:cited>
+      <refdb:doi>10.12942/lrr-2006-1</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2006LRR.....9....1A</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="3" id="NYPZ">
+    <refdb:article>
+      <refdb:author type="person">Nelemans, G.</refdb:author>
+      <refdb:author type="person">Yungelson, L. R.</refdb:author>
+      <refdb:author type="person">Portegies Zwart, S. F.</refdb:author>
+      <refdb:title tex="The gravitational wave signal from the Galactic disk population of binaries containing two compact objects">The gravitational wave signal from the Galactic disk population of binaries containing two compact objects</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>Astron. Astrophys.</refdb:journal>
+      <refdb:volume>375</refdb:volume>
+      <refdb:pages>890–898</refdb:pages>
+      <refdb:doi>10.1051/0004-6361:20010683</refdb:doi>
+      <refdb:eprint>astro-ph/0105221</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2001A%26A...375..890N</refdb:adsurl>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="4" id="TE95">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:title tex="Parallel beam interferometric detectors of gravitational waves">Parallel beam interferometric detectors of gravitational waves</refdb:title>
+      <refdb:year>1995</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>52</refdb:volume>
+      <refdb:pages>1749–1754</refdb:pages>
+      <refdb:doi>10.1103/PhysRevD.52.1749</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="5" id="Cass">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:title tex="The Cassini Ka-band gravitational wave experiments">The Cassini Ka-band gravitational wave experiments</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>19</refdb:volume>
+      <refdb:pages>1767–1773</refdb:pages>
+      <refdb:doi>10.1088/0264-9381/19/7/373</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="6" id="EW75">
+    <refdb:article>
+      <refdb:author type="person">Estabrook, F.</refdb:author>
+      <refdb:author type="person">Wahlquist, H.</refdb:author>
+      <refdb:title tex="Response of Doppler spacecraft tracking to gravitational radiation">Response of Doppler spacecraft tracking to gravitational radiation</refdb:title>
+      <refdb:year>1975</refdb:year>
+      <refdb:journal>Gen. Relativ. Gravit.</refdb:journal>
+      <refdb:volume>6</refdb:volume>
+      <refdb:pages>439–447</refdb:pages>
+      <refdb:doi>10.1007/BF00762449</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1975GReGr...6..439E</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="7" id="LISA98">
+    <refdb:techreport>
+      <refdb:author type="person">Bender, P. L.</refdb:author>
+      <refdb:author type="person">Brillet, A.</refdb:author>
+      <refdb:author type="person">Ciufolini, I.</refdb:author>
+      <refdb:author type="person">Cruise, A. M.</refdb:author>
+      <refdb:author type="person">Cutler, C.</refdb:author>
+      <refdb:author type="person">Danzmann, K.</refdb:author>
+      <refdb:author type="person">Fidecaro, F.</refdb:author>
+      <refdb:author type="person">Folkner, W. M.</refdb:author>
+      <refdb:author type="person">Hough, J.</refdb:author>
+      <refdb:author type="person">McNamara, P. W.</refdb:author>
+      <refdb:author type="person">Peterseim, M.</refdb:author>
+      <refdb:author type="person">Robertson, D.</refdb:author>
+      <refdb:author type="person">Rodrigues, M.</refdb:author>
+      <refdb:author type="person">Rüdiger, A.</refdb:author>
+      <refdb:author type="person">Sandford, M.</refdb:author>
+      <refdb:author type="person">Schäfer, G.</refdb:author>
+      <refdb:author type="person">Schilling, R.</refdb:author>
+      <refdb:author type="person">Schutz, B. F.</refdb:author>
+      <refdb:author type="person">Speake, C. C.</refdb:author>
+      <refdb:author type="person">Stebbins, R. T.</refdb:author>
+      <refdb:author type="person">Sumner, T. J.</refdb:author>
+      <refdb:author type="person">Touboul, P.</refdb:author>
+      <refdb:author type="person">Vinet, J.-Y.</refdb:author>
+      <refdb:author type="person">Vitale, S.</refdb:author>
+      <refdb:author type="person">Ward, H.</refdb:author>
+      <refdb:author type="person">Winkler, W.</refdb:author>
+      <refdb:title tex="LISA. Laser Interferometer Space Antenna for the detection and observation of gravitational waves. An international project in the field of Fundamental Physics in Space. Pre-Phase A report">LISA. Laser Interferometer Space Antenna for the detection and observation of gravitational waves. An international project in the field of Fundamental Physics in Space. Pre-Phase A report</refdb:title>
+      <refdb:year>1998</refdb:year>
+      <refdb:publisher tex='Max-Planck-Institut f\"ur Quantenoptik'>Max-Planck-Institut für Quantenoptik</refdb:publisher>
+      <refdb:address tex="Garching">Garching</refdb:address>
+      <refdb:onlineversion scope="docSpecific">ftp://ftp.ipp-garching.mpg.de/pub/grav/lisa/pdd/</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2005-07-06</refdb:cited>
+      <refdb:number>MPQ-233</refdb:number>
+      <refdb:collaboration tex="LISA Study Team">LISA Study Team</refdb:collaboration>
+    </refdb:techreport>
+  </refdb:record>
+  <refdb:record ord="8" id="TA99">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Cancellation of laser noise in an unequal-arm interferometer detector of gravitational radiation">Cancellation of laser noise in an unequal-arm interferometer detector of gravitational radiation</refdb:title>
+      <refdb:year>1999</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>59</refdb:volume>
+      <refdb:eid>102003</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.59.102003</refdb:doi>
+      <refdb:numpages>11</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="9" id="Vallis">
+    <refdb:article>
+      <refdb:author type="person">Vallisneri, M.</refdb:author>
+      <refdb:title tex="Geometric time delay interferometry">Geometric time delay interferometry</refdb:title>
+      <refdb:year>2005</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>72</refdb:volume>
+      <refdb:pages>042003</refdb:pages>
+      <refdb:eid>042003</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.72.042003</refdb:doi>
+      <refdb:eprint>gr-qc/0504145</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2005PhRvD..72d2003V</refdb:adsurl>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>gr-qc</refdb:primaryclass>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="10" id="DNV10">
+    <refdb:article>
+      <refdb:author type="person">Dhurandhar, S. V.</refdb:author>
+      <refdb:author type="person">Rajesh Nayak, K.</refdb:author>
+      <refdb:author type="person">Vinet, J.-Y.</refdb:author>
+      <refdb:title tex="Time Delay Interferometry for LISA with one arm dysfunctional">Time Delay Interferometry for LISA with one arm dysfunctional</refdb:title>
+      <refdb:year>2010</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>27</refdb:volume>
+      <refdb:eid>135013</refdb:eid>
+      <refdb:doi>10.1088/0264-9381/27/13/135013</refdb:doi>
+      <refdb:eprint>1001.4911</refdb:eprint>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>gr-qc</refdb:primaryclass>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="11" id="SVDsymp">
+    <refdb:article>
+      <refdb:author type="person">Dhurandhar, S. V.</refdb:author>
+      <refdb:title tex="Time-delay interferometry and the relativistic treatment of LISA optical links">Time-delay interferometry and the relativistic treatment of LISA optical links</refdb:title>
+      <refdb:year>2009</refdb:year>
+      <refdb:journal>J. Phys.: Conf. Ser.</refdb:journal>
+      <refdb:volume>154</refdb:volume>
+      <refdb:eid>012047</refdb:eid>
+      <refdb:doi>10.1088/1742-6596/154/1/012047</refdb:doi>
+      <refdb:eprint>0808.2696</refdb:eprint>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>gr-qc</refdb:primaryclass>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="12" id="KTV04">
+    <refdb:article>
+      <refdb:author type="person">Królak, A.</refdb:author>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Vallisneri, M.</refdb:author>
+      <refdb:title tex="Optimal filtering of the LISA data">Optimal filtering of the LISA data</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>70</refdb:volume>
+      <refdb:eid>022003</refdb:eid>
+      <refdb:note tex="Erratum ibid. {\bf 76}, 069901 (2007)" scope="docSpecific">Erratum ibid. 76, 069901 (2007)</refdb:note>
+      <refdb:doi>10.1103/PhysRevD.70.022003</refdb:doi>
+      <refdb:eprint>gr-qc/0401108</refdb:eprint>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>gr-qc</refdb:primaryclass>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="13" id="TEA02">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Time-delay interferometry for LISA">Time-delay interferometry for LISA</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>65</refdb:volume>
+      <refdb:pages>082003</refdb:pages>
+      <refdb:eid>082003</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.65.082003</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2002PhRvD..65h2003T</refdb:adsurl>
+      <refdb:numpages>12</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="14" id="T98">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:title tex="Spacecraft to spacecraft coherent laser tracking as a xylophone interferometer detector of gravitational radiation">Spacecraft to spacecraft coherent laser tracking as a xylophone interferometer detector of gravitational radiation</refdb:title>
+      <refdb:year>1998</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>58</refdb:volume>
+      <refdb:pages>102001</refdb:pages>
+      <refdb:eid>102001</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.58.102001</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1998PhRvD..58j2001T</refdb:adsurl>
+      <refdb:numpages>12</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="15" id="AET99">
+    <refdb:article>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:title tex="Time-Delay Interferometry for Space-Based Gravitational Wave Searches">Time-Delay Interferometry for Space-Based Gravitational Wave Searches</refdb:title>
+      <refdb:year>1999</refdb:year>
+      <refdb:journal>Astrophys. J.</refdb:journal>
+      <refdb:volume>527</refdb:volume>
+      <refdb:pages>814–826</refdb:pages>
+      <refdb:doi>10.1086/308110</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1999ApJ...527..814A</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="16" id="DNV02">
+    <refdb:article>
+      <refdb:author type="person">Dhurandhar, S. V.</refdb:author>
+      <refdb:author type="person">Rajesh Nayak, K.</refdb:author>
+      <refdb:author type="person">Vinet, J.-Y.</refdb:author>
+      <refdb:title tex="Algebraic approach to time-delay data analysis for LISA">Algebraic approach to time-delay data analysis for LISA</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>65</refdb:volume>
+      <refdb:eid>102002</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.65.102002</refdb:doi>
+      <refdb:numpages>16</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="17" id="ETA00">
+    <refdb:article>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Time-delay analysis of LISA gravitational wave data: Elimination of spacecraft motion effects">Time-delay analysis of LISA gravitational wave data: Elimination of spacecraft motion effects</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>62</refdb:volume>
+      <refdb:eid>042002</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.62.042002</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2000PhRvD..62d2002E</refdb:adsurl>
+      <refdb:numpages>8</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="18" id="S03">
+    <refdb:article>
+      <refdb:author type="person">Shaddock, D. A.</refdb:author>
+      <refdb:title tex="Operating LISA as a Sagnac interferometer">Operating LISA as a Sagnac interferometer</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>69</refdb:volume>
+      <refdb:eid>022001</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.69.022001</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2004PhRvD..69b2001S</refdb:adsurl>
+      <refdb:numpages>6</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="19" id="CH03">
+    <refdb:article>
+      <refdb:author type="person">Cornish, N. J.</refdb:author>
+      <refdb:author type="person">Hellings, R. W.</refdb:author>
+      <refdb:title tex="The effects of orbital motion on LISA time delay interferometry">The effects of orbital motion on LISA time delay interferometry</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>20</refdb:volume>
+      <refdb:pages>4851–4860</refdb:pages>
+      <refdb:doi>10.1088/0264-9381/20/22/009</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="20" id="STEA03">
+    <refdb:article>
+      <refdb:author type="person">Shaddock, D. A.</refdb:author>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Data combinations accounting for LISA spacecraft motion">Data combinations accounting for LISA spacecraft motion</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>68</refdb:volume>
+      <refdb:eid>061303</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.68.061303</refdb:doi>
+      <refdb:numpages>4</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="21" id="TEA04">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Time-delay interferometry with moving spacecraft arrays">Time-delay interferometry with moving spacecraft arrays</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>69</refdb:volume>
+      <refdb:eid>082001</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.69.082001</refdb:doi>
+      <refdb:numpages>10</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="22" id="PTLA02">
+    <refdb:article>
+      <refdb:author type="person">Prince, T. A.</refdb:author>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Larson, S. L.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="LISA optimal sensitivity">LISA optimal sensitivity</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>66</refdb:volume>
+      <refdb:pages>122002</refdb:pages>
+      <refdb:eid>122002</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.66.122002</refdb:doi>
+      <refdb:eprint>gr-qc/0209039</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2002PhRvD..66l2002P</refdb:adsurl>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="23" id="NPDV03_1">
+    <refdb:article>
+      <refdb:author type="person">Rajesh Nayak, K.</refdb:author>
+      <refdb:author type="person">Pai, A.</refdb:author>
+      <refdb:author type="person">Dhurandhar, S. V.</refdb:author>
+      <refdb:author type="person">Vinet, J.-Y.</refdb:author>
+      <refdb:title tex="Improving the sensitivity of LISA">Improving the sensitivity of LISA</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>20</refdb:volume>
+      <refdb:pages>1217–1231</refdb:pages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="24" id="NDPV03_2">
+    <refdb:article>
+      <refdb:author type="person">Rajesh Nayak, K.</refdb:author>
+      <refdb:author type="person">Dhurandhar, S. V.</refdb:author>
+      <refdb:author type="person">Pai, A.</refdb:author>
+      <refdb:author type="person">Vinet, J.-Y.</refdb:author>
+      <refdb:title tex="Optimizing the directional sensitivity of LISA">Optimizing the directional sensitivity of LISA</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>68</refdb:volume>
+      <refdb:eid>122001</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.68.122001</refdb:doi>
+      <refdb:numpages>11</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="25" id="FB84">
+    <refdb:inproceedings>
+      <refdb:author type="person">Faller, J. E.</refdb:author>
+      <refdb:author type="person">Bender, P. L.</refdb:author>
+      <refdb:editor>Taylor, B. N. and Phillips, W. D.</refdb:editor>
+      <refdb:title tex="A possible laser gravitational wave experiment in space">A possible laser gravitational wave experiment in space</refdb:title>
+      <refdb:booktitle tex="Precision Measurement and Fundamental Constants II">Precision Measurement and Fundamental Constants II</refdb:booktitle>
+      <refdb:conference tex="Proceedings of the Second International Conference held at the National Bureau of Standards, Gaithersburg, MD, June 8\,--\,12, 1981">Proceedings of the Second International Conference held at the National Bureau of Standards, Gaithersburg, MD, June 8 – 12, 1981</refdb:conference>
+      <refdb:year>1984</refdb:year>
+      <refdb:publisher tex="U.S.\ Dept.\ of Commerce / National Bureau of Standards">U.S. Dept. of Commerce / National Bureau of Standards</refdb:publisher>
+      <refdb:address tex="Washington, DC">Washington, DC</refdb:address>
+      <refdb:volume>617</refdb:volume>
+      <refdb:pages>689–690</refdb:pages>
+      <refdb:series tex="NBS Special Publication">NBS Special Publication</refdb:series>
+    </refdb:inproceedings>
+  </refdb:record>
+  <refdb:record ord="26" id="FBHHV85">
+    <refdb:inproceedings>
+      <refdb:author type="person">Faller, J. E.</refdb:author>
+      <refdb:author type="person">Bender, P. L.</refdb:author>
+      <refdb:author type="person">Hall, J. L.</refdb:author>
+      <refdb:author type="person">Hils, D.</refdb:author>
+      <refdb:author type="person">Vincent, M. A.</refdb:author>
+      <refdb:editor>Longdon, N. and Melita, O.</refdb:editor>
+      <refdb:title tex="Space antenna for gravitational wave astronomy">Space antenna for gravitational wave astronomy</refdb:title>
+      <refdb:booktitle tex="Kilometric Optical Arrays in Space">Kilometric Optical Arrays in Space</refdb:booktitle>
+      <refdb:conference tex="Proceedings of the Colloquium held 23\,--\,25 October 1984, Carg\`ese, Corsica, France">Proceedings of the Colloquium held 23 – 25 October 1984, Cargèse, Corsica, France</refdb:conference>
+      <refdb:year>1985</refdb:year>
+      <refdb:publisher tex="ESA Publications Division">ESA Publications Division</refdb:publisher>
+      <refdb:address tex="Noordwijk">Noordwijk</refdb:address>
+      <refdb:volume>SP-226</refdb:volume>
+      <refdb:pages>157–163</refdb:pages>
+      <refdb:series tex="ESA Conference Proceedings">ESA Conference Proceedings</refdb:series>
+    </refdb:inproceedings>
+  </refdb:record>
+  <refdb:record ord="27" id="FBHHSV89">
+    <refdb:article>
+      <refdb:author type="person">Faller, J. E.</refdb:author>
+      <refdb:author type="person">Bender, P. L.</refdb:author>
+      <refdb:author type="person">Hall, J. L.</refdb:author>
+      <refdb:author type="person">Hils, D.</refdb:author>
+      <refdb:author type="person">Stebbins, R. T.</refdb:author>
+      <refdb:author type="person">Vincent, M. A.</refdb:author>
+      <refdb:title tex="An antenna for laser gravitational-wave observations in space">An antenna for laser gravitational-wave observations in space</refdb:title>
+      <refdb:year>1989</refdb:year>
+      <refdb:journal>Adv. Space Res.</refdb:journal>
+      <refdb:volume>9</refdb:volume>
+      <refdb:pages>107–111</refdb:pages>
+      <refdb:note tex="COSPAR and IAU, 27th Plenary Meeting, 15th Symposium on Relativistic Gravitation, Espoo, Finland, July 18\,--\,29, 1988" scope="docSpecific">COSPAR and IAU, 27th Plenary Meeting, 15th Symposium on Relativistic Gravitation, Espoo, Finland, July 18 – 29, 1988</refdb:note>
+      <refdb:doi>10.1016/0273-1177(89)90014-8</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/1989AdSpR...9..107F</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="28" id="GHTF96">
+    <refdb:article>
+      <refdb:author type="person">Giampieri, G.</refdb:author>
+      <refdb:author type="person">Hellings, R. W.</refdb:author>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Faller, J. E.</refdb:author>
+      <refdb:title tex="Algorithms for unequal-arm Michelson interferometers">Algorithms for unequal-arm Michelson interferometers</refdb:title>
+      <refdb:year>1996</refdb:year>
+      <refdb:journal>Opt. Commun.</refdb:journal>
+      <refdb:volume>123</refdb:volume>
+      <refdb:pages>669–678</refdb:pages>
+      <refdb:doi>10.1016/0030-4018(95)00611-7</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="29" id="JW68">
+    <refdb:book>
+      <refdb:author type="person">Jenkins, G. M.</refdb:author>
+      <refdb:author type="person">Watts, D. G.</refdb:author>
+      <refdb:title tex="Spectral Analysis and its applications">Spectral Analysis and its applications</refdb:title>
+      <refdb:year>1969</refdb:year>
+      <refdb:publisher tex="Holden-Day">Holden-Day</refdb:publisher>
+      <refdb:address tex="San Francisco">San Francisco</refdb:address>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="30" id="Wolf02">
+    <refdb:online>
+      <refdb:author type="person">Wolfram, S.</refdb:author>
+      <refdb:title tex="Mathematica">Mathematica</refdb:title>
+      <refdb:publisher tex="Wolfram Research, Inc.">Wolfram Research, Inc.</refdb:publisher>
+      <refdb:url>http://www.wolfram.com/mathematica/</refdb:url>
+      <refdb:cited scope="docSpecific">2014-02-26</refdb:cited>
+      <refdb:format>institutional homepage</refdb:format>
+    </refdb:online>
+  </refdb:record>
+  <refdb:record ord="31" id="eLISA">
+    <refdb:online>
+      <refdb:title tex="eLISA">eLISA</refdb:title>
+      <refdb:publisher tex="Max Planck Institute for Gravitational Physics (Albert Einstein Institute)">Max Planck Institute for Gravitational Physics (Albert Einstein Institute)</refdb:publisher>
+      <refdb:url>https://www.elisascience.org/</refdb:url>
+      <refdb:cited scope="docSpecific">2014-02-26</refdb:cited>
+      <refdb:format>project homepage</refdb:format>
+    </refdb:online>
+  </refdb:record>
+  <refdb:record ord="32" id="NGO">
+    <refdb:online>
+      <refdb:title tex="NGO: The New Gravitational Wave Observatory">NGO: The New Gravitational Wave Observatory</refdb:title>
+      <refdb:publisher tex="European Space Agency">European Space Agency</refdb:publisher>
+      <refdb:url>http://sci.esa.int/ngo/</refdb:url>
+      <refdb:cited scope="docSpecific">2014-02-26</refdb:cited>
+      <refdb:format>project homepage</refdb:format>
+    </refdb:online>
+  </refdb:record>
+  <refdb:record ord="33" id="becker">
+    <refdb:book>
+      <refdb:author type="person">Becker, T.</refdb:author>
+      <refdb:author type="person">Weispfenning, V.</refdb:author>
+      <refdb:title tex='Gr\"obner Bases: A Computational Approach to Commutative Algebra'>Gröbner Bases: A Computational Approach to Commutative Algebra</refdb:title>
+      <refdb:year>1993</refdb:year>
+      <refdb:publisher tex="Springer">Springer</refdb:publisher>
+      <refdb:address tex="Berlin; New York">Berlin; New York</refdb:address>
+      <refdb:volume>141</refdb:volume>
+      <refdb:series tex="Graduate Texts in Mathematics">Graduate Texts in Mathematics</refdb:series>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="34" id="KR">
+    <refdb:book>
+      <refdb:author type="person">Kreuzer, M.</refdb:author>
+      <refdb:author type="person">Robbiano, L.</refdb:author>
+      <refdb:title tex="Computational Commutative Algebra 1">Computational Commutative Algebra 1</refdb:title>
+      <refdb:year>2000</refdb:year>
+      <refdb:publisher tex="Springer">Springer</refdb:publisher>
+      <refdb:address tex="Berlin; New York">Berlin; New York</refdb:address>
+      <refdb:gbs_id>dpvw9aW9MigC</refdb:gbs_id>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="35" id="Summers">
+    <refdb:unpublished>
+      <refdb:author type="person">Summers, D.</refdb:author>
+      <refdb:title tex="Algorithm tradeoffs">Algorithm tradeoffs</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:note tex="Talk given at the 3rd progress meeting of the ESA funded LISA PMS Project. ESTEC, NL, February 2003" scope="docSpecific">Talk given at the 3rd progress meeting of the ESA funded LISA PMS Project. ESTEC, NL, February 2003</refdb:note>
+      <refdb:format>conference paper</refdb:format>
+    </refdb:unpublished>
+  </refdb:record>
+  <refdb:record ord="36" id="Folkner">
+    <refdb:article>
+      <refdb:author type="person">Folkner, W. M.</refdb:author>
+      <refdb:author type="person">Hechler, F.</refdb:author>
+      <refdb:author type="person">Sweetser, T. H.</refdb:author>
+      <refdb:author type="person">Vincent, M. A.</refdb:author>
+      <refdb:author type="person">Bender, P. L.</refdb:author>
+      <refdb:title tex="LISA orbit selection and stability">LISA orbit selection and stability</refdb:title>
+      <refdb:year>1997</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>14</refdb:volume>
+      <refdb:pages>1405–1410</refdb:pages>
+      <refdb:doi>10.1088/0264-9381/14/6/003</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="37" id="TAE01">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:title tex="Discriminating a gravitational wave background from instrumental noise in the LISA detector">Discriminating a gravitational wave background from instrumental noise in the LISA detector</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>63</refdb:volume>
+      <refdb:pages>021101(R)</refdb:pages>
+      <refdb:eid>021101(R)</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.63.021101</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2001PhRvD..63b1101T</refdb:adsurl>
+      <refdb:numpages>3</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="38" id="NV04">
+    <refdb:article>
+      <refdb:author type="person">Rajesh Nayak, K.</refdb:author>
+      <refdb:author type="person">Vinet, J.-Y.</refdb:author>
+      <refdb:title tex="Algebraic Approach to Time-Delay Data Analysis: Orbiting case">Algebraic Approach to Time-Delay Data Analysis: Orbiting case</refdb:title>
+      <refdb:year>2005</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>22</refdb:volume>
+      <refdb:pages>S437–S443</refdb:pages>
+      <refdb:doi>10.1088/0264-9381/22/10/040</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="39" id="DNV08">
+    <refdb:article>
+      <refdb:author type="person">Dhurandhar, S. V.</refdb:author>
+      <refdb:author type="person">Vinet, J.-Y.</refdb:author>
+      <refdb:author type="person">Rajesh Nayak, K.</refdb:author>
+      <refdb:title tex="General relativistic treatment of LISA optical links">General relativistic treatment of LISA optical links</refdb:title>
+      <refdb:year>2008</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>25</refdb:volume>
+      <refdb:eid>245002</refdb:eid>
+      <refdb:doi>10.1088/0264-9381/25/24/245002</refdb:doi>
+      <refdb:numpages>17</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="40" id="VCT">
+    <refdb:article>
+      <refdb:author type="person">Vallisneri, M.</refdb:author>
+      <refdb:author type="person">Crowder, J.</refdb:author>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:title tex="Sensitivity and parameter-estimation precision for alternate LISA configurations">Sensitivity and parameter-estimation precision for alternate LISA configurations</refdb:title>
+      <refdb:year>2008</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>25</refdb:volume>
+      <refdb:pages>065005</refdb:pages>
+      <refdb:eid>065005</refdb:eid>
+      <refdb:doi>10.1088/0264-9381/25/6/065005</refdb:doi>
+      <refdb:eprint>0710.4369</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2008CQGra..25f5005V</refdb:adsurl>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:numpages>15</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="41" id="Noble69">
+    <refdb:book>
+      <refdb:author type="person">Noble, B.</refdb:author>
+      <refdb:title tex="Applied Linear Algebra">Applied Linear Algebra</refdb:title>
+      <refdb:year>1969</refdb:year>
+      <refdb:publisher tex="Prentice-Hall">Prentice-Hall</refdb:publisher>
+      <refdb:address tex="Englewood Cliffs">Englewood Cliffs</refdb:address>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="42" id="Selby64">
+    <refdb:book>
+      <refdb:author type="person">Selby, S. M.</refdb:author>
+      <refdb:title tex="Standard of Mathematical Tables">Standard of Mathematical Tables</refdb:title>
+      <refdb:year>1964</refdb:year>
+      <refdb:publisher tex="The Chemical Rubber Co.">The Chemical Rubber Co.</refdb:publisher>
+      <refdb:address tex="Cleveland">Cleveland</refdb:address>
+    </refdb:book>
+  </refdb:record>
+  <refdb:record ord="43" id="Finn01">
+    <refdb:article>
+      <refdb:author type="person">Finn, L. S.</refdb:author>
+      <refdb:title tex="Aperture synthesis for gravitational-wave data analysis: Deterministic sources">Aperture synthesis for gravitational-wave data analysis: Deterministic sources</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>63</refdb:volume>
+      <refdb:eid>102001</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.63.102001</refdb:doi>
+      <refdb:eprint>gr-qc/0010033</refdb:eprint>
+      <refdb:numpages>18</refdb:numpages>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="44" id="WP02">
+    <refdb:techreport>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Estabrook, F. B.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Time-Delay Interferometry and LISA's Sensitivity to Sinusoidal Gravitational Waves">Time-Delay Interferometry and LISA’s Sensitivity to Sinusoidal Gravitational Waves</refdb:title>
+      <refdb:year>2002</refdb:year>
+      <refdb:publisher tex="JPL / Caltech">JPL / Caltech</refdb:publisher>
+      <refdb:address tex="Pasadena, CA">Pasadena, CA</refdb:address>
+      <refdb:onlineversion scope="docSpecific">http://list.caltech.edu/doku.php?id=mission_documents</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2013-11-01</refdb:cited>
+    </refdb:techreport>
+  </refdb:record>
+  <refdb:record ord="45" id="Estebanetal">
+    <refdb:article>
+      <refdb:author type="person">Esteban, J. J.</refdb:author>
+      <refdb:author type="person">García, A. F.</refdb:author>
+      <refdb:author type="person">Barke, S.</refdb:author>
+      <refdb:author type="person">Peinado, A. M.</refdb:author>
+      <refdb:author type="person">Guzmán Cervantes, F.</refdb:author>
+      <refdb:author type="person">Bykov, I.</refdb:author>
+      <refdb:author type="person">Heinzel, G.</refdb:author>
+      <refdb:author type="person">Danzmann, K.</refdb:author>
+      <refdb:title tex="Experimental demonstration of weak-light laser ranging and data communication for LISA">Experimental demonstration of weak-light laser ranging and data communication for LISA</refdb:title>
+      <refdb:year>2011</refdb:year>
+      <refdb:journal>Opt. Express</refdb:journal>
+      <refdb:volume>19</refdb:volume>
+      <refdb:pages>15937–15946</refdb:pages>
+      <refdb:number>17</refdb:number>
+      <refdb:doi>10.1364/OE.19.015937</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="46" id="Suttonetal">
+    <refdb:article>
+      <refdb:author type="person">Sutton, A.</refdb:author>
+      <refdb:author type="person">McKenzie, K.</refdb:author>
+      <refdb:author type="person">Ware, B.</refdb:author>
+      <refdb:author type="person">Shaddock, D. A.</refdb:author>
+      <refdb:title tex="Laser ranging and communications for LISA">Laser ranging and communications for LISA</refdb:title>
+      <refdb:year>2010</refdb:year>
+      <refdb:journal>Opt. Express</refdb:journal>
+      <refdb:volume>18</refdb:volume>
+      <refdb:pages>20759–20773</refdb:pages>
+      <refdb:number>20</refdb:number>
+      <refdb:doi>10.1364/OE.18.020759</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="47" id="TDIR">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Vallisneri, M.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Time-delay interferometric ranging for space-borne gravitational-wave detectors">Time-delay interferometric ranging for space-borne gravitational-wave detectors</refdb:title>
+      <refdb:year>2005</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>71</refdb:volume>
+      <refdb:eid>041101</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.71.041101</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="48" id="TSSA">
+    <refdb:article>
+      <refdb:author type="person">Tinto, M.</refdb:author>
+      <refdb:author type="person">Shaddock, D. A.</refdb:author>
+      <refdb:author type="person">Sylvestre, J.</refdb:author>
+      <refdb:author type="person">Armstrong, J. W.</refdb:author>
+      <refdb:title tex="Implementation of time-delay interferometry for LISA">Implementation of time-delay interferometry for LISA</refdb:title>
+      <refdb:year>2003</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>67</refdb:volume>
+      <refdb:eid>122003</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.67.122003</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="49" id="Shannon">
+    <refdb:article>
+      <refdb:author type="person">Shannon, C. E.</refdb:author>
+      <refdb:title tex="Communication in the Presence of Noise">Communication in the Presence of Noise</refdb:title>
+      <refdb:year>1998</refdb:year>
+      <refdb:journal>Proc. IEEE</refdb:journal>
+      <refdb:volume>86</refdb:volume>
+      <refdb:pages>447–457</refdb:pages>
+      <refdb:eid>0018–9219-98</refdb:eid>
+      <refdb:doi>10.1109/JPROC.1998.659497</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="50" id="RWH1">
+    <refdb:article>
+      <refdb:author type="person">Hellings, R. W.</refdb:author>
+      <refdb:title tex="Elimination of clock jitter noise in spaceborne laser interferometers.">Elimination of clock jitter noise in spaceborne laser interferometers.</refdb:title>
+      <refdb:year>2001</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>64</refdb:volume>
+      <refdb:eid>022002</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.64.022002</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="51" id="SWSV">
+    <refdb:article>
+      <refdb:author type="person">Shaddock, D. A.</refdb:author>
+      <refdb:author type="person">Ware, B.</refdb:author>
+      <refdb:author type="person">Spero, R. E.</refdb:author>
+      <refdb:author type="person">Vallisneri, M.</refdb:author>
+      <refdb:title tex="Postprocessed time-delay interferometry for LISA">Postprocessed time-delay interferometry for LISA</refdb:title>
+      <refdb:year>2004</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>70</refdb:volume>
+      <refdb:eid>081101(R)</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.70.081101</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="52" id="LAAKSO">
+    <refdb:article>
+      <refdb:author type="person">Laakso, T. I.</refdb:author>
+      <refdb:author type="person">Välimäki, V.</refdb:author>
+      <refdb:author type="person">Karjalainen, M.</refdb:author>
+      <refdb:author type="person">Laine, U. K.</refdb:author>
+      <refdb:title tex="Splitting the Unit Delay">Splitting the Unit Delay</refdb:title>
+      <refdb:year>1996</refdb:year>
+      <refdb:journal>IEEE Signal Proc. Mag.</refdb:journal>
+      <refdb:volume>1</refdb:volume>
+      <refdb:pages>30–60</refdb:pages>
+      <refdb:number>30</refdb:number>
+      <refdb:doi>10.1109/79.482137</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="53" id="Phase1">
+    <refdb:inproceedings>
+      <refdb:author type="person">Shaddock, D.</refdb:author>
+      <refdb:author type="person">Ware, B.</refdb:author>
+      <refdb:author type="person">Spero, R. E.</refdb:author>
+      <refdb:author type="person">Klipstein, B.</refdb:author>
+      <refdb:editor>Merkowitz, S. M. and Livas, J. C.</refdb:editor>
+      <refdb:title tex="Overview of the LISA Phasemeter">Overview of the LISA Phasemeter</refdb:title>
+      <refdb:booktitle tex="Laser Interferometer Space Antenna: 6th International LISA Symposium">Laser Interferometer Space Antenna: 6th International LISA Symposium</refdb:booktitle>
+      <refdb:conference tex="Greenbelt, MD, USA, 19\,--\,23 June 2006">Greenbelt, MD, USA, 19 – 23 June 2006</refdb:conference>
+      <refdb:year>2006</refdb:year>
+      <refdb:publisher tex="American Institute of Physics">American Institute of Physics</refdb:publisher>
+      <refdb:address tex="Melville, NY">Melville, NY</refdb:address>
+      <refdb:volume>873</refdb:volume>
+      <refdb:pages>654–660</refdb:pages>
+      <refdb:series tex="AIP Conference Proceedings">AIP Conference Proceedings</refdb:series>
+      <refdb:doi>10.1063/1.2405113</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2006AIPC..873..654S</refdb:adsurl>
+    </refdb:inproceedings>
+  </refdb:record>
+  <refdb:record ord="54" id="Phase2">
+    <refdb:inproceedings>
+      <refdb:author type="person">Gerberding, O.</refdb:author>
+      <refdb:author type="person">Barke, S.</refdb:author>
+      <refdb:author type="person">Bykov, I.</refdb:author>
+      <refdb:author type="person">Danzmann, K.</refdb:author>
+      <refdb:author type="person">Enggaard, A.</refdb:author>
+      <refdb:author type="person">Esteban, J. J.</refdb:author>
+      <refdb:author type="person">Gianolio, A.</refdb:author>
+      <refdb:author type="person">Hansen, T. V.</refdb:author>
+      <refdb:author type="person">Heinzel, G.</refdb:author>
+      <refdb:author type="person">Hornstrup, A.</refdb:author>
+      <refdb:author type="person">Jennrich, O.</refdb:author>
+      <refdb:author type="person">Kullmann, J.</refdb:author>
+      <refdb:author type="person">Pedersen, S. M.</refdb:author>
+      <refdb:author type="person">Rasmussen, T.</refdb:author>
+      <refdb:author type="person">Reiche1, J.</refdb:author>
+      <refdb:author type="person">Sodnik, Z.</refdb:author>
+      <refdb:author type="person">Suess, M.</refdb:author>
+      <refdb:editor>Auger, G. and Binétruy, P. and Plagnol, E.</refdb:editor>
+      <refdb:title tex="Breadboard Model of the LISA Phasemeter">Breadboard Model of the LISA Phasemeter</refdb:title>
+      <refdb:booktitle tex="The 9th LISA Sympsium">The 9th LISA Sympsium</refdb:booktitle>
+      <refdb:conference tex="Biblioth\'eque Nationale de France, Paris, 21\,--\,25 May 2012">Bibliothéque Nationale de France, Paris, 21 – 25 May 2012</refdb:conference>
+      <refdb:year>2013</refdb:year>
+      <refdb:publisher tex="Astronomical Society of the Pacific">Astronomical Society of the Pacific</refdb:publisher>
+      <refdb:address tex="San Francisco">San Francisco</refdb:address>
+      <refdb:volume>467</refdb:volume>
+      <refdb:pages>271–275</refdb:pages>
+      <refdb:series tex="ASP Conference Series">ASP Conference Series</refdb:series>
+    </refdb:inproceedings>
+  </refdb:record>
+  <refdb:record ord="55" id="Phase3">
+    <refdb:article>
+      <refdb:author type="person">Gerberding, O.</refdb:author>
+      <refdb:author type="person">Sheard, B.</refdb:author>
+      <refdb:author type="person">Bykov, I.</refdb:author>
+      <refdb:author type="person">Kullmann, J.</refdb:author>
+      <refdb:author type="person">Esteban Delgado, J. J.</refdb:author>
+      <refdb:author type="person">Danzmann, K.</refdb:author>
+      <refdb:author type="person">Heinzel, G.</refdb:author>
+      <refdb:title tex="Phasemeter core for intersatellite laser heterodyne interferometry: modelling, simulations and experiments">Phasemeter core for intersatellite laser heterodyne interferometry: modelling, simulations and experiments</refdb:title>
+      <refdb:year>2013</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>30</refdb:volume>
+      <refdb:eid>235029</refdb:eid>
+      <refdb:doi>10.1088/0264-9381/30/23/235029</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="56" id="Phase4">
+    <refdb:mastersthesis>
+      <refdb:author type="person">Burnett, C. M.</refdb:author>
+      <refdb:title tex="Development of an Ultra-precise Digital Phasemeter for the LISA Gravitational Wave Detector">Development of an Ultra-precise Digital Phasemeter for the LISA Gravitational Wave Detector</refdb:title>
+      <refdb:year>2010</refdb:year>
+      <refdb:school tex="Lulea University of Technology">Lulea University of Technology</refdb:school>
+      <refdb:address tex="Kiruna, Sweden">Kiruna, Sweden</refdb:address>
+      <refdb:onlineversion scope="docSpecific">http://pure.ltu.se/portal/files/32538169/LTU-EX-2011-32455311.pdf</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2014-02-25</refdb:cited>
+    </refdb:mastersthesis>
+  </refdb:record>
+  <refdb:record ord="57" id="Phase5">
+    <refdb:mastersthesis>
+      <refdb:author type="person">Wang, C.</refdb:author>
+      <refdb:title tex="FPGA-based, 4-channel, High-speed Phasemeter for Heterodyne Interferometry">FPGA-based, 4-channel, High-speed Phasemeter for Heterodyne Interferometry</refdb:title>
+      <refdb:year>2013</refdb:year>
+      <refdb:school tex="University of Rochester">University of Rochester</refdb:school>
+      <refdb:address tex="Rochester, NY">Rochester, NY</refdb:address>
+      <refdb:onlineversion scope="docSpecific">http://www.me.rochester.edu/projects/jdellis-lab/files/2013_ChenWang_MS_Thesis.pdf</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">2014-02-25</refdb:cited>
+    </refdb:mastersthesis>
+  </refdb:record>
+  <refdb:record ord="58" id="DEVINE">
+    <refdb:article>
+      <refdb:author type="person">de Vine, G.</refdb:author>
+      <refdb:author type="person">Ware, B.</refdb:author>
+      <refdb:author type="person">McKenzie, K.</refdb:author>
+      <refdb:author type="person">Spero, R. E.</refdb:author>
+      <refdb:author type="person">Klipstein, W. M.</refdb:author>
+      <refdb:author type="person">Shaddock, D. A.</refdb:author>
+      <refdb:title tex="Experimental Demonstration of Time-Delay Interferometry for the Laser Interferometer Space Antenna">Experimental Demonstration of Time-Delay Interferometry for the Laser Interferometer Space Antenna</refdb:title>
+      <refdb:year>2010</refdb:year>
+      <refdb:journal>Phys. Rev. Lett.</refdb:journal>
+      <refdb:volume>104</refdb:volume>
+      <refdb:pages>211103</refdb:pages>
+      <refdb:eid>211103</refdb:eid>
+      <refdb:doi>10.1103/PhysRevLett.104.211103</refdb:doi>
+      <refdb:eprint>1005.2176</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2010PhRvL.104u1103D</refdb:adsurl>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>astro-ph.IM</refdb:primaryclass>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="59" id="PhysicsToday">
+    <refdb:article>
+      <refdb:author type="person">Miller, J.</refdb:author>
+      <refdb:title tex="Laboratory experiment shows that noise can be lessened for LISA">Laboratory experiment shows that noise can be lessened for LISA</refdb:title>
+      <refdb:year>2010</refdb:year>
+      <refdb:journal>Phys. Today</refdb:journal>
+      <refdb:volume>63</refdb:volume>
+      <refdb:pages>14–16</refdb:pages>
+      <refdb:doi>10.1063/1.3463616</refdb:doi>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="60" id="Spero">
+    <refdb:article>
+      <refdb:author type="person">Spero, R.</refdb:author>
+      <refdb:author type="person">Bachman, B.</refdb:author>
+      <refdb:author type="person">de Vine, G.</refdb:author>
+      <refdb:author type="person">Dickson, J.</refdb:author>
+      <refdb:author type="person">Klipstein, W.</refdb:author>
+      <refdb:author type="person">Ozawa, T.</refdb:author>
+      <refdb:author type="person">McKenzie, K.</refdb:author>
+      <refdb:author type="person">Shaddock, D.</refdb:author>
+      <refdb:author type="person">Robison, D.</refdb:author>
+      <refdb:author type="person">Sutton, A.</refdb:author>
+      <refdb:author type="person">Ware, B.</refdb:author>
+      <refdb:title tex="Progress in interferometry for LISA at JPL">Progress in interferometry for LISA at JPL</refdb:title>
+      <refdb:year>2011</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>28</refdb:volume>
+      <refdb:pages>094007</refdb:pages>
+      <refdb:eid>094007</refdb:eid>
+      <refdb:doi>10.1088/0264-9381/28/9/094007</refdb:doi>
+      <refdb:eprint>1102.0799</refdb:eprint>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>physics.ins-det</refdb:primaryclass>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="61" id="Mitryk">
+    <refdb:article>
+      <refdb:author type="person">Mitryk, S. J.</refdb:author>
+      <refdb:author type="person">Mueller, G.</refdb:author>
+      <refdb:author type="person">Sanjuan, J.</refdb:author>
+      <refdb:title tex="Hardware-based demonstration of time-delay interferometry and TDI-ranging with spacecraft motion effects">Hardware-based demonstration of time-delay interferometry and TDI-ranging with spacecraft motion effects</refdb:title>
+      <refdb:year>2012</refdb:year>
+      <refdb:journal>Phys. Rev. D</refdb:journal>
+      <refdb:volume>86</refdb:volume>
+      <refdb:pages>122006</refdb:pages>
+      <refdb:eid>122006</refdb:eid>
+      <refdb:doi>10.1103/PhysRevD.86.122006</refdb:doi>
+      <refdb:eprint>1205.1934</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2012PhRvD..86l2006M</refdb:adsurl>
+      <refdb:primaryclass>astro-ph.IM</refdb:primaryclass>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="62" id="Gruning">
+    <refdb:preprint>
+      <refdb:author type="person">Gruning, P.</refdb:author>
+      <refdb:author type="person">Halloin, H.</refdb:author>
+      <refdb:author type="person">Prat, P.</refdb:author>
+      <refdb:author type="person">Baron, S.</refdb:author>
+      <refdb:author type="person">Brossard, J.</refdb:author>
+      <refdb:author type="person">Buy, C.</refdb:author>
+      <refdb:author type="person">Petiteau, A.</refdb:author>
+      <refdb:title tex="Progress towards an electro-optical simulator for space based, long arms interferometers">Progress towards an electro-optical simulator for space based, long arms interferometers</refdb:title>
+      <refdb:year>2013</refdb:year>
+      <refdb:eprint>1309.1059</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2013arXiv1309.1059G</refdb:adsurl>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>gr-qc</refdb:primaryclass>
+    </refdb:preprint>
+  </refdb:record>
+  <refdb:record ord="63" id="Otto">
+    <refdb:article>
+      <refdb:author type="person">Otto, M.</refdb:author>
+      <refdb:author type="person">Heinzel, G.</refdb:author>
+      <refdb:author type="person">Danzmann, K.</refdb:author>
+      <refdb:title tex="TDI and clock noise removal for the split interferometry configuration of LISA">TDI and clock noise removal for the split interferometry configuration of LISA</refdb:title>
+      <refdb:year>2012</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>29</refdb:volume>
+      <refdb:pages>205003</refdb:pages>
+      <refdb:eid>205003</refdb:eid>
+      <refdb:doi>10.1088/0264-9381/29/20/205003</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2012CQGra..29t5003O</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="64" id="Wang">
+    <refdb:preprint>
+      <refdb:author type="person">Wang, Y.</refdb:author>
+      <refdb:author type="person">Heinzel, G.</refdb:author>
+      <refdb:author type="person">Danzmann, K.</refdb:author>
+      <refdb:title tex="The first stage of LISA data processing: clock synchronization and arm-length determination via a hybrid-extended Kalman filter">The first stage of LISA data processing: clock synchronization and arm-length determination via a hybrid-extended Kalman filter</refdb:title>
+      <refdb:year>2014</refdb:year>
+      <refdb:eprint>1402.6222</refdb:eprint>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2014arXiv1402.6222W</refdb:adsurl>
+      <refdb:archiveprefix>arXiv</refdb:archiveprefix>
+      <refdb:primaryclass>gr-qc</refdb:primaryclass>
+    </refdb:preprint>
+  </refdb:record>
+  <refdb:record ord="65" id="Heinzel">
+    <refdb:article>
+      <refdb:author type="person">Heinzel, G.</refdb:author>
+      <refdb:author type="person">Esteban, J. J.</refdb:author>
+      <refdb:author type="person">Barke, S.</refdb:author>
+      <refdb:author type="person">Otto, M.</refdb:author>
+      <refdb:author type="person">Wang, Y.</refdb:author>
+      <refdb:author type="person">Garcia, A. F.</refdb:author>
+      <refdb:author type="person">Danzmann, K.</refdb:author>
+      <refdb:title tex="Auxiliary functions of the LISA laser link: ranging, clock noise transfer and data communication">Auxiliary functions of the LISA laser link: ranging, clock noise transfer and data communication</refdb:title>
+      <refdb:year>2011</refdb:year>
+      <refdb:journal>Class. Quantum Grav.</refdb:journal>
+      <refdb:volume>28</refdb:volume>
+      <refdb:pages>094008</refdb:pages>
+      <refdb:eid>094008</refdb:eid>
+      <refdb:doi>10.1088/0264-9381/28/9/094008</refdb:doi>
+      <refdb:adsurl>http://adsabs.harvard.edu/abs/2011CQGra..28i4008H</refdb:adsurl>
+    </refdb:article>
+  </refdb:record>
+  <refdb:record ord="186" id="GH96SC">
+    <refdb:inproceedings>
+      <refdb:editor>Wald, R. M.</refdb:editor>
+      <refdb:title tex="Quantum States of Black Holes">Quantum States of Black Holes</refdb:title>
+      <refdb:booktitle tex="Black Holes and Relativistic Stars">Black Holes and Relativistic Stars</refdb:booktitle>
+      <refdb:conference tex="Proceedings of the Symposium dedicated to the memory of Subrahmanyan Chandrasekhar, held in Chicago, December 14\,--\,15, 1996">Proceedings of the Symposium dedicated to the memory of Subrahmanyan Chandrasekhar, held in Chicago, December 14 – 15, 1996</refdb:conference>
+      <refdb:year>1998</refdb:year>
+      <refdb:publisher tex="University of Chicago Press">University of Chicago Press</refdb:publisher>
+      <refdb:address tex="Chicago; London">Chicago; London</refdb:address>
+      <refdb:pages>241–266</refdb:pages>
+      <refdb:onlineversion scope="docSpecific">http://arXiv.org/abs/gr-qc/9704072</refdb:onlineversion>
+      <refdb:cited scope="docSpecific">1997-11-11</refdb:cited>
+      <refdb:keyword scope="docSpecific">Black hole entropy</refdb:keyword>
+      <refdb:keyword scope="docSpecific">Thermodynamics</refdb:keyword>
+      <refdb:eprint>gr-qc/9704072</refdb:eprint>
+    </refdb:inproceedings>
+  </refdb:record>
+
+</refdb:RefList>

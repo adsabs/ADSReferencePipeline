@@ -1,0 +1,969 @@
+<ADSBIBCODE>0000Galax...0.....Z</ADSBIBCODE>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD Journal Publishing DTD v2.3 20070202//EN" "journalpublishing.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en" article-type="rapid-communication">
+  <front>
+    <journal-meta>
+      <journal-id journal-id-type="publisher-id">galaxies</journal-id>
+      <journal-title>Galaxies</journal-title>
+      <abbrev-journal-title abbrev-type="publisher">Galaxies</abbrev-journal-title>
+      <abbrev-journal-title abbrev-type="pubmed">Galaxies</abbrev-journal-title>
+      <issn pub-type="epub">2075-4434</issn>
+      <publisher>
+        <publisher-name>MDPI</publisher-name>
+      </publisher>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="doi">10.3390/galaxies3040156</article-id>
+      <article-id pub-id-type="publisher-id">galaxies-03-00156</article-id>
+      <article-categories>
+        <subj-group>
+          <subject>Communication</subject>
+        </subj-group>
+      </article-categories>
+      <title-group>
+        <article-title>Isolated Galaxies <italic>versus</italic> Interacting Pairs with MaNGA</article-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Argudo Fern&#xE1;ndez</surname>
+            <given-names>Mar&#xED;a del Carmen</given-names>
+          </name>
+          <xref rid="c1-galaxies-03-00156" ref-type="corresp">*</xref>
+        </contrib>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Yuan</surname>
+            <given-names>Fangting</given-names>
+          </name>
+          <xref rid="fn1-galaxies-03-00156" ref-type="fn">&#x2020;</xref>
+        </contrib>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Shen</surname>
+            <given-names>Shiyin</given-names>
+          </name>
+          <xref rid="fn1-galaxies-03-00156" ref-type="fn">&#x2020;</xref>
+        </contrib>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Yin</surname>
+            <given-names>Jun</given-names>
+          </name>
+          <xref rid="fn1-galaxies-03-00156" ref-type="fn">&#x2020;</xref>
+        </contrib>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Chang</surname>
+            <given-names>Ruixiang</given-names>
+          </name>
+          <xref rid="fn1-galaxies-03-00156" ref-type="fn">&#x2020;</xref>
+        </contrib>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Feng</surname>
+            <given-names>Shuai</given-names>
+          </name>
+          <xref rid="fn1-galaxies-03-00156" ref-type="fn">&#x2020;</xref>
+        </contrib>
+        <contrib contrib-type="editor">
+          <name>
+            <surname>Moiseev</surname>
+            <given-names>Alexei</given-names>
+          </name>
+          <role>Academic Editor</role>
+        </contrib>
+        <contrib contrib-type="editor">
+          <name>
+            <surname>Aguerri</surname>
+            <given-names>Jos&#xE9; Alfonso L&#xF3;pez</given-names>
+          </name>
+          <role>Academic Editor</role>
+        </contrib>
+        <contrib contrib-type="editor">
+          <name>
+            <surname>Iodice</surname>
+            <given-names>Enrichetta</given-names>
+          </name>
+          <role>Academic Editor</role>
+        </contrib>
+      </contrib-group>
+      <aff id="af1-galaxies-03-00156">Shanghai Astronomical Observatory, Chinese Academy of Sciences, 80 Nandan Road, Shanghai 200030, China; E-Mails: <email>yuanft@shao.ac.cn</email> (F.Y.); <email>ssy@shao.ac.cn</email> (S.S.); <email>jyin@shao.ac.cn</email> (J.Y.); <email>crx@shao.ac.cn</email> (R.C.); <email>fengsh@shao.ac.cn</email> (S.F.)</aff>
+      <author-notes>
+	    <fn id="fn1-galaxies-03-00156">
+          <label>&#x2020;</label>
+          <p>These authors contributed equally to this work.</p>
+        </fn>
+        <corresp id="c1-galaxies-03-00156"><label>*</label>Author to whom correspondence should be addressed; E-Mail: <email>margudo@shao.ac.cn</email>.</corresp>
+      </author-notes>
+      <pub-date pub-type="epub">
+        <day>30</day>
+        <month>10</month>
+        <year>2015</year>
+      </pub-date>
+      <pub-date pub-type="collection"><month>12</month>
+        <year>2015</year>
+      </pub-date>
+      <volume>3</volume>
+      <issue>4</issue>
+      <fpage>156</fpage>
+      <lpage>163</lpage>
+      <history>
+        <date date-type="received">
+          <day>01</day>
+          <month>10</month>
+          <year>2015</year>
+        </date>
+        <date date-type="accepted">
+          <day>26</day>
+          <month>10</month>
+          <year>2015</year>
+        </date>
+      </history>
+      <permissions>
+        <copyright-statement>&#xA9; 2015 by the authors; licensee MDPI, Basel, Switzerland.</copyright-statement>
+        <copyright-year>2015</copyright-year>
+        <license>
+          <p>This article is an open access article distributed under the terms and conditions of the Creative Commons Attribution license (http://creativecommons.org/licenses/by/4.0/).</p>
+        </license>
+      </permissions>
+      <abstract>
+        <p>We present preliminary results of the spectral analysis on the radial distributions of the star formation history in both a galaxy merger and a spiral isolated galaxy observed with MaNGA. We find that the central part of the isolated galaxy is composed by older stellar population (&#x223C;2 Gyr) than in the outskirts (&#x223C;7 Gyr). Also, the time-scale is gradually larger from 1 Gyr in the inner part to 3 Gyr in the outer regions of the galaxy. In the case of the merger, the stellar population in the central region is older than in the tails, presenting a longer time-scale in comparison to central part in the isolated galaxy. Our results are in agreement with a scenario where spiral galaxies are built from inside-out. In the case of the merger, we find evidence that interactions enhance star formation in the central part of the galaxy.</p>
+      </abstract>
+      <kwd-group>
+        <kwd>interacting galaxies</kwd>
+        <kwd>isolated galaxies</kwd>
+        <kwd>peculiar galaxies</kwd>
+      </kwd-group>
+    </article-meta>
+  </front>
+  <body>
+    <sec sec-type="intro" id="sec1-galaxies-03-00156">
+      <title>1. Introduction</title>
+      <p>From models, it is predicted that disks grow from inner to outer parts of galaxies, the so-called inside-out model of galaxy formation. This means that stars first form in the centre of galaxies and later in their outer regions. As a consequence, we expect to observe gradients in stellar age and metallicity as a function of galactic radius for spiral galaxies [<xref ref-type="bibr" rid="B1-galaxies-03-00156">1</xref>,<xref ref-type="bibr" rid="B2-galaxies-03-00156">2</xref>]. This effect is difficult to observe from photometry alone because of the age-metallicity degeneracy and the contamination of dust. Therefore, high spatial and spectral resolutions are required. In this regard, S&#xE1;nchez <italic>et al.</italic> [<xref ref-type="bibr" rid="B3-galaxies-03-00156">3</xref>] find strong evidences of inside&#x2013;out growth of the galaxy disk from the study of 7000 ionized regions, extracted from 306 galaxies observed by the CALIFA survey [<xref ref-type="bibr" rid="B4-galaxies-03-00156">4</xref>].</p>
+      <p>Integral Field Spectroscopy (IFS) is a powerful resource for understanding the physical mechanisms driven the formation and evolution of galaxies, and in particular, processes that drive the star formation. With the advent of the 3D spectroscopy, from IFS data, new observational results are available to explore galaxy assembly models [<xref ref-type="bibr" rid="B5-galaxies-03-00156">5</xref>,<xref ref-type="bibr" rid="B6-galaxies-03-00156">6</xref>,<xref ref-type="bibr" rid="B7-galaxies-03-00156">7</xref>]. Integral field unit (IFU) observations provide us with an added dimension to the information available for each galaxy. Clues to the nature of the physical processes that drive star formation in galaxies are encoded in the map. In this regard, MaNGA (Mapping Nearby Galaxies at Apache Point Observatory (<uri>http://www.sdss.org/surveys/manga/</uri>); [<xref ref-type="bibr" rid="B8-galaxies-03-00156">8</xref>]) is an integral field spectroscopic survey designed to investigate the internal kinematic structure and composition of gas and stars in an unprecedented sample of nearly 10,000 nearby galaxies.</p>
+      <p>First results from the MaNGA prototype run are extremely promising. Li <italic>et al.</italic> [<xref ref-type="bibr" rid="B9-galaxies-03-00156">9</xref>] have detected radial gradients in the recent star formation histories of galaxies. Their results are consistent with the inside&#x2013;out picture, but in order to interpret them in light of the predictions from theoretical models, it is necessary to separate the effects of the environment where galaxies are located. Galaxies suffer intrinsic evolution but they are also exposed to the influences of their local and large-scale environments. Do galaxies evolve by nature or by nurture? The observed properties of isolated galaxies are likely to be determined mainly by their initial formation conditions and secular evolutionary processes.</p>
+      <p>How exactly do galaxies build their disk when they grow in isolation, unaffected by external influences? Isolated galaxies and the power of MaNGA IFU data are key ingredients to reach this goal. We aim at gaining a unique insight into how galaxies formed and evolve by comparing their observed properties with predictions from state-of-the-art chemical evolution models (CEM). Using MaNGA IFUs, we measure their SFH to obtain a much better understanding of disk build-up at local scales. In the talk given in the context of the European Week of Astronomy and Space Science (EWASS) in Tenerife, June 2015, we presented first analysis and preliminary results of our study. As a test case, under the assumption of the inside-out scenario of galaxy formation, we use the same methodology as for isolated galaxies to explore the SFH in a complete opposite case, merging galaxies.</p>
+    </sec>
+    <sec id="sec2-galaxies-03-00156">
+      <title>2. Experimental Section</title>
+      <sec id="sec2dot1-galaxies-03-00156">
+        <title>2.1. Data</title>
+        <p>The sample of isolated galaxies used in this study is selected from the SDSS-based catalogue of Isolated Galaxies (SIG; [<xref ref-type="bibr" rid="B10-galaxies-03-00156">10</xref>]), which provided a representative sample of SDSS-selected isolated galaxies for testing galaxy evolution and secular processes in low density regions of the local Universe. These galaxies are isolated with no physical neighbours within a volume of <inline-formula>
+          <mml:math id="mm1" display="block">
+            <mml:mrow>
+              <mml:mo>&#x394;</mml:mo>
+              <mml:mspace width="0.166667em"/>
+			  <mml:mi>v</mml:mi>
+              <mml:mspace width="0.166667em"/>
+              <mml:mo>&#x2264;</mml:mo>
+              <mml:mspace width="0.166667em"/>
+              <mml:mn>500</mml:mn>
+            </mml:mrow>
+          </mml:math>
+        </inline-formula> km&#xB7;s<inline-formula>
+          <mml:math id="mm2" display="block">
+            <mml:msup>
+              <mml:mrow/>
+              <mml:mrow>
+                <mml:mo>-</mml:mo>
+                <mml:mn>1</mml:mn>
+              </mml:mrow>
+            </mml:msup>
+          </mml:math>
+        </inline-formula> and <inline-formula>
+          <mml:math id="mm3" display="block">
+            <mml:mrow>
+              <mml:mi>d</mml:mi>
+              <mml:mo>&#x2264;</mml:mo>
+              <mml:mn>1</mml:mn>
+            </mml:mrow>
+          </mml:math>
+        </inline-formula> Mpc projected radius, where <inline-formula>
+          <mml:math id="mm4" display="block">
+            <mml:mrow>
+              <mml:mo>&#x394;</mml:mo>
+			  <mml:mi>v</mml:mi>
+              <mml:mspace width="0.166667em"/>
+            </mml:mrow>
+          </mml:math>
+        </inline-formula> is the absolute value of the line-of-sight velocity difference between the galaxy and its neighbours. In particular, we show preliminary results for SIG 2246, an almost face-on spiral isolated galaxy that has been already observed with MaNGA (see <xref ref-type="fig" rid="galaxies-03-00156-f001">Figure 1</xref>a). To study the radial distribution of the SFH we consider the stacked spectra in eight radial bins within 2 arcsec major axis elliptical annuli, as it is shown in the middle panel of <xref ref-type="fig" rid="galaxies-03-00156-f001">Figure 1</xref>, over-plotted in the H<inline-formula>
+          <mml:math id="mm5" display="block">
+            <mml:msub>
+              <mml:mrow/>
+              <mml:mi>&#x3B1;</mml:mi>
+            </mml:msub>
+          </mml:math>
+        </inline-formula> map of the galaxy, which traces star formation. We consider ellipticity of the galaxy according to its value in the NASA-Sloan Atlas (NSA; Blanton M. <uri>http://www.nsatlas.org</uri>) catalogue.</p>
+        <fig id="galaxies-03-00156-f001" position="float">
+          <label>Figure 1</label>
+          <caption>
+            <p>Isolated galaxy SIG 2246. (<bold>a</bold>) SDSS three-colour image of the galaxy and the corresponding MaNGA IFU field of view; (<bold>b</bold>) MaNGA H<inline-formula>
+              <mml:math id="mm6" display="block">
+                <mml:msub>
+                  <mml:mrow/>
+                  <mml:mi>&#x3B1;</mml:mi>
+                </mml:msub>
+              </mml:math>
+            </inline-formula> map of the galaxy and the considered elliptical annuli bins. Flux units are per spatial pixel; (<bold>c</bold>) SFH for each radial bin, normalised to the IFU radii. Error bar in the Y-axis corresponds to the <italic>&#x3C3;</italic> of the Gaussian distribution in each radial bin. Error bar in the X-axis corresponds to radial bin length, manually divided by 3 to separately visualise each error bar (not as a continuum).</p>
+          </caption>
+          <graphic xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="galaxies-03-00156-g001.tif"/>
+        </fig>
+        <fig id="galaxies-03-00156-f002" position="float">
+          <label>Figure 2</label>
+          <caption>
+            <p>Interacting pair Mrk 848. (<bold>a</bold>) SDSS three-colour image of the object. Yellow circles correspond to the regions completely covered by the MaNGA IFU, meanwhile regions with red circles correspond to regions not covered or partially covered. (<bold>b</bold>) MaNGA H<inline-formula>
+              <mml:math id="mm7" display="block">
+                <mml:msub>
+                  <mml:mrow/>
+                  <mml:mi>&#x3B1;</mml:mi>
+                </mml:msub>
+              </mml:math>
+            </inline-formula> map of the galaxy merger. Flux units are per spatial pixel. (<bold>c</bold>) Estimated SFH for each selected region in colour-code according to the legend.</p>
+          </caption>
+          <graphic xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="galaxies-03-00156-g002.tif"/>
+        </fig>
+        <p>In order to test the methodology when considering galaxies in interaction, we selected Mrk 848, an observed galaxy merger listed in the MaNGA ancillary program on observing close pairs, which will be the largest IFU sample for pair/interacting galaxies in the nearby Universe. This galaxy merger shows two well defined tails (see <xref ref-type="fig" rid="galaxies-03-00156-f002">Figure 2</xref>a), one in the north and other in the south, where the two nuclei are well identified in the central part. As it is shown in the left panel of <xref ref-type="fig" rid="galaxies-03-00156-f002">Figure 2</xref>, the MaNGA IFU do not cover the full object, we therefore divided the merger into 6 regions. Yellow circles in the left panel of <xref ref-type="fig" rid="galaxies-03-00156-f002">Figure 2</xref> correspond to the regions where the MaNGA IFU completely covers the object, meanwhile red circles correspond to the regions out the IFU. Even if the region 2 is partially covered, we also considered the stacked spectra in that region to explore the SFH in the south tail.</p>
+      </sec>
+      <sec sec-type="methods" id="sec2dot2-galaxies-03-00156">
+        <title>2.2. Methodology</title>
+        <p>To elucidate how galaxies grow with time, one needs to recover the SFH, both in space and time, for individual galaxies. To constraint the SFH for the galaxies considered in our study we apply the so-called &#x201C;fossil record method&#x201D;. Physical properties of the stellar population of the observed spectra (<italic>i.e.</italic>, age, metallicity, and dust attenuation) are then determined by comparing to a modelled spectra. To create a modelled spectral energy distribution (SED) we apply the evolutionary synthesis modelling technique, considering that the SFH follows a determined distribution. For the purpose of this study, based on the inside-out model of galaxy formation, we assume that the SFR of the galaxy vary with time following a Gaussian distribution [<xref ref-type="bibr" rid="B11-galaxies-03-00156">11</xref>].</p>
+        <p>Since a single stellar population (SSP) does not reproduce well the stellar spectra, we use full spectrum modelling to model the SED as a combination of different SSPs, hereafter composite stellar population (CSP). Several models that provide SSPs can be found in the literature, one of the most commonly used is the model developed by Bruzual &amp; Charlot [<xref ref-type="bibr" rid="B12-galaxies-03-00156">12</xref>], better known as the BC03 model. We adopted this model, assuming a Salpeter IMF [<xref ref-type="bibr" rid="B13-galaxies-03-00156">13</xref>] and we fix to solar metallicity as the starting point for this pilot study. Then, we model 100 CSPs where the SFH is parametrized by two free parameters <inline-formula>
+          <mml:math id="mm8" display="block">
+            <mml:msub>
+              <mml:mi>t</mml:mi>
+              <mml:mn>0</mml:mn>
+            </mml:msub>
+          </mml:math>
+        </inline-formula> and <italic>&#x3C4;</italic>, from 1 to 10 Gyr, which are the mean and sigma values of the Gaussian respectively.</p>
+        <p>The selection of a Gaussian distribution will allow an easier comparison of the physical parameters with the theoretical models. Then <inline-formula>
+          <mml:math id="mm9" display="block">
+            <mml:msub>
+              <mml:mi>t</mml:mi>
+              <mml:mn>0</mml:mn>
+            </mml:msub>
+          </mml:math>
+        </inline-formula> represents the mean age of the stellar population and <italic>&#x3C4;</italic> represents the time-scale. We therefore estimate <inline-formula>
+          <mml:math id="mm10" display="block">
+            <mml:msub>
+              <mml:mi>t</mml:mi>
+              <mml:mn>0</mml:mn>
+            </mml:msub>
+          </mml:math>
+        </inline-formula> and <italic>&#x3C4;</italic> by applying the fossil record method to the stacked spectra in each radial bin for the isolated galaxy, and to the stacked spectra in each region of the merger.</p>
+        <p>It is important to note that some sources of uncertainties arise when mapping of observed spectra to astrophysical information. Uncertainties come from the observed spectra (noise and calibration of the data), from synthesis models, and from the limitations of the spectral synthesis method [<xref ref-type="bibr" rid="B14-galaxies-03-00156">14</xref>]. Moreover, the information extracted from the multi stellar population modelling differs among implementations [<xref ref-type="bibr" rid="B15-galaxies-03-00156">15</xref>]. Since we present here a pilot study and some improvements will be implemented in modelling and full spectral fitting, we leave the analysis of the uncertainties for the future work.</p>
+      </sec>
+    </sec>
+    <sec sec-type="results" id="sec3-galaxies-03-00156">
+      <title>3. Results and Discussion</title>
+      <sec id="sec3dot1-galaxies-03-00156">
+        <title>3.1. SIG 2246</title>
+        <p>Following the methodology mentioned above, we constraint the SFH of the isolated galaxy SIG 2246. As it is shown in the right panel in <xref ref-type="fig" rid="galaxies-03-00156-f001">Figure 1</xref>, we estimate the mean age of the average stellar population (blue points), in each radial bin considered, and the corresponding time-scale (error bars in the Y-axis).</p>
+        <p>In average, the central part of the galaxy is composed by older stellar population (&#x223C;2 Gyr) than in the outskirts (&#x223C;5 Gyr younger), where the most recent episode of star formation is not younger than 12 Gyr. Also, the time-scale is gradually larger from 1 Gyr in the inner part to 3 Gyr in the outer regions of the galaxy. This result is in agreement with the inside-out model of galaxy formation introduced in <xref ref-type="sec" rid="sec1-galaxies-03-00156">Section 1</xref>.</p>
+      </sec>
+      <sec id="sec3dot2-galaxies-03-00156">
+        <title>3.2. Mrk 848</title>
+        <p>We apply the same methodology to study the evolution of SIG 2246, to constraint the SFH in the galaxy merger Mrk 848. The left panel in <xref ref-type="fig" rid="galaxies-03-00156-f002">Figure 2</xref> shows the estimated SFH in each considered region of the object. The yellow and green Gaussian distributions correspond to the SFH in the centre (regions 3 and 4). The resulted SFH for regions 2, 5, and 6 correspond to the red, blue, and magenta distributions.</p>
+        <p>The stellar population in the central region is older than in the tails. If we base our interpretation on spiral galaxies forming under the inside-out model, then regions 3 and 4 correspond to the nuclei of each original spiral galaxy before merging. Therefore, the stellar populations in regions 2, 5, and 6 correspond, in average, to their spiral arms. Moreover, we find that they have the same mean stellar age, about 10 Gyr but different time-scales, where it is longer in the north tail.</p>
+        <p>We also find a long time-scale in the centre of the merger, even larger than the time-scale in the case of the study of SIG 2246. In comparison with the short time-scale in the isolated galaxy, this result suggests that interactions enhance the star formation in the central part of the galaxies.</p>
+      </sec>
+    </sec>
+    <sec sec-type="conclusions" id="sec4-galaxies-03-00156">
+      <title>4. Conclusions</title>
+      <p>We present preliminary results of the spectral analysis on the radial distributions of the star formation history in both a galaxy merger and a spiral isolated galaxy observed with MaNGA. Our main conclusions are the following:<list list-type="order">
+        <list-item>
+          <label>(1)</label>
+          <p>We presented preliminary results of the study of the evolution of SIG 2246, an almost face-on spiral isolated galaxy, using IFS from MaNGA, which is up to now the largest IFU survey for galaxies in the local Universe. We find a radial gradient in the SFH of SIG 2246. Our results are in agreement with a scenario where spiral galaxies are built from inside-out.</p>
+        </list-item>
+        <list-item>
+          <label>(2)</label>
+          <p>We also apply the same methodology to study the SFH in the galaxy merger Mrk 848. We find evidence that interactions keep star formation in the central part of the galaxies.</p>
+        </list-item>
+      </list></p>
+      <p>Galaxies present gradients in SFH but also in their chemical enrichment history. According to this, we should take into account that our preliminary results could be biased by the fact that we modelled our CSPs at a fixed solar metallicity. Different metallicities will be considered in the synthesis modelling for the future work.</p>
+      <p>We expect, for the very first time, to find some clues on how spiral galaxies form and evolve. To reach this goal, we will combine the observed galaxy properties, as result from the spectral fitting techniques, with the predictions from CEMs. First conclusions are expected after comparing the constrained SFH from models to the observed SFH. Results will elucidate what is the most plausible formation scenario. Therefore, we will not only say if galaxies formed by inside-out or not, we will also quantify it by comparing with CEMs.</p>
+    </sec>
+  </body>
+  <back>
+    <ack>
+      <title>Acknowledgments</title>
+      <p>Mar&#xED;a del Carmen Argudo Fern&#xE1;ndez acknowledges Zhong Jing for his help on first steps in the development of the spectral fitting code. MAF is grateful for financial support from PIFI (funded by Chinese Academy of Sciences President&#x2019;s International Fellowship Initiative) Grant No. 2015PM056. Fangting Yuan is a LAMOST fellow and this work is supported by NSFC with No. 11303070 (PI : YFT), No. 11433003 (PI Shu Chenggang), and No.11173044 (PI HJL). This work was partly supported by the Strategic Priority Research Programme &#x201C;The Emergence of Cosmological Structures&#x201D; of the Chinese Academy of Sciences (CAS; grant XDB09030200), the National Natural Science Foundation of China (NSFC) with the Project Number of 11433003 and the &#x201C;973 Programme&#x201D; 2014 CB845705.</p>
+      <p>Funding for the Sloan Digital Sky Survey IV has been provided by the Alfred P. Sloan Foundation, the U.S. Department of Energy Office of Science, and the Participating Institutions. SDSS-IV acknowledges support and resources from the Center for High-Performance Computing at the University of Utah. The SDSS web site is <uri>www.sdss.org</uri>.</p>
+      <p>SDSS-IV is managed by the Astrophysical Research Consortium for the Participating Institutions of the SDSS Collaboration including the Brazilian Participation Group, the Carnegie Institution for Science, Carnegie Mellon University, the Chilean Participation Group, the French Participation Group, Harvard-Smithsonian Center for Astrophysics, Instituto de Astrof&#xED;sica de Canarias, The Johns Hopkins University, Kavli Institute for the Physics and Mathematics of the Universe (IPMU)/University of Tokyo, Lawrence Berkeley National Laboratory, Leibniz Institut f&#xFC;r Astrophysik Potsdam (AIP), Max-Planck-Institut f&#xFC;r Astronomie (MPIA Heidelberg), Max-Planck-Institut f&#xFC;r Astrophysik (MPA Garching), Max-Planck-Institut f&#xFC;r Extraterrestrische Physik (MPE), National Astronomical Observatory of China, New Mexico State University, New York University, University of Notre Dame, Observat&#xE1;rio Nacional/MCTI, The Ohio State University, Pennsylvania State University, Shanghai Astronomical Observatory, United Kingdom Participation Group, Universidad Nacional Aut&#xF3;noma de M&#xE9;xico, University of Arizona, University of Colorado Boulder, University of Oxford, University of Portsmouth, University of Utah, University of Virginia, University of Washington, University of Wisconsin, Vanderbilt University, and Yale University.</p>
+    </ack>
+    <notes>
+      <title>Author Contributions</title>
+      <p>Mar&#xED;a del Carmen Argudo Fern&#xE1;ndez, Fangting Yuan, Shiyin Shen, and Jun Yin conceived and designed the experiments; Mar&#xED;a del Carmen Argudo Fern&#xE1;ndez performed the experiments; Mar&#xED;a del Carmen Argudo Fern&#xE1;ndez, Shiyin Shen, Fangting Yuan, Jun Yin, and Ruixiang Chang analysed the data; Mar&#xED;a del Carmen Argudo Fern&#xE1;ndez, Fangting Yuan, Jun Yin, Ruixiang Chang, and Shuai Feng contributed materials/analysis tools; Mar&#xED;a del Carmen Argudo Fern&#xE1;ndez wrote the paper.</p>
+    </notes>
+    <notes>
+      <title>Conflicts of Interest</title>
+      <p>The authors declare no conflict of interest.</p>
+    </notes>
+    <ref-list>
+      <title>References</title>
+      <ref id="B1-galaxies-03-00156">
+        <label>1.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Kepner</surname>
+              <given-names>J.V.</given-names>
+            </name>
+          </person-group>
+          <article-title>Inside-out galaxy formation</article-title>
+          <source>Astrophys. J.</source>
+          <year>1999</year>
+          <volume>520</volume>
+          <fpage>59</fpage>
+          <pub-id pub-id-type="doi">10.1086/307419</pub-id>
+        </citation>
+      </ref>
+      <ref id="B2-galaxies-03-00156">
+        <label>2.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Pilkington</surname>
+              <given-names>K.</given-names>
+            </name>
+            <name>
+              <surname>Few</surname>
+              <given-names>C.G.</given-names>
+            </name>
+            <name>
+              <surname>Gibson</surname>
+              <given-names>B.K.</given-names>
+            </name>
+            <name>
+              <surname>Calura</surname>
+              <given-names>F.</given-names>
+            </name>
+            <name>
+              <surname>Michel-Dansac</surname>
+              <given-names>L.</given-names>
+            </name>
+            <name>
+              <surname>Thacker</surname>
+              <given-names>R.J.</given-names>
+            </name>
+            <name>
+              <surname>Moll&#xE1;</surname>
+              <given-names>M.</given-names>
+            </name>
+            <name>
+              <surname>Matteucci</surname>
+              <given-names>F.</given-names>
+            </name>
+            <name>
+              <surname>Rahimi</surname>
+              <given-names>A.</given-names>
+            </name>
+            <name>
+              <surname>Kawata</surname>
+              <given-names>D.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>Metallicity gradients in disks Do galaxies form inside-out?</article-title>
+          <source>Astron. Astrophys.</source>
+          <year>2012</year>
+          <volume>540</volume>
+          <fpage>A56</fpage>
+          <pub-id pub-id-type="doi">10.1051/0004-6361/201117466</pub-id>
+        </citation>
+      </ref>
+      <ref id="B3-galaxies-03-00156">
+        <label>3.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>S&#xE1;nchez</surname>
+              <given-names>S.F.</given-names>
+            </name>
+            <name>
+              <surname>Rosales-Ortega</surname>
+              <given-names>F.F.</given-names>
+            </name>
+            <name>
+              <surname>Iglesias-P&#xE1;ramo</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>Moll&#xE1;</surname>
+              <given-names>M.</given-names>
+            </name>
+            <name>
+              <surname>Barrera-Ballesteros</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>Marino</surname>
+              <given-names>R.A.</given-names>
+            </name>
+            <name>
+              <surname>P&#xE9;rez</surname>
+              <given-names>E.</given-names>
+            </name>
+            <name>
+              <surname>S&#xE1;nchez-Blazquez</surname>
+              <given-names>P.</given-names>
+            </name>
+            <name>
+              <surname>Gonz&#xE1;lez Delgado</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>Cid Fernandes</surname>
+              <given-names>R.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>A characteristic oxygen abundance gradient in galaxy disks unveiled with CALIFA</article-title>
+          <source>Astron. Astrophys.</source>
+          <year>2014</year>
+          <volume>563</volume>
+          <fpage>A49</fpage>
+          <pub-id pub-id-type="doi">10.1051/0004-6361/201322343</pub-id>
+        </citation>
+      </ref>
+      <ref id="B4-galaxies-03-00156">
+        <label>4.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>S&#xE1;nchez</surname>
+              <given-names>S.F.</given-names>
+            </name>
+            <name>
+              <surname>Kennicutt</surname>
+              <given-names>R.C.</given-names>
+            </name>
+            <name>
+              <surname>Gil de Paz</surname>
+              <given-names>A.</given-names>
+            </name>
+            <name>
+              <surname>van de Ven</surname>
+              <given-names>G.</given-names>
+            </name>
+            <name>
+              <surname>V&#x13A;&#x142;lchez</surname>
+              <given-names>J.M.</given-names>
+            </name>
+            <name>
+              <surname>Wisotzki</surname>
+              <given-names>L.</given-names>
+            </name>
+            <name>
+              <surname>Walcher</surname>
+              <given-names>C.J.</given-names>
+            </name>
+            <name>
+              <surname>Mast</surname>
+              <given-names>D.</given-names>
+            </name>
+            <name>
+              <surname>Aguerri</surname>
+              <given-names>J.A.L.</given-names>
+            </name>
+            <name>
+              <surname>Albiol-P&#xE9;rez</surname>
+              <given-names>S.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>CALIFA, the Calar Alto Legacy Integral Field Area survey-I. Survey presentation</article-title>
+          <source>Astron. Astrophys.</source>
+          <year>2012</year>
+          <volume>538</volume>
+          <fpage>A8</fpage>
+          <pub-id pub-id-type="doi">10.1051/0004-6361/201117353</pub-id>
+        </citation>
+      </ref>
+      <ref id="B5-galaxies-03-00156">
+        <label>5.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>P&#xE9;rez</surname>
+              <given-names>E.</given-names>
+            </name>
+            <name>
+              <surname>Cid Fernandes</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>Gonz&#xE1;lez Delgado</surname>
+              <given-names>R.M.</given-names>
+            </name>
+            <name>
+              <surname>Garc&#xED;a-Benito</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>S&#xE1;nchez</surname>
+              <given-names>S.F.</given-names>
+            </name>
+            <name>
+              <surname>Husemann</surname>
+              <given-names>B.</given-names>
+            </name>
+            <name>
+              <surname>Mast</surname>
+              <given-names>D.</given-names>
+            </name>
+            <name>
+              <surname>Rod&#xF3;n</surname>
+              <given-names>J.R.</given-names>
+            </name>
+            <name>
+              <surname>Kupko</surname>
+              <given-names>D.</given-names>
+            </name>
+            <name>
+              <surname>Backsmann</surname>
+              <given-names>N.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>The Evolution of Galaxies Resolved in Space and Time: A View of Inside-out Growth from the CALIFA Survey</article-title>
+          <source>Astrophys. J. Lett.</source>
+          <year>2013</year>
+          <volume>764</volume>
+          <fpage>L1</fpage>
+          <pub-id pub-id-type="doi">10.1088/2041-8205/764/1/L1</pub-id>
+        </citation>
+      </ref>
+      <ref id="B6-galaxies-03-00156">
+        <label>6.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>S&#xE1;nchez-Bl&#xE1;zquez</surname>
+              <given-names>P.</given-names>
+            </name>
+            <name>
+              <surname>Rosales-Ortega</surname>
+              <given-names>F.F.</given-names>
+            </name>
+            <name>
+              <surname>M&#xE9;ndez-Abreu</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>P&#xE9;rez</surname>
+              <given-names>I.</given-names>
+            </name>
+            <name>
+              <surname>S&#xE1;nchez</surname>
+              <given-names>S.F.</given-names>
+            </name>
+            <name>
+              <surname>Zibetti</surname>
+              <given-names>S.</given-names>
+            </name>
+            <name>
+              <surname>Aguerri</surname>
+              <given-names>J.A.L.</given-names>
+            </name>
+            <name>
+              <surname>Bland-Hawthorn</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>Catal&#xE1;n-Torrecilla</surname>
+              <given-names>C.</given-names>
+            </name>
+            <name>
+              <surname>Cid Fernandes</surname>
+              <given-names>R.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>Stellar population gradients in galaxy discs from the CALIFA survey: the influence of bars</article-title>
+          <source>Astron. Astrophys.</source>
+          <year>2014</year>
+          <volume>570</volume>
+          <fpage>A6</fpage>
+          <pub-id pub-id-type="doi">10.1051/0004-6361/201423635</pub-id>
+        </citation>
+      </ref>
+      <ref id="B7-galaxies-03-00156">
+        <label>7.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Pan</surname>
+              <given-names>Z.</given-names>
+            </name>
+            <name>
+              <surname>Li</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>Lin</surname>
+              <given-names>W.</given-names>
+            </name>
+            <name>
+              <surname>Wang</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>Fan</surname>
+              <given-names>L.</given-names>
+            </name>
+            <name>
+              <surname>Kong</surname>
+              <given-names>X.</given-names>
+            </name>
+          </person-group>
+          <article-title>From Outside-in to Inside-out: Galaxy Assembly Mode Depends on Stellar Mass</article-title>
+          <source>Astrophys. J. Lett.</source>
+          <year>2015</year>
+          <volume>804</volume>
+          <fpage>L42</fpage>
+          <pub-id pub-id-type="doi">10.1088/2041-8205/804/2/L42</pub-id>
+        </citation>
+      </ref>
+      <ref id="B8-galaxies-03-00156">
+        <label>8.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Bundy</surname>
+              <given-names>K.</given-names>
+            </name>
+            <name>
+              <surname>Bershady</surname>
+              <given-names>M.A.</given-names>
+            </name>
+            <name>
+              <surname>Law</surname>
+              <given-names>D.R.</given-names>
+            </name>
+            <name>
+              <surname>Yan</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>Drory</surname>
+              <given-names>N.</given-names>
+            </name>
+            <name>
+              <surname>MacDonald</surname>
+              <given-names>N.</given-names>
+            </name>
+            <name>
+              <surname>Wake</surname>
+              <given-names>D.A.</given-names>
+            </name>
+            <name>
+              <surname>Cherinka</surname>
+              <given-names>B.</given-names>
+            </name>
+            <name>
+              <surname>S&#xE1;nchez-Gallego</surname>
+              <given-names>J.R.</given-names>
+            </name>
+            <name>
+              <surname>Weijmans</surname>
+              <given-names>A.-M.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>Overview of the SDSS-IV MaNGA Survey: Mapping nearby Galaxies at Apache Point Observatory</article-title>
+          <source>Astrophys. J.</source>
+          <year>2015</year>
+          <volume>798</volume>
+          <fpage>7</fpage>
+          <pub-id pub-id-type="doi">10.1088/0004-637X/798/1/7</pub-id>
+        </citation>
+      </ref>
+      <ref id="B9-galaxies-03-00156">
+        <label>9.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Li</surname>
+              <given-names>C.</given-names>
+            </name>
+            <name>
+              <surname>Wang</surname>
+              <given-names>E.</given-names>
+            </name>
+            <name>
+              <surname>Lin</surname>
+              <given-names>L.</given-names>
+            </name>
+            <name>
+              <surname>Bershady</surname>
+              <given-names>M.A.</given-names>
+            </name>
+            <name>
+              <surname>Bundy</surname>
+              <given-names>K.</given-names>
+            </name>
+            <name>
+              <surname>Tremonti</surname>
+              <given-names>C.A.</given-names>
+            </name>
+            <name>
+              <surname>Xiao</surname>
+              <given-names>T.</given-names>
+            </name>
+            <name>
+              <surname>Yan</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>Bizyaev</surname>
+              <given-names>D.</given-names>
+            </name>
+            <name>
+              <surname>Blanton</surname>
+              <given-names>M.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>P-MaNGA: Gradients in Recent Star Formation Histories as Diagnostics for Galaxy Growth and Death</article-title>
+          <source>Astrophys. J.</source>
+          <year>2015</year>
+          <volume>804</volume>
+          <fpage>125</fpage>
+          <pub-id pub-id-type="doi">10.1088/0004-637X/804/2/125</pub-id>
+        </citation>
+      </ref>
+      <ref id="B10-galaxies-03-00156">
+        <label>10.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Argudo-Fern&#xE1;ndez</surname>
+              <given-names>M.</given-names>
+            </name>
+            <name>
+              <surname>Verley</surname>
+              <given-names>S.</given-names>
+            </name>
+            <name>
+              <surname>Bergond</surname>
+              <given-names>G.</given-names>
+            </name>
+            <name>
+              <surname>Duarte Puertas</surname>
+              <given-names>S.</given-names>
+            </name>
+            <name>
+              <surname>Ramos Carmona</surname>
+              <given-names>E.</given-names>
+            </name>
+            <name>
+              <surname>Sabater</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>Fernandez Lorenzo</surname>
+              <given-names>M.</given-names>
+            </name>
+            <name>
+              <surname>Espada</surname>
+              <given-names>D.</given-names>
+            </name>
+            <name>
+              <surname>Sulentic</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>Ruiz</surname>
+              <given-names>J.E.</given-names>
+            </name>
+            <name>
+              <surname>Leon</surname>
+              <given-names>S.</given-names>
+            </name>
+          </person-group>
+          <article-title>Catalogues of isolated galaxies, isolated pairs, and isolated triplets in the local Universe</article-title>
+          <source>Astron. Astrophys.</source>
+          <year>2015</year>
+          <volume>578</volume>
+          <fpage>A110</fpage>
+          <pub-id pub-id-type="doi">10.1051/0004-6361/201526016</pub-id>
+        </citation>
+      </ref>
+      <ref id="B11-galaxies-03-00156">
+        <label>11.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Chang</surname>
+              <given-names>R.X.</given-names>
+            </name>
+            <name>
+              <surname>Hou</surname>
+              <given-names>J.L.</given-names>
+            </name>
+            <name>
+              <surname>Shu</surname>
+              <given-names>C.G.</given-names>
+            </name>
+            <name>
+              <surname>Fu</surname>
+              <given-names>C.Q.</given-names>
+            </name>
+          </person-group>
+          <article-title>Two-component model for the chemical evolution of the Galactic disk</article-title>
+          <source>Astron. Astrophys.</source>
+          <year>1999</year>
+          <volume>350</volume>
+          <fpage>38</fpage>
+        </citation>
+      </ref>
+      <ref id="B12-galaxies-03-00156">
+        <label>12.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Bruzual</surname>
+              <given-names>G.</given-names>
+            </name>
+            <name>
+              <surname>Charlot</surname>
+              <given-names>S.</given-names>
+            </name>
+          </person-group>
+          <article-title>Stellar population synthesis at the resolution of 2003</article-title>
+          <source>Mon. Not. R. Astron. Soc.</source>
+          <year>2003</year>
+          <volume>344</volume>
+          <fpage>1000</fpage>
+          <lpage>1028</lpage>
+          <pub-id pub-id-type="doi">10.1046/j.1365-8711.2003.06897.x</pub-id>
+        </citation>
+      </ref>
+      <ref id="B13-galaxies-03-00156">
+        <label>13.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Salpeter</surname>
+              <given-names>E.E.</given-names>
+            </name>
+          </person-group>
+          <article-title>The luminosity function and stellar evolution</article-title>
+          <source>Astrophys. J.</source>
+          <year>1955</year>
+          <volume>121</volume>
+          <fpage>161</fpage>
+          <pub-id pub-id-type="doi">10.1086/145971</pub-id>
+        </citation>
+      </ref>
+      <ref id="B14-galaxies-03-00156">
+        <label>14.</label>
+        <citation citation-type="journal">
+          <person-group person-group-type="author">
+            <name>
+              <surname>Cid Fernandes</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>Gonz&#xE1;lez Delgado</surname>
+              <given-names>R.M.</given-names>
+            </name>
+            <name>
+              <surname>Garc&#xED;a Benito</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>P&#xE9;rez</surname>
+              <given-names>E.</given-names>
+            </name>
+            <name>
+              <surname>de Amorim</surname>
+              <given-names>A.L.</given-names>
+            </name>
+            <name>
+              <surname>S&#xE1;nchez</surname>
+              <given-names>S.F.</given-names>
+            </name>
+            <name>
+              <surname>Husemann</surname>
+              <given-names>B.</given-names>
+            </name>
+            <name>
+              <surname>Falc&#xF3;n Barroso</surname>
+              <given-names>J.</given-names>
+            </name>
+            <name>
+              <surname>L&#xF3;pez-Fern&#xE1;ndez</surname>
+              <given-names>R.</given-names>
+            </name>
+            <name>
+              <surname>S&#xE1;nchez-Bl&#xE1;zquez</surname>
+              <given-names>P.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <article-title>Resolving galaxies in time and space II. Uncertainties in the spectral synthesis of datacubes</article-title>
+          <source>Astron. Astrophys.</source>
+          <year>2014</year>
+          <volume>561</volume>
+          <fpage>A130</fpage>
+          <pub-id pub-id-type="doi">10.1051/0004-6361/201321692</pub-id>
+        </citation>
+      </ref>
+      <ref id="B15-galaxies-03-00156">
+        <label>15.</label>
+        <citation citation-type="book">
+          <person-group person-group-type="author">
+            <name>
+              <surname>S&#xE1;nchez</surname>
+              <given-names>S.F.</given-names>
+            </name>
+            <name>
+              <surname>P&#xE9;rez</surname>
+              <given-names>E.</given-names>
+            </name>
+            <name>
+              <surname>S&#xE1;nchez-Bl&#xE1;zquez</surname>
+              <given-names>P.</given-names>
+            </name>
+            <name>
+              <surname>Gonz&#xE1;lez</surname>
+              <given-names>J.J.</given-names>
+            </name>
+            <name>
+              <surname>Ros&#xE1;lez-Ortega</surname>
+              <given-names>F.F.</given-names>
+            </name>
+            <name>
+              <surname>Cano-D&#xED;az</surname>
+              <given-names>M.</given-names>
+            </name>
+            <name>
+              <surname>L&#xF3;pez-Cob&#xE1;</surname>
+              <given-names>C.</given-names>
+            </name>
+            <name>
+              <surname>Marino</surname>
+              <given-names>R.A.</given-names>
+            </name>
+            <name>
+              <surname>de Paz</surname>
+              <given-names>A.G.</given-names>
+            </name>
+            <name>
+              <surname>Moll&#xE1;</surname>
+              <given-names>M.</given-names>
+            </name>
+            <etal/>
+          </person-group>
+          <source>Pipe3D, A Pipeline to Analyze Integral Field Spectroscopy Data: I. New Fitting Phylosophy of FIT3D</source>
+          <publisher-name>Cornell Unversity</publisher-name>
+          <publisher-loc>Ithaca, NY, USA</publisher-loc>
+          <year>2015</year>
+        </citation>
+      </ref>
+    </ref-list>
+  </back>
+</article>

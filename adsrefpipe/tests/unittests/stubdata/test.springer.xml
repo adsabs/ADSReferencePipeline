@@ -1,0 +1,172 @@
+<ADSBIBCODE>0000JHEP....0.....Z</ADSBIBCODE>
+<Citation ID="CR1">
+<CitationNumber>[1]</CitationNumber>
+<BibArticle>
+    <BibAuthorName>
+        <Initials>J</Initials>
+        <FamilyName>Jaeckel</FamilyName>
+    </BibAuthorName>
+    <BibAuthorName>
+        <Initials>A</Initials>
+        <FamilyName>Ringwald</FamilyName>
+    </BibAuthorName>
+    <Year>2010</Year>
+    <ArticleTitle Language="En">The Low-Energy Frontier of Particle Physics</ArticleTitle>
+    <JournalTitle>Ann. Rev. Nucl. Part. Sci.</JournalTitle>
+    <VolumeID>60</VolumeID>
+    <FirstPage>405</FirstPage>
+    <Occurrence Type="Bibcode">
+        <Handle>2010ARNPS..60..405J</Handle>
+    </Occurrence>
+    <Occurrence Type="DOI">
+        <Handle>10.1146/annurev.nucl.012809.104433</Handle>
+    </Occurrence>
+    <BibComments>[arXiv:1002.0329] [INSPIRE]</BibComments>
+</BibArticle>
+<BibUnstructured>J. Jaeckel and A. Ringwald, The Low-Energy Frontier of Particle Physics, Ann. Rev. Nucl. Part. Sci. 60
+    (2010) 405 [
+    <ExternalRef>
+        <RefSource>arXiv:1002.0329</RefSource>
+        <RefTarget Address="https://arxiv.org/abs/1002.0329" TargetType="URL"/>
+    </ExternalRef>
+    ] [
+    <ExternalRef>
+        <RefSource>INSPIRE</RefSource>
+        <RefTarget Address="https://inspirehep.net/search?p=find+J+%22Ann.Rev.Nucl.Part.Sci.,60,405%22"
+                   TargetType="URL"/>
+    </ExternalRef>
+    ].
+</BibUnstructured>
+</Citation>
+<Citation ID="CR86">
+<CitationNumber>[86]</CitationNumber>
+<BibUnstructured>H. Elvang and Y. Huang, Scattering Amplitudes in Gauge Theory and Gravity, Cambridge University Press,
+    (2015), [
+    <ExternalRef>
+        <RefSource>https://doi.org/10.1017/CBO9781107706620</RefSource>
+        <RefTarget Address="10.1017/CBO9781107706620" TargetType="DOI"/>
+    </ExternalRef>
+    ].
+</BibUnstructured>
+</Citation>
+<Citation ID="CR6">
+<CitationNumber>[5]</CitationNumber>
+<BibChapter>
+    <BibAuthorName>
+        <Initials>Marc</Initials>
+        <FamilyName>Henneaux</FamilyName>
+    </BibAuthorName>
+    <BibAuthorName>
+        <Initials>Claudio</Initials>
+        <FamilyName>Teitelboim</FamilyName>
+    </BibAuthorName>
+    <Year>1989</Year>
+    <ChapterTitle Language="--">Consistent Quantum Mechanics of Chiral p-Forms</ChapterTitle>
+    <BookTitle>Quantum Mechanics of Fundamental Systems 2</BookTitle>
+    <PublisherName>Springer US</PublisherName>
+    <PublisherLocation>Boston, MA</PublisherLocation>
+    <FirstPage>79</FirstPage>
+    <LastPage>112</LastPage>
+    <Occurrence Type="DOI">
+        <Handle>10.1007/978-1-4613-0797-6_8</Handle>
+    </Occurrence>
+</BibChapter>
+<BibUnstructured>M. Henneaux and C. Teitelboim, Consistent quantum mechanics of chiral p forms, in 2nd Meeting on
+    Quantum Mechanics of Fundamental Systems (CECS) Santiago, Chile, December 17&ndash;20, 1987, pp. 79&ndash;112.
+</BibUnstructured>
+</Citation>
+<Citation ID="CR6i">
+<CitationNumber>[6]</CitationNumber>
+<BibBook>
+    <BibAuthorName>
+        <Initials>H</Initials>
+        <FamilyName>Elvang</FamilyName>
+    </BibAuthorName>
+    <BibAuthorName>
+        <Initials>YT</Initials>
+        <FamilyName>Huang</FamilyName>
+    </BibAuthorName>
+    <Year>2015</Year>
+    <BookTitle>Scattering amplitudes in gauge theory and gravity</BookTitle>
+    <PublisherName>Cambridge University Press</PublisherName>
+    <PublisherLocation>Cambridge, U.K.</PublisherLocation>
+    <Occurrence Type="ZLBID">
+        <Handle>1332.81010</Handle>
+    </Occurrence>
+    <Occurrence Type="DOI">
+        <Handle>10.1017/CBO9781107706620</Handle>
+    </Occurrence>
+</BibBook>
+<BibUnstructured>H. Elvang and Y.T. Huang, Scattering amplitudes in gauge theory and gravity, Cambridge University
+    Press, Cambridge, U.K. (2015).
+</BibUnstructured>
+</Citation>
+<Citation ID="CR39">
+<BibArticle>
+    <BibAuthorName>
+        <Initials>PJ</Initials>
+        <FamilyName>Nyhus</FamilyName>
+    </BibAuthorName>
+    <BibAuthorName>
+        <Initials>R</Initials>
+        <NoFamilyName/>
+    </BibAuthorName>
+    <BibAuthorName>
+        <NoInitials/>
+        <FamilyName>Sumianto</FamilyName>
+    </BibAuthorName>
+    <Year>2000</Year>
+    <ArticleTitle Language="En">Crop-raiding elephants and conservation implications at Way Kambas National Park,
+        Sumatra, Indonesia
+    </ArticleTitle>
+    <JournalTitle>Oryx</JournalTitle>
+    <VolumeID>34</VolumeID>
+    <FirstPage>262</FirstPage>
+    <LastPage>274</LastPage>
+</BibArticle>
+<BibUnstructured>Nyhus PJ, Tilson R, Sumianto (2000) Crop-raiding elephants and conservation implications at Way Kambas
+    National Park, Sumatra, Indonesia. Oryx 34:262&ndash;274
+</BibUnstructured>
+</Citation>
+<Citation ID="CR5">
+<CitationNumber>5.</CitationNumber>
+<BibChapter>
+    <BibAuthorName>
+        <Initials>M</Initials>
+        <FamilyName>Onur</FamilyName>
+    </BibAuthorName>
+    <BibAuthorName>
+        <Initials>P S</Initials>
+        <FamilyName>Hegeman</FamilyName>
+    </BibAuthorName>
+    <BibAuthorName>
+        <Initials>I M</Initials>
+        <FamilyName>Gok</FamilyName>
+    </BibAuthorName>
+    <BibAuthorName>
+        <Initials>F J</Initials>
+        <FamilyName>Kuchuk</FamilyName>
+    </BibAuthorName>
+    <Year>2011</Year>
+    <ChapterTitle Language="En">A Novel Analysis Procedure for Estimating Thickness- Independent Horizontal and Vertical
+        Permeabilities from Pressure Data at an Observation Probe Acquired by Packer-Probe Wireline Formation Testers
+    </ChapterTitle>
+    <BookTitle>Proc. of the Int. Petroleum Technol. Conf., Doha (Qatar), December 7&ndash;9, 2009</BookTitle>
+</BibChapter>
+<BibUnstructured>M. Onur, P. S. Hegeman, I. M. Gok, and F. J. Kuchuk, &ldquo;A Novel Analysis Procedure for Estimating
+    Thickness- Independent Horizontal and Vertical Permeabilities from Pressure Data at an Observation Probe Acquired by
+    Packer-Probe Wireline Formation Testers,&rdquo; in Proc. of the Int. Petroleum Technol. Conf., Doha (Qatar),
+    December 7&ndash;9, 2009 (Petroleum Eng., 2011);
+    <ExternalRef>
+        <RefSource>https://doi.org/10.2118/148403-PA</RefSource>
+        <RefTarget Address="https://doi.org/10.2118/148403-PA" TargetType="URL"/>
+    </ExternalRef>
+    .
+</BibUnstructured>
+</Citation>
+<Citation ID="CR12">
+<BibUnstructured>Kervella, P., &amp; Domiciano de Souza, A. (2006). The polar wind of the fast rotating Be star
+    Achernar. VINCI/VLTI interferometric observations of an elongated polar envelope. Astronomy &amp; Astrophysics, 453,
+    1059.
+</BibUnstructured>
+</Citation>

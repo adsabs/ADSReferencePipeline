@@ -1,0 +1,38 @@
+<references apsname="PhysRevB.81.184520" bibcode="0000ApPhL...0.....Z">
+    <ref citid="c1">
+        <jcite><refauth>H. J. Jensen</refauth>, <refauth>A. Brass</refauth>, and <refauth>A. J. Berlinsky</refauth>, <jtitle>
+            Phys. Rev. Lett.
+        </jtitle>
+            <volume>60</volume>, <pages>1676</pages> (<date>1988</date>).
+            <doi>10.1103/PhysRevLett.60.1676</doi>
+        </jcite>
+    </ref>
+    <ref citid="c31">
+        <jcite><refauth>E. H. Brandt</refauth>, <jtitle>Phys. Rev. B</jtitle>
+            <volume>50</volume>, <pages>4034</pages> (<date>1994</date>).
+            <doi>10.1103/PhysRevB.50.4034</doi>
+        </jcite>
+    </ref>
+    <ref citid="c36">
+        <jcite>
+            <refauth>M. Golterman</refauth>
+            and <refauth>S. Peris</refauth>,
+            <jtitle>J. High Energy Phys.</jtitle>
+            <coden>JHEPFG</coden>
+            <issn>1029-8479</issn>
+            <issue>01</issue> (<volume>2001</volume>) <pages>028</pages>.
+            <doi>10.1088/1126-6708/2001/01/028</doi>
+        </jcite>
+    </ref>
+    <ref citid="c88">
+        <eprint><refauth>T. N. Truong</refauth>, <eprintid>arXiv:hep-ph/0102300</eprintid>.
+        </eprint>
+    </ref>
+    <ref citid="c89">
+        <jcite>
+            <jtitle>Z. Phys. C</jtitle> (<date>1991</date>).
+            <coden>ZPCFD2</coden>
+            <issn>0170-9739</issn>
+            <doi>10.1007/BF01549692</doi>
+        </jcite>
+    </ref>
