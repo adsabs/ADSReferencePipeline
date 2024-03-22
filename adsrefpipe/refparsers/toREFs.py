@@ -432,6 +432,7 @@ class XMLtoREFs(toREFs):
                 logger.error("Unable to open file %s. Exception %s." % (filename, error))
                 return []
         if not buffer:
+            logger.error("File %s is empty." % filename)
             return []
 
         return self.get_reference_blob(buffer, self.detect_ref_format(buffer))
