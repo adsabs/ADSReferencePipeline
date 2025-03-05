@@ -54,7 +54,7 @@ This pipeline is to process source reference files, if xml to parse them first a
         python run.py RESOLVE -s <list of source filenames separated by spaces>
         ```
 
-    2. Specify a directory, and file extension, to recursively search all sub directories for this type of reference file, and queue them all for processing, use the command
+    2. Specify a directory, and file extension (i.e. -e *.raw), to recursively search all sub directories for this type of reference file, and queue them all for processing, use the command
         ```
         python run.py RESOLVE -p <source files path> -e <source files extension>
         ```

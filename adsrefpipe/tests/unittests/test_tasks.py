@@ -5,16 +5,16 @@ if project_home not in sys.path:
 
 import datetime
 import unittest
-import mock
+from unittest.mock import Mock, patch
 import json
 
 from adsrefpipe import app, tasks, utils
 from adsrefpipe.models import Base, Action, Parser, ReferenceSource, ProcessedHistory, ResolvedReference, CompareClassic
 from adsrefpipe.refparsers.handler import verify
-from adsrefpipe.tests.unittests.data_test_db_query import actions_records, parsers_records
+from adsrefpipe.tests.unittests.stubdata.dbdata import actions_records, parsers_records
 
 
-class TestWorkers(unittest.TestCase):
+class TestTasks(unittest.TestCase):
 
     postgresql_url_dict = {
         'port': 5432,
@@ -105,7 +105,7 @@ class TestWorkers(unittest.TestCase):
                                                    score=service[2],
                                                    reference_raw=service[0])
                         resolved_records.append(resolved_record)
-                    success = self.app.insert_resolved_referencce_records(session, resolved_records)
+                    success = self.app.insert_resolved_reference_records(session, resolved_records)
                     self.assertTrue(success == True)
                     session.commit()
 
@@ -127,8 +127,8 @@ class TestWorkers(unittest.TestCase):
             }
         ]
 
-        with mock.patch('requests.post') as mock_resolved_references:
-            mock_resolved_references.return_value = mock_response = mock.Mock()
+        with patch('requests.post') as mock_resolved_references:
+            mock_resolved_references.return_value = mock_response = Mock()
             mock_response.status_code = 200
             mock_response.content = json.dumps({"resolved": resolved_reference})
             filename = os.path.join(self.arXiv_stubdata_dir,'00001.raw')
@@ -175,8 +175,8 @@ class TestWorkers(unittest.TestCase):
                 "id": "H1I1"
             }
         ]
-        with mock.patch('requests.post') as mock_resolved_references:
-            mock_resolved_references.return_value = mock_response = mock.Mock()
+        with patch('requests.post') as mock_resolved_references:
+            mock_resolved_references.return_value = mock_response = Mock()
             mock_response.status_code = 200
             mock_response.content = json.dumps({"resolved": resolved_reference})
             parser_dict = self.app.get_parser(reprocess_record[0]['source_filename'])
@@ -205,6 +205,56 @@ class TestWorkers(unittest.TestCase):
                               {'name': 'ResolvedReference', 'description': 'resolved reference information for a processed run', 'count': 3},
                               {'name': 'CompareClassic', 'description': 'comparison of new and classic processed run', 'count': 0}]
             self.assertTrue(self.app.get_count_records() == expected_count)
+
+    def test_task_process_reference_error(self):
+        """ test task_process_reference when utils method returns False """
+
+        reference_task = {
+            'reference': [{'item_num': 2,
+                           'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
+                           'id': '2'}],
+            'source_bibcode': '2023TEST..........S',
+            'source_filename': 'some_source.txt',
+            'resolver_service_url': 'text'
+        }
+
+        # mock post_request_resolved_reference to return false to trigger FailedRequest
+        with patch("adsrefpipe.tasks.utils.post_request_resolved_reference", return_value=False):
+            with self.assertRaises(tasks.FailedRequest):
+                tasks.task_process_reference(reference_task)
+
+    def test_task_process_reference_exception(self):
+        """ test task_process_reference when KeyError is raised """
+
+        reference_task = {
+            'reference': [{'item_num': 2,
+                           'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
+                           'id': '2'}],
+            'source_bibcode': '2023TEST..........S',
+            'source_filename': 'some_source.txt',
+            'resolver_service_url': 'text'
+        }
+
+        # mock post_request_resolved_reference to raise KeyError
+        with patch("adsrefpipe.tasks.utils.post_request_resolved_reference", side_effect=KeyError):
+            self.assertFalse(tasks.task_process_reference(reference_task))
+
+    def test_task_process_reference_success(self):
+        """ test task_process_reference successfully returns True """
+
+        reference_task = {
+            'reference': [{'item_num': 2,
+                           'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
+                           'id': '2'}],
+            'source_bibcode': '2023TEST..........S',
+            'source_filename': 'some_source.txt',
+            'resolver_service_url': 'text'
+        }
+
+        # Mock post_request_resolved_reference to return a valid resolved reference
+        with patch("adsrefpipe.tasks.utils.post_request_resolved_reference", return_value=["resolved_ref"]), \
+                patch("adsrefpipe.tasks.app.populate_tables_post_resolved", return_value=True):
+            self.assertTrue(tasks.task_process_reference(reference_task))
 
 
 if __name__ == '__main__':
