@@ -1,0 +1,105 @@
+@startuml
+
+package "adsrefpipe" {
+
+    class "ADSReferencePipelineCelery" {
+        +init_default_parsers()
+        +match_parser()
+        +get_parser()
+        +get_reference_service_endpoint()
+        +query_reference_source_tbl()
+        +query_processed_history_tbl()
+        +query_resolved_reference_tbl()
+        +diagnostic_query()
+        +insert_reference_source_record()
+        +insert_history_record()
+        +insert_resolved_reference_records()
+        +update_resolved_reference_records()
+        +insert_compare_records()
+        +populate_resolved_reference_records_pre_resolved()
+        +populate_tables_pre_resolved_initial_status()
+        +populate_tables_pre_resolved_retry_status()
+        +populate_tables_post_resolved()
+    }
+
+    class "Action" {
+        -status: String
+        +get_status_new(): str
+        +get_status_retry(): str
+    }
+
+    class "Parser" {
+        -name: String
+        -extension_pattern: String
+        -reference_service_endpoint: String
+        -matches: JSONB
+        +get_name(): str
+        +get_extension_pattern(): str
+        +get_endpoint(): str
+        +get_matches(): list
+        +toJSON(): dict
+    }
+
+    class "ReferenceSource" {
+        -bibcode: String
+        -source_filename: String
+        -resolved_filename: String
+        -parser_name: String
+        +toJSON(): dict
+    }
+
+    class "ProcessedHistory" {
+        -id: Integer
+        -bibcode: String
+        -source_filename: String
+        -source_modified: DateTime
+        -status: String
+        -date: DateTime
+        -total_ref: Integer
+        +toJSON(): dict
+    }
+
+    class "ResolvedReference" {
+        -history_id: Integer
+        -item_num: Integer
+        -reference_str: String
+        -bibcode: String
+        -score: Numeric
+        -reference_raw: String
+        +toJSON(): dict
+    }
+
+    class "CompareClassic" {
+        -history_id: Integer
+        -item_num: Integer
+        -bibcode: String
+        -score: Numeric
+        -state: String
+        +toJSON(): dict
+    }
+
+    class "tasks" {
+        +task_process_reference(reference_task: dict): bool
+    }
+
+    class "utils" {
+        +get_date_created(filename: str): str
+        +get_date_modified(filename: str): str
+        +get_date_now(): str
+        +get_resolved_filename(source_filename: str): str
+        +post_request_resolved_reference(reference: dict, service_url: str): list
+        +compare_classic_and_service(service: list, source_bibcode: str, classic_filename: str): list
+    }
+
+    ADSReferencePipelineCelery --> Parser
+    ADSReferencePipelineCelery --> ReferenceSource
+    ADSReferencePipelineCelery --> ProcessedHistory
+    ADSReferencePipelineCelery --> ResolvedReference
+    ADSReferencePipelineCelery --> CompareClassic
+    ADSReferencePipelineCelery --> utils
+    tasks --> utils
+    tasks --> ADSReferencePipelineCelery
+
+}
+
+@enduml

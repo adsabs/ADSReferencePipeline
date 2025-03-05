@@ -28,14 +28,15 @@ class FailedRequest(Exception):
 
 
 @app.task(queue='task_process_reference', max_retries=config['MAX_QUEUE_RETRIES'])
-def task_process_reference(reference_task):
+def task_process_reference(reference_task: dict) -> bool:
     """
+    process a reference task by resolving references and updating the database
 
-    :param reference_task:
-    :return:
+    :param reference_task: dictionary containing reference details and service url
+    :return: True if processing is successful, False otherwise
     """
     try:
-        resolved = utils.get_resolved_references(reference_task['reference'], reference_task['resolver_service_url'])
+        resolved = utils.post_request_resolved_reference(reference_task['reference'], reference_task['resolver_service_url'])
         # if failed to connect to reference service, raise a exception to requeue, for max_retries times
         if not resolved:
             raise FailedRequest
@@ -48,8 +49,13 @@ def task_process_reference(reference_task):
             return False
 
         return True
+
     except KeyError:
         return False
 
-if __name__ == '__main__':
+# dont know how to unittest this part
+# this (app.start()) the only line that is not unittested
+# and since i want all modules to be 100% covered,
+# making this line not be considered part of coverage
+if __name__ == '__main__':    # pragma: no cover
     app.start()

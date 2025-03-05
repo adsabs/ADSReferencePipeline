@@ -1,0 +1,59 @@
+@startuml
+
+entity "Action" {
+  *status: VARCHAR <<PK>>
+}
+
+entity "Parser" {
+  *name: VARCHAR <<PK>>
+  --
+  extension_pattern: VARCHAR
+  reference_service_endpoint: VARCHAR
+  matches: JSONB
+}
+
+entity "ReferenceSource" {
+  *bibcode: VARCHAR <<PK>>
+  *source_filename: VARCHAR <<PK>>
+  --
+  resolved_filename: VARCHAR
+  parser_name: VARCHAR
+}
+
+entity "ProcessedHistory" {
+  *id: INTEGER <<PK>>
+  *bibcode: VARCHAR
+  *source_filename: VARCHAR
+  --
+  source_modified: DATETIME
+  status: VARCHAR
+  date: DATETIME
+  total_ref: INTEGER
+}
+
+entity "ResolvedReference" {
+  *history_id: INTEGER <<PK>>
+  *item_num: INTEGER <<PK>>
+  *reference_str: VARCHAR <<PK>>
+  --
+  bibcode: VARCHAR
+  score: NUMERIC
+  reference_raw: VARCHAR
+}
+
+entity "CompareClassic" {
+  *history_id: INTEGER <<PK>>
+  *item_num: INTEGER <<PK>>
+  --
+  bibcode: VARCHAR
+  score: NUMERIC
+  state: VARCHAR
+}
+
+ReferenceSource --> Parser : parser_name
+ProcessedHistory --> ReferenceSource : "(bibcode, source_filename)"
+ResolvedReference --> ProcessedHistory : history_id
+CompareClassic --> ProcessedHistory : history_id
+ProcessedHistory --> Action : status
+
+@enduml

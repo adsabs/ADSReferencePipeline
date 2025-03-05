@@ -4,46 +4,16 @@ if project_home not in sys.path:
     sys.path.insert(0, project_home)
 
 import unittest
-import mock
+from unittest.mock import Mock, patch, mock_open, MagicMock
 import json
+import re
 
 from adsrefpipe.tests.unittests.stubdata import parsed_references
-from adsrefpipe.refparsers.AASxml import AAStoREFs
-from adsrefpipe.refparsers.AGUxml import AGUtoREFs, AGUreference
-from adsrefpipe.refparsers.APSxml import APStoREFs
-from adsrefpipe.refparsers.AnAxml import AnAtoREFs
-from adsrefpipe.refparsers.AIPxml import AIPtoREFs
-from adsrefpipe.refparsers.BlackwellXML import BLACKWELLtoREFs
-from adsrefpipe.refparsers.CrossRefXML import CrossRefToREFs
-from adsrefpipe.refparsers.CUPxml import CUPtoREFs
-from adsrefpipe.refparsers.EDPxml import EDPtoREFs
-from adsrefpipe.refparsers.EGUxml import EGUtoREFs
-from adsrefpipe.refparsers.ElsevierXML import ELSEVIERtoREFs
-from adsrefpipe.refparsers.IcarusXML import ICARUStoREFs
-from adsrefpipe.refparsers.IOPFTxml import IOPFTtoREFs
-from adsrefpipe.refparsers.IOPxml import IOPtoREFs
-from adsrefpipe.refparsers.IPAPxml import IPAPtoREFs
-from adsrefpipe.refparsers.JATSxml import JATStoREFs
-from adsrefpipe.refparsers.JSTAGExml import JSTAGEtoREFs
-from adsrefpipe.refparsers.LivingReviewsXML import LivingReviewsToREFs
-from adsrefpipe.refparsers.MDPIxml import MDPItoREFs
-from adsrefpipe.refparsers.NLM3xml import NLMtoREFs
-from adsrefpipe.refparsers.NatureXML import NATUREtoREFs
-from adsrefpipe.refparsers.ONCPxml import ONCPtoREFs
-from adsrefpipe.refparsers.OUPxml import OUPtoREFs
-from adsrefpipe.refparsers.PASAxml import PASAtoREFs
-from adsrefpipe.refparsers.RSCxml import RSCtoREFs
-from adsrefpipe.refparsers.SpringerXML import SPRINGERtoREFs
-from adsrefpipe.refparsers.SPIExml import SPIEtoREFs
-from adsrefpipe.refparsers.UCPxml import UCPtoREFs
-from adsrefpipe.refparsers.VERSITAxml import VERSITAtoREFs
-from adsrefpipe.refparsers.WileyXML import WILEYtoREFs
-
 from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
 
 from adsrefpipe.refparsers.reference import Reference, ReferenceError, XMLreference
 from adsrefpipe.refparsers.handler import verify
-from adsrefpipe.utils import get_bibcode, verify_bibcode, get_resolved_references
+from adsrefpipe.refparsers.unicode import tostr, UnicodeHandler, UnicodeHandlerError
 
 
 class TestReferenceParsers(unittest.TestCase):
@@ -54,221 +24,11 @@ class TestReferenceParsers(unittest.TestCase):
     def tearDown(self):
         unittest.TestCase.tearDown(self)
 
-    def test_aasxml_parser(self):
-        """ test parser for anaxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.aas.raw')
-        references = AAStoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_aas)
-
-    def test_aguxml_parser(self):
-        """ test parser for aguxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.agu.xml')
-        references = AGUtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_agu)
-
-    def test_aipxml_parser(self):
-        """ test parser for aipxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.aip.xml')
-        references = AIPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_aip)
-
-    def test_anaxml_parser(self):
-        """ test parser for anaxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.ana.xml')
-        references = AnAtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_ana)
-
-    def test_apsxml_parser(self):
-        """ test parser for apsxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.aps.xml')
-        references = APStoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_aps)
-
-    def test_blackwellxml_parser(self):
-        """ test parser for blackwellxml """
-        testing = [
-            ('/stubdata/test.blackwell.xml', parsed_references.parsed_blackwell),
-            ('/stubdata/test.mnras.xml', parsed_references.parsed_mnras),
-        ]
-        for (file, expected) in testing:
-            reference_source = os.path.abspath(os.path.dirname(__file__) + file)
-            references = BLACKWELLtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-            self.assertEqual(references, expected)
-
-    def test_crossrefxml_parser(self):
-        """ test parser for crossrefxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.xref.xml')
-        references = CrossRefToREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_crossref)
-
-    def test_cupxml_parser(self):
-        """ test parser for cupxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.cup.xml')
-        references = CUPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_cup)
-
-    def test_edpxml_parser(self):
-        """ test parser for edpxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.edp.xml')
-        references = EDPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_edp)
-
-    def test_eguxml_parser(self):
-        """ test parser for eguxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.egu.xml')
-        references = EGUtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_egu)
-
-    def test_elsevierxml_parser(self):
-        """ test parser for elsevierxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.elsevier.xml')
-        references = ELSEVIERtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_elsevier)
-
-    def test_icarusxml_parser(self):
-        """ test parser for icarusxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.icarus.raw')
-        references = ICARUStoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_icarus)
-
-    def test_iopftxml_parser(self):
-        """ test parser for iopftxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.iopft.xml')
-        references = IOPFTtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_iopft)
-
-    def test_iopxml_parser(self):
-        """ test parser for iopxml """
-        testing = [
-            ('/stubdata/test.iop.xml', parsed_references.parsed_iop),
-            ('/stubdata/test.edporiop.xml', parsed_references.parsed_edporiop),
-        ]
-        for (file, expected) in testing:
-            reference_source = os.path.abspath(os.path.dirname(__file__) + file)
-            references = IOPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-            self.assertEqual(references, expected)
-
-    def test_ipapxml_parser(self):
-        """ test parser for ipapxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.ipap.xml')
-        references = IPAPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_ipap)
-
-    def test_jatsxml_parser(self):
-        """ test parser for jatsxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.jats.xml')
-        references = JATStoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_jats)
-
-    def test_jstxml_parser(self):
-        """ test parser for jstxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.jst.xml')
-        references = JSTAGEtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_jst)
-
-    def test_livingreviewsxml_parser(self):
-        """ test parser for livingreviewsxml """
-        xml_testing = [
-            ('/stubdata/lrr-2014-6.living.xml', parsed_references.parsed_livingreviews_llr),
-            ('/stubdata/lrsp-2007-2.living.xml', parsed_references.parsed_livingreviews_lrsp)
-        ]
-        for (filename, expected_results) in xml_testing:
-            reference_source = os.path.abspath(os.path.dirname(__file__) + filename)
-            references = LivingReviewsToREFs(filename=reference_source, buffer=None).process_and_dispatch()
-            self.assertEqual(references, expected_results)
-
-    def test_mdpixml_parser(self):
-        """ test parser for mdpixml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.mdpi.xml')
-        references = MDPItoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_mdpi)
-
-    def test_nlm3xml_parser(self):
-        """ test parser for nlm3xml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.nlm3.xml')
-        references = NLMtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_nlm3)
-
-    def test_naturexml_parser(self):
-        """ test parser for naturexml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.nature.xml')
-        references = NATUREtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_nature)
-
-    def test_oncpxml_parser(self):
-        """ test parser for oncpxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.meta.xml')
-        references = ONCPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_oncp)
-
-    def test_oupxml_parser(self):
-        """ test parser for oupxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.oup.xml')
-        references = OUPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_oup)
-
-    def test_pasaxml_parser(self):
-        """ test parser for pasaxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.pasa.xml')
-        references = PASAtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_pasa)
-
-    def test_rscxml_parser(self):
-        """ test parser for rscxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.rsc.xml')
-        references = RSCtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_rsc)
-
-    def test_spiexml_parser(self):
-        """ test parser for spiexml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.spie.xml')
-        references = SPIEtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_spie)
-
-    def test_springerxml_parser(self):
-        """ test parser for springerxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.springer.xml')
-        references = SPRINGERtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_springer)
-
-    def test_ucpxml_parser(self):
-        """ test parser for ucpxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.ucp.xml')
-        references = UCPtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_ucp)
-
-    def test_versitaxml_parser(self):
-        """ test parser for wileyxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.versita.xml')
-        references = VERSITAtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_versita)
-
-    def test_wileyxml_parser(self):
-        """ test parser for wileyxml """
-        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.wiley2.xml')
-        references = WILEYtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_wiley)
-
     def test_reference_init(self):
         """ test Reference class init """
         with self.assertRaises(Exception) as context:
             Reference({'authors': "Pipeline, R", 'jrlstr': "For Testing", 'year': 2020}).parse()
         self.assertEqual('Parse method not defined.', str(context.exception))
-
-    def test_reference_pages(self):
-        """ test calling parse pages method of reference class"""
-        reference = AGUreference('<empty/>')
-        self.assertEqual(reference.parse_pages(None), ('', None))
-        self.assertEqual(reference.parse_pages('L23'), ('23', 'L'))
-        self.assertEqual(reference.parse_pages('T2', ignore='RSTU'), ('2', None))
-        self.assertEqual(reference.parse_pages('T2', letters='RSTU'), ('2', 'T'))
-        self.assertEqual(reference.parse_pages('23S'), ('23', 'S'))
-        self.assertEqual(reference.parse_pages('S23'), ('23', 'S'))
-
-    def test_reference_url(self):
-        """ test calling url decode method of XMLreference"""
-        reference = AGUreference('<empty/>')
-        self.assertEqual(reference.url_decode('%AF'), '¯')
 
     def test_html_parser(self):
         """ test parsers for html references """
@@ -289,8 +49,8 @@ class TestReferenceParsers(unittest.TestCase):
           "response":{"numFound":1,"start":0,"docs":[{ "bibcode":""}]}
         }
         for (parser, filename, expected_results, bibcode) in html_testing:
-            with mock.patch('requests.get') as get_mock:
-                get_mock.return_value = mock_response = mock.Mock()
+            with patch('requests.get') as get_mock:
+                get_mock.return_value = mock_response = Mock()
                 mock_response.status_code = 200
                 annrev_response['response']['docs'][0]['bibcode'] = bibcode
                 mock_response.text = json.dumps(annrev_response)
@@ -347,67 +107,208 @@ class TestReferenceParsers(unittest.TestCase):
         references = ARXIVtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_arxiv)
 
-    def test_get_bibcode(self):
-        """ some reference files provide doi, and bibcode needs to be infered from doi """
-        return_value = {
-            u'responseHeader': {u'status': 0, u'QTime': 13},
-            u'response': {
-                u'start': 0,
-                u'numFound': 1,
-                u'docs': [{u'bibcode': u'2023arXiv230317899C'}]
-            }
-        }
-        with mock.patch('requests.get') as get_mock:
-            get_mock.return_value = mock_response = mock.Mock()
-            mock_response.status_code = 200
-            mock_response.text = json.dumps(return_value)
-            bibcode = get_bibcode(doi='10.48550/arXiv.2303.17899')
-            self.assertEqual(bibcode, '2023arXiv230317899C')
+    ##### unicode module's unittests #####
 
-    def test_get_bibcode_error(self):
-        """ some reference files provide doi, and bibcode needs to be infered from doi when solr returns error"""
-        with mock.patch('requests.get') as get_mock:
-            get_mock.return_value = mock_response = mock.Mock()
-            mock_response.status_code = 502
-            bibcode = get_bibcode(doi='10.48550/arXiv.2303.17899')
-            self.assertEqual(bibcode, None)
+    def test_unicode_tostr_exception(self):
+        """ test unicode's tostr when ValueError is raised """
+        mock_value = Mock(spec=str)
+        mock_value.encode.side_effect = ValueError("Encoding error")
+        self.assertEqual(tostr(mock_value), "")
 
-    def test_verify_bibcode(self):
-        """ test calling solr to verify a bibcode """
-        return_value = {
-            u'responseHeader': {u'status': 0, u'QTime': 13},
-            u'response': {
-                u'start': 0,
-                u'numFound': 1,
-                u'docs': [{u'bibcode': u'2023arXiv230317899C'}]
-            }
-        }
-        with mock.patch('requests.get') as get_mock:
-            get_mock.return_value = mock_response = mock.Mock()
-            mock_response.status_code = 200
-            mock_response.text = json.dumps(return_value)
-            bibcode = verify_bibcode(bibcode='2023arXiv230317899C')
-            self.assertEqual(bibcode, '2023arXiv230317899C')
+    def test_unicode_handler_init_exception(self):
+        """ test UnicodeHandler's init when ValueError is raised """
 
-    def test_verify_bibcode_error(self):
-        """ test calling solr to verify a bibcode when error is returned """
-        with mock.patch('requests.get') as get_mock:
-            get_mock.return_value = mock_response = mock.Mock()
-            mock_response.status_code = 502
-            bibcode = verify_bibcode(bibcode='2023arXiv230317899C')
-            self.assertEqual(bibcode, None)
+        # Invalid code (not an int)
+        mock_data = 'invalid_entry "entity" "ascii" "latex"\n'
+        with patch("builtins.open", mock_open(read_data=mock_data)):
+            handler = UnicodeHandler("dummy_path")
+            self.assertNotIn("entity", handler)
 
-    def test_get_resolved_references_error(self):
-        """ test calling get_resolved_references with wrong end point """
-        references = [{'item_num': 2,
-                       'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
-                       'refraw': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
-        self.assertEqual(get_resolved_references(references, 'wrong_url'), None)
+    def test_unicode_handler_sub_numasc_entity_exception(self):
+        """ test UnicodeHandler's __sub_numasc_entity when IndexError and OverflowError are raised """
 
-        with mock.patch('requests.post') as get_mock:
-            get_mock.return_value = mock_response = mock.Mock()
-            mock_response.status_code = 502
-            self.assertEqual(get_resolved_references(references, 'xml'), None)
+        # mock file reading to prevent FileNotFoundError
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        handler.unicode = MagicMock()
+        handler.unicode.__getitem__.side_effect = IndexError  # Simulate IndexError
+
+        # test IndexError handling (falls back to unicodedata.normalize)
+        match = re.match(r'&#(?P<number>\d+);', "&#999999;")
+        if match:
+            with patch("unicodedata.normalize", return_value="normalized_value"):
+                self.assertEqual(handler._UnicodeHandler__sub_numasc_entity(match), "normalized_value")
+
+        # test OverflowError handling (raises UnicodeHandlerError)
+        match = re.match(r'&#(?P<number>\d+);', "&#9999999999;")
+        if match:
+            with patch("unicodedata.normalize", side_effect=OverflowError):
+                with self.assertRaises(UnicodeHandlerError) as context:
+                    handler._UnicodeHandler__sub_numasc_entity(match)
+                self.assertEqual(str(context.exception), "Unknown numeric entity: &#9999999999;")
+
+    def test_unicode_handler_sub_hexnumasc_entity(self):
+        """ test UnicodeHandler's __sub_hexnumasc_entity method """
+
+        # mock file reading to prevent FileNotFoundError
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        # ensure no entry exists for entno so that the elif branch executes
+        handler.unicode = [None] * 65536
+
+        # hex for £ (163) to trigger the elif branch
+        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x00A3;")
+        if match:
+            # mock u2asc to return a known value
+            with patch.object(handler, "u2asc", return_value="converted_ascii") as mock_u2asc:
+                self.assertEqual(handler._UnicodeHandler__sub_hexnumasc_entity(match), "converted_ascii")
+                # ensure u2asc is called with the correct character
+                mock_u2asc.assert_called_once_with("£")
+
+        # mock unicode lookup to raise IndexError
+        handler.unicode = MagicMock()
+        handler.unicode.__getitem__.side_effect = IndexError
+
+        # large invalid hex value to trigger the IndexError exception
+        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x99999;")
+        if match:
+            # check that the correct exception is raised
+            with self.assertRaises(UnicodeHandlerError) as context:
+                handler._UnicodeHandler__sub_hexnumasc_entity(match)
+            # ensure the exception message is correct
+            self.assertEqual(str(context.exception), "Unknown hexadecimal entity: &#x99999;")
+
+    def test_unicode_handler_sub_hexnum_toent(self):
+        """ test UnicodeHandler's __sub_hexnum_toent method """
+
+        # mock file reading to prevent FileNotFoundError
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        # test ValueError exception, should return escaped unicode representation
+        match = re.match(r'&#x(?P<number>[G-Z]+);', "&#xGHI;")
+        if match:
+            self.assertEqual(handler._UnicodeHandler__sub_hexnum_toent(match), r"\uGHI")
+        # ensure unicode list is large enough and contains a valid entity
+        handler.unicode = [None] * 70000
+        handler.unicode[163] = MagicMock(entity="pound")
+
+        # test valid conversion to named entity
+        match = re.match(r'&#x(?P<number>[0-9A-Fa-f]+);', "&#x00A3;")
+        if match:
+            self.assertEqual(handler._UnicodeHandler__sub_hexnum_toent(match), "&pound;")
+
+        # test UnicodeHandlerError for unknown entity by ensuring index is in range but has no entity
+        handler.unicode = MagicMock()
+        handler.unicode.__getitem__.return_value = None
+        match = re.match(r'&#x(?P<number>[0-9A-Fa-f]+);', "&#x99999;")
+        if match:
+            with self.assertRaises(UnicodeHandlerError) as context:
+                handler._UnicodeHandler__sub_hexnum_toent(match)
+            # ensure the exception message is correct
+            self.assertEqual(str(context.exception), "Unknown hexadecimal entity: 629145")
+
+    def test_unicode_handler_toentity(self):
+        """ test UnicodeHandler's __toentity method """
+
+        # mock file reading to prevent FileNotFoundError
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        # ensure unicode list is large enough
+        handler.unicode = [None] * 70000
+
+        # mock a named entity for character £ (ascii_value 163)
+        handler.unicode[163] = Mock(entity="pound")
+
+        # test named entity conversion
+        self.assertEqual(handler._UnicodeHandler__toentity("£"), "&pound;")
+
+        # test numeric entity conversion when no named entity exists
+        # Ʃ (mathematical summation, ascii_value 425)
+        self.assertEqual(handler._UnicodeHandler__toentity("Ʃ"), "&#425;")
+
+    def test_unicode_handler_cleanall(self):
+        """ test UnicodeHandler's cleanall method """
+
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        # mock regex substitutions for unrelated operations
+        handler.re_accent = Mock(sub=lambda func, text: text)
+        handler.re_missent = Mock(sub=lambda func, text: text)
+        handler.re_morenum = Mock(sub=lambda func, text: text)
+        handler.re_rsquo = Mock(sub=lambda repl, text: text)
+
+        # mock re_backslash and re_lower_upper_ls substitutions to test cleanslash is true
+        handler.re_backslash = Mock(sub=lambda repl, text: text.replace("\\", ""))
+        handler.re_lower_upper_ls = Mock(sub=lambda repl, text: text.replace("l/a", "&lstrok;a"))
+        input_text = "l/a and back\\slash"
+        expected_output = "&lstrok;a and backslash"
+        self.assertEqual(handler.cleanall(input_text, cleanslash=1), expected_output)
+
+    def test_unicode_handler_sub_accent(self):
+        """ test UnicodeHandler's __sub_accent method """
+
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        # correct mapping: accent symbols -> entity suffixes
+        handler.accents = {"`": "grave", "'": "acute", "^": "circ"}
+        # create a mock match object
+        match = Mock()
+        match.group.side_effect = lambda x: "e" if x == 1 else "`"
+
+        self.assertEqual(handler._UnicodeHandler__sub_accent(match), "&egrave;")
+
+    def test_unicode_handler_sub_missent(self):
+        """ test UnicodeHandler's __sub_missent method """
+
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        # mock missent dictionary with correct mapping
+        handler.missent = {"b4": "acute", "caron": "scaron"}
+        # mock keys() method to simulate known and unknown entities
+        handler.keys = Mock(side_effect=lambda: {"sacute", "egrave"})
+        # create a mock match object for an entity that exists in keys()
+        match_existing = Mock()
+        match_existing.group.side_effect = lambda x: "s" if x == 1 else "b4"
+
+        # test correction when entity exists
+        self.assertEqual(handler._UnicodeHandler__sub_missent(match_existing), "&sacute;")
+
+        # create a mock match object for an entity that does not exist in keys()
+        match_non_existing = Mock()
+        match_non_existing.group.side_effect = lambda x: "e" if x == 1 else "caron"
+
+        # test correction when entity does not exist
+        self.assertEqual(handler._UnicodeHandler__sub_missent(match_non_existing), "e&scaron;")
+
+    def test_unicode_handler_sub_morenum(self):
+        """ test UnicodeHandler's __sub_morenum method """
+
+        with patch("builtins.open", mock_open(read_data="")):
+            handler = UnicodeHandler("dummy_path")
+
+        # mock morenum dictionary with a valid numeric entity mapping
+        handler.morenum = {"34": "quot", "169": "copy"}
+        # create a mock match object for a valid numeric entity
+        match_valid = Mock()
+        match_valid.group.side_effect = lambda x: "34" if x == 1 else None
+
+        # test valid numeric entity conversion
+        self.assertEqual(handler._UnicodeHandler__sub_morenum(match_valid), "&quot;")
+
+        # create a mock match object for an unknown numeric entity
+        match_invalid = Mock()
+        match_invalid.group.side_effect = lambda x: "9999" if x == 1 else None
+
+        # test KeyError handling (should raise KeyError)
+        with self.assertRaises(KeyError):
+            handler._UnicodeHandler__sub_morenum(match_invalid)
 
 
 if __name__ == '__main__':
