@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 
@@ -14,12 +15,19 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 class APSreference(XMLreference):
+    """
+    This class handles parsing APS references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
+    # to match a initials
     re_first = re.compile(r'\w\.$')
-    re_series = re.compile(r'^([A-Za-z\-\s\.]+)(Vol|No)\.?')
+    # to match series information with volume/issue
+    re_series = re.compile(r'^(([A-Za-z\-\s\.]+)(Vol|No)\.?\s*\d+)')
 
     def parse(self):
         """
+        parses APS reference data and extracts relevant information
 
         :return:
         """
@@ -67,20 +75,16 @@ class APSreference(XMLreference):
             # attempt to extract it from refstr
             doi = self.match_doi(self.reference_str.toxml())
             if doi:
-                self['doi'] = doi
+                self['doi'] = f"doi:{doi}"
         if eprint:
             self['eprint'] = eprint
         else:
             # attempt to extract arxiv id from refstr
             eprint = self.match_arxiv_id(self.reference_str.toxml())
             if eprint:
-                self['eprint'] = eprint
+                self['eprint'] = f"arXiv:{eprint}"
         if issn:
             self['issn'] = issn
-
-        # try to come up with a decent plainstring if all
-        # the default fields were parsed ok
-        self['refstr'] = ' '.join([self['authors'], date, journal, volume, pages])
 
         self['refstr'] = self.get_reference_str()
         if not self['refstr']:
@@ -88,11 +92,12 @@ class APSreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self, authors):
+    def parse_authors(self, authors: str) -> str:
         """
+        parses and formats author names
 
-        :param authors:
-        :return:
+        :param authors: author string to parse
+        :return: formatted author string
         """
         authors = authors.strip()
         if not authors: return ''
@@ -117,43 +122,52 @@ class APSreference(XMLreference):
 
         return authors
 
-    def parse_series(self, series):
+    def parse_series(self, series: str) -> str:
         """
+        parses series information from a given string
 
-        :param series:
-        :return:
+        :param series: series string to parse
+        :return: parsed series or None if no match
         """
-        match = self.re_first.search(series)
+        match = self.re_series.search(series)
         if match:
             return match.group(0)
         return None
 
 
 class APStoREFs(XMLtoREFs):
+    """
+    This class converts APS XML references to a standardized reference format. It processes raw APS references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to match closing reference tag
     re_closing_tag = re.compile(r'</references>\s*$')
+    # to match ibid
     re_previous_ref = re.compile(r'<ibid>')
 
+    # to clean up XML references by removing certain tags
     reference_cleanup = [
         (re.compile(r'<formula.*?>.*?</formula>'), ''),
         (re.compile(r'<prevau>'), '---'),
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initializes the APStoREFs conversion process
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the filename to process
+        :param buffer: the buffer to process
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=APStoREFs, tag='(ref|refitem)')
 
-    def cleanup(self, reference, prev_reference):
+    def cleanup(self, reference: str, prev_reference: str) -> str:
         """
+        cleans up reference by removing unwanted elements and handling previous references
 
-        :param reference:
-        :return:
+        :param reference: reference string to clean up
+        :param prev_reference: previous reference to handle
+        :return: cleaned reference and updated previous reference
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
@@ -164,10 +178,11 @@ class APStoREFs(XMLtoREFs):
         reference, prev_reference = self.extract_tag(reference, 'journal', remove=0, keeptag=1)
         return reference, prev_reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -197,6 +212,10 @@ class APStoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of APSxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse APS references')

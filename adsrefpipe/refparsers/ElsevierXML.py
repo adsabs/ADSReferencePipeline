@@ -2,31 +2,37 @@
 import sys, os
 import regex as re
 import argparse
-
-from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.refparsers.toREFs import XMLtoREFs
-from adsrefpipe.refparsers.unicode import tostr
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
+from adsrefpipe.refparsers.unicode import tostr
 
 class ELSEVIERreference(XMLreference):
+    """
+    This class handles parsing ELSEVIER references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, eprint, and bibcode, and stores the parsed details.
+    """
 
-    re_first = re.compile(r'\b\w\.')
+    # to match volume keyword like 'Vol.' or 'Vols.'
     re_volume_keyword = re.compile(r'[Vv]ol[s]\.\s+')
+    # to match roman numerals for volume
     re_volume_roman = re.compile(r'^[IVXLCDM]+$')
+    # to match the journal 'Phys. Rev'
     re_journal_PhysRev = re.compile(r'Phys\.\ Rev')
+    # to match journals 'Geophys.' journals
     re_journal_GeophysRes = re.compile(r'(J. Geophys. Res|Geophys. Res. Lett.)')
+    # to match eid
     re_eid_PhysRev = re.compile(r'\(.*')
-    re_clean_textref = re.compile(r'^(.*?\d{4})[a-z]?\.(.*?)\.')
-    re_repalce_dash = re.compile(r'&ndash;')
-    re_abstract = re.compile(r'[Aa]bstract\ ')
 
     def parse(self):
         """
+        parse the ELSEVIER reference
 
         :return:
         """
@@ -72,20 +78,15 @@ class ELSEVIERreference(XMLreference):
         if len(comment) > 0:
             self['comment'] = comment
 
-        try:
-            eprint = self.match_arxiv_id(self.xmlnode_nodecontents('inter-ref'))
-            # attempt to extract arxiv id from refstr
-            if not eprint:
-                eprint = self.match_arxiv_id(refstr)
-        except:
-            pass
-        try:
-            doi = self.xmlnode_nodecontents('doi').strip()
-            if len(doi) == 0:
-                # attempt to extract doi from refstr
-                doi = self.match_doi(refstr)
-        except:
-            pass
+        eprint = self.match_arxiv_id(self.xmlnode_nodecontents('inter-ref'))
+        # attempt to extract arxiv id from refstr
+        if not eprint:
+            eprint = self.match_arxiv_id(refstr)
+
+        doi = self.xmlnode_nodecontents('doi').strip()
+        if len(doi) == 0:
+            # attempt to extract doi from refstr
+            doi = self.match_doi(refstr)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
@@ -109,12 +110,10 @@ class ELSEVIERreference(XMLreference):
 
         if self.re_journal_PhysRev.search(tostr(journal)) and comment and not pages:
             comment = self.re_eid_PhysRev.sub('', comment)
-            try:
-                self['page'], self['qualifier'] = self.parse_pages(comment)
-            except:
-                # 8/21/2020 was not able to find a case for this in the
-                # reference files I looked at, but keeping it anyway
-                self['page'] = comment
+            self['page'], self['qualifier'] = self.parse_pages(comment)
+            # 8/21/2020 was not able to find a case for this in the
+            # reference files I looked at, but keeping it anyway
+            self['page'] = comment
         self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
 
         issue = self.xmlnode_nodecontents('issue-nr').strip()
@@ -139,18 +138,20 @@ class ELSEVIERreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
-        
-        :return:
+        parse the authors from the reference string and format them accordingly
+
+        :return: a formatted string of authors
         """
-        contrib = self.xmlnode_nodescontents('contribution', keepxml=1)
         try:
+            contrib = self.xmlnode_nodescontents('contribution', keepxml=1)
             contrib, authors = self.extract_tag(contrib[0], 'authors')
             authors, author = self.extract_tag(authors.strip(), 'author')
             type = 'author'
         except:
             try:
+                contrib = self.xmlnode_nodescontents('contribution', keepxml=1)
                 contrib, authors = self.extract_tag(contrib[0], 'editors')
                 authors, author = self.extract_tag(authors.strip(), 'editor')
                 type = 'editor'
@@ -177,7 +178,12 @@ class ELSEVIERreference(XMLreference):
 
 
 class ELSEVIERtoREFs(XMLtoREFs):
+    """
+    This class converts ELSEVIER XML references to a standardized reference format. It processes raw ELSEVIER references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, title, journal, and other citation information.
+    """
 
+    # to clean up XML blocks of references
     block_cleanup = [
         (re.compile(r'<(/?)[a-z]+:(.*?)>'), r'<\1\2>'),  # the XML parser doesn't like the colon in the tags
         (re.compile(r'<math.*?>'), r'<math>'),  # remove MathML markup
@@ -190,31 +196,31 @@ class ELSEVIERtoREFs(XMLtoREFs):
         (re.compile(r'</bib-reference>\s*</bib-reference>\s*$'), r'</bib-reference>\n')
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the ELSEVIERtoREFs object to process ELSEVIER references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=ELSEVIERtoREFs, tag='reference', encoding='ISO-8859-1', cleanup=self.block_cleanup)
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the input reference by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean up
+        :return: the cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and then parse the references
 
-        :return:
+        :return: list of dictionaries, each containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -231,7 +237,7 @@ class ELSEVIERtoREFs(XMLtoREFs):
                     elsevier_reference = ELSEVIERreference(reference)
                     parsed_references.append(self.merge({**elsevier_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
-                    logger.error("ELSEVIERxml:  error parsing reference: %s" %error_desc)
+                    logger.error("ELSEVIERxml: error parsing reference: %s" %error_desc)
     
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
@@ -239,6 +245,10 @@ class ELSEVIERtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of ElsevierXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Elsevier references')

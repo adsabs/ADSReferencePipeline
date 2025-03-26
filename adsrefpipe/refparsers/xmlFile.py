@@ -10,11 +10,16 @@ from collections import UserList
 
 
 class XmlList(dom.Element, UserList):
-    def __init__(self, elements=None, name=None):
-        """
+    """
+    represents an XML list structure, combining functionalities of an XML element and a list of child elements
+    """
 
-        :param elements:
-        :param name:
+    def __init__(self, elements: list = None, name: str = None):
+        """
+        initializes an XmlList object
+
+        :param elements: list of XML elements
+        :param name: name of the XML list element
         """
         if not elements:
             elements = []
@@ -24,53 +29,66 @@ class XmlList(dom.Element, UserList):
         if not name:
             self.noname = 1
             name = 'XmlList'
+        else:
+            self.noname = 0
 
         dom.Element.__init__(self, name)
 
         self.childNodes = elements
         self.__name = name
 
-    def toxml(self):
+    def toxml(self) -> str:
         """
+        converts the XML structure to a string
 
-        :return:
+        :return: XML string representation of the object
         """
-        if not self:
+        # empty XmlList
+        if not self.childNodes:
             return ''
         elif self.noname:
             return self.childNodes[0].toxml()
         else:
             return dom.Element.toxml(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
+        returns a pretty-printed XML string representation of the object
 
-        :return:
+        :return: formatted XML string
         """
-        if not self and self.__name == 'XmlList':
+        if not self.childNodes:
             return ''
-        elif self.noname:
+        elif self.noname and self.childNodes:
             return self.childNodes[0].toprettyxml(indent='  ')
         else:
             return self.toprettyxml(indent='  ')
 
 
 class XmlString(XmlList):
+    """
+    represents an XML string, with methods to clean up and parse the XML content
+    """
 
+    # regular expressions used for XML cleanup and parsing
     re_cleanup = [
-        (re.compile(r'\s\s+'), r' '),
-        (re.compile(r'> <'), r'><'),
-        (re.compile(r'&'), '__amp__')
+        (re.compile(r'\s\s+'), r' '),  # replaces multiple spaces with a single space
+        (re.compile(r'> <'), r'><'),   # removes spaces between adjacent XML tags
+        (re.compile(r'&'), '__amp__')  # replaces ampersands with '__amp__' to prevent parsing issues
     ]
+    # matches and removes all XML tags from a string
     re_remove_all_tags = re.compile(r'<[^<]+>')
+    # matches the last opening tag in a string
     re_match_open_tag = re.compile(r'<(?!.*<)')
+    # matches text that appears between XML tags
     re_match_text_between_tags = re.compile(r'[^<>]*')
 
-    def __init__(self, buffer=None, doctype=None):
+    def __init__(self, buffer: str = None, doctype: str = None):
         """
+        initializes an XmlString object by parsing an XML buffer and applying cleanup rules
 
-        :param buffer:
-        :param doctype:
+        :param buffer: XML string input
+        :param doctype: document type identifier for the XML structure
         """
         # use dummy string if nothing no input is specified
         if not buffer: buffer = '<xmldoc />'
@@ -111,4 +129,5 @@ class XmlString(XmlList):
         buffer_transform = "<%s> %s </%s>"%(top_tag, the_buffer, top_tag)
         xml = dom.parseString(buffer_transform)
         self.__doctype = doctype
+        print('...xml', xml.toprettyxml())
         XmlList.__init__(self, elements=xml.childNodes, name=doctype)

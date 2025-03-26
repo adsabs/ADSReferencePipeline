@@ -1,7 +1,7 @@
 
 import sys, os
-import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 
@@ -15,9 +15,14 @@ from adsrefpipe.refparsers.reference import unicode_handler
 
 
 class AASreference(XMLreference):
+    """
+    This class handles parsing AAS references in XML format. It extracts identifiers like bibcodes, DOIs, and arXiv IDs
+    from the XML reference and stores the parsed information.
+    """
 
     def parse(self):
         """
+        parse the AAS reference
 
         :return:
         """
@@ -50,22 +55,26 @@ class AASreference(XMLreference):
 
 
 class AAStoREFs(XMLtoREFs):
+    """
+    This class converts AAS XML references to a standardized reference format. It processes raw AAS references from either
+    a file or a buffer and outputs parsed references, including bibcodes, DOIs, and eprints.
+    """
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the AAStoREFs object
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the xml references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=AAStoREFs, tag='CITATION')
 
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        process the raw references and dispatch parsed references
 
-        :return:
+        :return: list of dictionaries, each containing a bibcode and a list of parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -90,6 +99,10 @@ class AAStoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of AASxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AAS references')

@@ -2,18 +2,24 @@
 import sys, os
 import regex as re
 import argparse
-
-from adsrefpipe.refparsers.toREFs import TXTtoREFs
-from adsrefpipe.refparsers.reference import unicode_handler
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.toREFs import TXTtoREFs
+from adsrefpipe.refparsers.reference import unicode_handler
+
 
 class ARXIVtoREFs(TXTtoREFs):
+    """
+    This class converts ARXIV text references to a standardized reference format. It processes raw ARXIV references from
+    either a file or a buffer and outputs parsed references, including bibcodes and formatted reference strings.
+    """
 
+    # to clean up reference string issues (such as unwanted tags and characters)
     reference_cleanup_1 = [
         (re.compile(r'[\{\}]'), ''),
         (re.compile(r'\\(it|bf)'), ''),
@@ -23,6 +29,7 @@ class ARXIVtoREFs(TXTtoREFs):
         (re.compile(r'&nbsp;'), ' '),
         (re.compile('(&#65533;)+'), ''),
     ]
+    # to clean up reference string issues (like formatting and specific terms)
     reference_cleanup_2 = [
         (re.compile(r'\ ApJ,'), r', ApJ,'),
         (re.compile(r'\ ApJS,'), r', ApJS,'),
@@ -40,21 +47,21 @@ class ARXIVtoREFs(TXTtoREFs):
     ]
 
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the ARXIVtoREFs object to process ARXIV references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         TXTtoREFs.__init__(self, filename, buffer, ARXIVtoREFs)
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the input reference by replacing specific patterns and applying unicode handling
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean up
+        :return: the cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup_1:
             reference = compiled_re.sub(replace_str, reference)
@@ -63,11 +70,11 @@ class ARXIVtoREFs(TXTtoREFs):
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and then parse the references
 
-        :return:
+        :return: list of dictionaries, each containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -88,6 +95,10 @@ class ARXIVtoREFs(TXTtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of arXivTXT references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse arXiv references')

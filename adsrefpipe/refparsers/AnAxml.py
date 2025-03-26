@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
@@ -13,9 +14,14 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 class AnAreference(XMLreference):
+    """
+    This class handles parsing AnA references in XML format. It extracts citation information such as authors,
+    year, journal, volume, issue, pages, and eprint, and stores the parsed details.
+    """
 
     def parse(self):
         """
+        parse the AnA reference
 
         :return:
         """
@@ -24,7 +30,7 @@ class AnAreference(XMLreference):
         eprint = ''
         ulink = self.xmlnode_nodecontents('ulink')
         if ulink and self.xmlnode_attribute('ulink', 'Type') == 'arXiv':
-            eprint = ulink
+            eprint = f"arXiv:{ulink}"
 
         refstr = self.xmlnode_nodecontents('bibliomixed')
 
@@ -59,40 +65,44 @@ class AnAreference(XMLreference):
 
 
 class AnAtoREFs(XMLtoREFs):
+    """
+    This class converts AnA XML references to a standardized reference format. It processes raw AnA references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, and pages.
+    """
 
+    # list of regular expressions used to clean up XML references
     reference_cleanup = [
         (re.compile(r'\\&'), '&'),
         (re.compile(r'&amp;'), '&'),
         (re.compile(r'\samp\s'), '&')
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the AnAtoREFs object
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=AnAtoREFs, tag='bibliomixed')
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
-
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
 
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        this function performs reference cleaning and then calls the parser
 
-        :return:
+        :return: list of dictionaries, each containing a bibcode and a list of parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -117,6 +127,10 @@ class AnAtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of AnAxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AnA references')

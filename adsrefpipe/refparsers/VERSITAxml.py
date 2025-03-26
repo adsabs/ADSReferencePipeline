@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
@@ -14,14 +15,19 @@ from adsrefpipe.refparsers.unicode import tostr
 
 
 class VERSITAreference(XMLreference):
+    """
+    This class handles parsing VERSITA references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_from_raw = re.compile(r'^(?P<auths>.*?)&quot;.*?&quot;\s+(?P<rest>.*?)\s+\(([A-Za-z]+\.?\s+)?(?P<year>\d{4})\)\.?',
-                        re.DOTALL | re.VERBOSE)
-    re_match_id = re.compile(r'''\sid\.\s+(\d{4})(.{2})''')
-    re_replace_amp = re.compile(r'__amp;?')
+    # to match the raw reference string
+    re_from_raw = re.compile(r'(?:<[^>]*>)(.*?)(?:<)')
+    # to match the publication ID in the reference string
+    re_match_id = re.compile(r'\sid\.\s+(\d{4})(.{2})')
 
     def parse(self):
         """
+        parse the VERSITA reference
 
         :return:
         """
@@ -53,16 +59,18 @@ class VERSITAreference(XMLreference):
             self['ttlstr'] = title.strip()
 
             if not volume or not pages:
-                match = self.re_from_raw.search(str(self))
-                if match:
-                    theref = "%s %s, %s" % (match.group('auths'), match.group('year'), match.group('rest'))
-                    theref = re.sub('</?.*?>', '', theref)
-                    match = self.re_match_id.search(theref)
+                if not refstr:
+                    match = self.re_from_raw.findall(str(self))
                     if match:
-                        if not volume:
-                            volume = match.group(1)
-                        if not pages:
-                            pages = 'E' + match.group(2)
+                        the_ref = match[1].strip()
+                else:
+                    the_ref = refstr
+                match = self.re_match_id.search(the_ref)
+                if match:
+                    if not volume:
+                        volume = match.group(1)
+                    if not pages:
+                        pages = 'E' + match.group(2)
 
             self['volume'] = self.parse_volume(volume)
             self['page'], self['qualifier'] = self.parse_pages(pages)
@@ -79,10 +87,11 @@ class VERSITAreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         authors = self.xmlnode_nodescontents('person-group', attrs={'person-group-type': 'author'}, keepxml=1) or \
                   self.xmlnode_nodescontents('name', keepxml=1) or \
@@ -115,7 +124,12 @@ class VERSITAreference(XMLreference):
 
 
 class VERSITAtoREFs(XMLtoREFs):
+    """
+    This class converts VERSITA XML references to a standardized reference format. It processes raw VERSITA references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'</?uri.*?>'), ''),
         (re.compile(r'\(<comment>.*?</comment>\)'), ''),
@@ -124,20 +138,21 @@ class VERSITAtoREFs(XMLtoREFs):
         (re.compile(r'<inline-formula>.*?</inline-formula>'), ''),
         (re.compile(r'\smixed-citation>', flags=re.IGNORECASE), r'<mixed-citation>')
     ]
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'</?ext-link.*?>'), ''),
         (re.compile(r'^(.*?):.*(<italic>.*)'), r'\1 \2'),
         (re.compile(r'</?italic>'), r''),
     ]
+    # to clean up the start of the reference string
     re_clean_start = re.compile('(^.*\/title\>\s+)')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the VERSITAtoREFs object to process VERSITA references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         # XMLtoREFs.__init__(self, filename, buffer, parsername=VERSITAtoREFs, tag='ref', cleanup=self.block_cleanup)
 
@@ -151,7 +166,9 @@ class VERSITAtoREFs(XMLtoREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': buffer['references']})
+            for buf in buffer['block_references']:
+                block_references, item_nums = [[ref['refraw'] for ref in buf['references']], [ref['item_num'] for ref in buf['references']]]
+                self.raw_references.append({'bibcode': buf['source_bibcode'], 'block_references': block_references, 'item_nums': item_nums})
         else:
             self.filename = filename
             self.parsername = VERSITAtoREFs
@@ -174,21 +191,22 @@ class VERSITAtoREFs(XMLtoREFs):
                 block_references = self.get_xml_block(buffer, tag='ref')
                 self.raw_references.append({'bibcode':bibcode, 'block_references':block_references})
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the input reference by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean up
+        :return: the cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and then parse the references
 
-        :return:
+        :return: list of dictionaries, each containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -213,6 +231,10 @@ class VERSITAtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of VERSOTAxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse VERSITA references')

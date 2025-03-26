@@ -158,15 +158,16 @@ class TestTasks(unittest.TestCase):
 
         reprocess_record = [
             {
-                'source_bibcode': '0002arXiv.........Z',
                 'source_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
                 'source_modified': datetime.datetime(2020, 4, 3, 18, 8, 42),
                 'parser_name': 'arXiv',
-                'references': [{'item_num': 2,
+                'block_references': [{
+                    'source_bibcode': '0002arXiv.........Z',
+                    'references': [{'item_num': 2,
                                 'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
                                 'refraw': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
-            }
-        ]
+            }]
+        }]
         resolved_reference = [
             {
                 "score": "1.0",

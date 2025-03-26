@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 
@@ -15,21 +16,32 @@ from adsrefpipe.refparsers.unicode import tounicode
 
 
 class AIPreference(XMLreference):
+    """
+    This class handles parsing AIP references in XML format. It extracts citation information such as authors,
+    year, volume, pages, DOI, eprint, journal, and title, and stores the parsed details.
+    """
 
+    # to matches the pattern '__amp;' or '__amp;' with an optional trailing character
     re_replace_amp = re.compile(r'__amp;?')
+    # to match one or more whitespace characters
     re_extra_whitespace = re.compile(r"\s+")
+    # to match URLs or links starting with 'http' or 'www'
     re_unstructured_url = re.compile(r'http\S+|www\S+')
+
+    # validates reference strings that are at least three characters long or match a year format
     re_valid_refstr = [
         re.compile(r'\w{3,}'),
         re.compile(r'\b[12][09]\d\d\w?\b|\d+(st|nd|rd|th)+')
     ]
 
+    # to matches the <emph_1> tag to extract the title text
     re_title_outlier = [
         re.compile(r"<emph_1>(?P<TITLE>[^</]*)</emph_1>")
     ]
 
     def parse(self):
         """
+        parse the AIP reference
 
         :return:
         """
@@ -88,11 +100,12 @@ class AIPreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self, theref):
+    def parse_authors(self, theref: str) -> str:
         """
-        
-        :param theref: 
-        :return: 
+        parse the authors from the reference string
+
+        :param theref: the reference string to extract authors from
+        :return: the updated reference string and a comma-separated list of authors
         """
         authors = []
 
@@ -113,11 +126,12 @@ class AIPreference(XMLreference):
 
         return theref, ', '.join(authors)
 
-    def parse_title(self, theref):
+    def parse_title(self, theref: str) -> str:
         """
+        parse the title from the reference string
 
-        :param theref:
-        :return:
+        :param theref: the reference string to extract title from
+        :return: the title if found, otherwise None
         """
         for one_set in self.re_title_outlier:
             match = one_set.search(theref)
@@ -130,32 +144,41 @@ class AIPreference(XMLreference):
 
 
 class AIPtoREFs(XMLtoREFs):
+    """
+    This class converts AIP XML references to a standardized reference format. It processes raw AIP references from
+    either a file or a buffer and outputs parsed references, including bibcodes, DOIs, and author information.
+    """
 
+    # to clean up XML reference tags and their attributes
     reference_cleanup = [
         (re.compile(r'<(\w+)\s+loc="(\w+)"(.*?)</\1>'), r'<\1_\2\3</\1_\2>'),
         (re.compile(r'<(\w+)\s+type="(\w+)"(.*?)</\1>'), r'<\1_\2\3</\1_\2>'),
         (re.compile(r'<(\w+)\s+type="(\w+)"([^>]*)/>'), r'<\1_\2\3/>'),
-        (re.compile(r'<prevau>'), '---'), # prev author list
+        (re.compile(r'<prevau>'), '---'),  # prev author list
     ]
+
+    # to match the <prevau> tag, used for identifying previous author lists in XML
     re_previous_tag = re.compile(r'<prevau>')
+
+    # to match the <ibid> tag, which refers to repeated references in XML
     re_previous_ref = re.compile(r'<ibid>')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the AIPtoREFs object
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the xml references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=AIPtoREFs, tag='(ref|refitem)')
 
-    def cleanup(self, reference, prev_reference):
+    def cleanup(self, reference: str, prev_reference: str) -> str:
         """
+        clean up the input reference by simplifying the XML structure and handling previous author tags
 
-        :param reference:
-        :param prev_reference:
-        :return:
+        :param reference: the raw reference string to clean up
+        :param prev_reference: the previous reference to use in cleanup
+        :return: the cleaned-up reference string and the previous reference
         """
         # play a trick on the input XML to simplify the parsing of
         # fields of interest to us.  Many of the tags look like:
@@ -174,10 +197,11 @@ class AIPtoREFs(XMLtoREFs):
         reference, prev_reference = self.extract_tag(reference, 'journal', remove=0, keeptag=1)
         return reference, prev_reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        process the raw references and dispatch parsed references
 
-        :return:
+        :return: list of dictionaries, each containing a bibcode and a list of parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -195,7 +219,7 @@ class AIPtoREFs(XMLtoREFs):
                     aip_reference = AIPreference(reference)
                     parsed_references.append(self.merge({**aip_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
-                    logger.error("APSxml: error parsing reference: %s" %error_desc)
+                    logger.error("AIPxml: error parsing reference: %s" %error_desc)
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
@@ -203,6 +227,10 @@ class AIPtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of AIPxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AIP references')

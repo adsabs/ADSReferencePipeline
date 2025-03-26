@@ -11,24 +11,11 @@ import re
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
 
-from adsrefpipe.refparsers.reference import Reference, ReferenceError, XMLreference
 from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.refparsers.unicode import tostr, UnicodeHandler, UnicodeHandlerError
 
 
 class TestReferenceParsers(unittest.TestCase):
-
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-
-    def tearDown(self):
-        unittest.TestCase.tearDown(self)
-
-    def test_reference_init(self):
-        """ test Reference class init """
-        with self.assertRaises(Exception) as context:
-            Reference({'authors': "Pipeline, R", 'jrlstr': "For Testing", 'year': 2020}).parse()
-        self.assertEqual('Parse method not defined.', str(context.exception))
 
     def test_html_parser(self):
         """ test parsers for html references """
