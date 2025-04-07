@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
@@ -14,12 +15,17 @@ from adsrefpipe.refparsers.unicode import tostr
 
 
 class PASAreference(XMLreference):
+    """
+    This class handles parsing PASA references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_replace_amp = re.compile(r'(__amp;?|amp)')
-    re_match_volume = re.compile(r'(\d+)')
+    # to match `amp`
+    re_match_amp = re.compile(r'(__amp;?|amp)')
 
     def parse(self):
         """
+        parse the PASA reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -30,7 +36,7 @@ class PASAreference(XMLreference):
         authors = self.parse_authors()
         year = self.xmlnode_nodecontents('year')
         volume = self.parse_volume(self.xmlnode_nodecontents('volume'))
-        journal = self.re_replace_amp.sub('', self.xmlnode_nodecontents('jtitle') or self.xmlnode_nodecontents('source'))
+        journal = self.re_match_amp.sub('', self.xmlnode_nodecontents('jtitle') or self.xmlnode_nodecontents('source'))
         title = self.xmlnode_nodecontents('article-title') or self.xmlnode_nodecontents('atitle') or \
                 self.xmlnode_nodecontents('btitle')
         pages = self.xmlnode_nodecontents('fp') or self.xmlnode_nodecontents('fpage')
@@ -61,10 +67,11 @@ class PASAreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         authors = self.xmlnode_nodescontents('person-group', attrs={'person-group-type': 'author'}, keepxml=1) or \
                   self.xmlnode_nodescontents('name', keepxml=1)
@@ -104,12 +111,16 @@ class PASAreference(XMLreference):
         authors = ", ".join(author_list)
         return authors
 
-    def parse_doi(self, refstr, comment):
+    def parse_doi(self, refstr: str, comment: str) -> str:
         """
+        parse the DOI from the reference string or comment field, falling back to extracting it from the refstr
 
-        :param refstr:
-        :param comment:
-        :return:
+        attempts to extract a DOI from different sources: first, from the 'pub-id' XML node content; if not found,
+        it checks the comment field; if neither contains the DOI, it tries to extract it from the reference string.
+
+        :param refstr: the reference string potentially containing the DOI
+        :param comment: a comment related to the reference that may contain the DOI
+        :return: the extracted DOI if found, or an empty string if not
         """
         doi = self.match_doi(self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'doi'}))
         if doi:
@@ -124,11 +135,16 @@ class PASAreference(XMLreference):
             return doi
         return ''
 
-    def parse_eprint(self, refstr, comment):
+    def parse_eprint(self, refstr: str, comment: str) -> str:
         """
+        parse the eprint from the reference string
 
-        :param refstr:
-        :return:
+        attempts to extract the eprint first from the comment field and, if not found,
+        tries to extract it from the reference string
+
+        :param refstr: the reference string potentially containing the eprint
+        :param comment: a comment related to the reference that may contain the eprint
+        :return: the extracted eprint if found, or an empty string if not
         """
         # see if there is an arxiv id in the comment field
         eprint = self.match_arxiv_id(comment)
@@ -142,28 +158,32 @@ class PASAreference(XMLreference):
 
 
 class PASAtoREFs(XMLtoREFs):
+    """
+    This class converts PASA XML references to a standardized reference format. It processes raw PASA references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'\r?\n'), ''),
         (re.compile(r'\s+'), ' '),
         (re.compile(r'\s+xlink:href='), ' href='),
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the PASAtoREFs object to process PASA references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=PASAtoREFs, tag='ref', cleanup=self.block_cleanup, encoding='ISO-8859-1')
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -186,6 +206,10 @@ class PASAtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of PASAxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse PASA references')

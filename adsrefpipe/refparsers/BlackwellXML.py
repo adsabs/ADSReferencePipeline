@@ -5,7 +5,6 @@ import argparse
 from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -18,7 +17,7 @@ from adsrefpipe.refparsers.unicode import tostr
 class BLACKWELLreference(XMLreference):
     """
     This class handles parsing BLACKWELL references in XML format. It extracts citation information such as authors,
-    year, title, journal, volume, pages, DOI, eprint, and bibcode, and stores the parsed details.
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
     """
 
     # there are two types of source files we are parsing for this publisher
@@ -35,15 +34,12 @@ class BLACKWELLreference(XMLreference):
     # to match the source reference type for the second format
     re_source_reference_2_type = re.compile(r"(jnlref|bookref|otherref|thesref|reftxt)")
 
-    # to match journal name format
-    re_miscellaneoustext_journal = re.compile(r"([A-Za-z].*$)")
-
     # to match 'amp'
     re_match_amp = re.compile(r'(__amp__|%26)')
 
     def parse(self):
         """
-        parse the BLACKWELL reference
+        parse the BLACKWELL reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -282,7 +278,12 @@ class BLACKWELLreference(XMLreference):
         """
         parse the bibcode from the reference string
 
-        :return: the bibcode as a string
+        attempts to extract the bibcode based on the reference type:
+        - For reference type 1, it checks the 'externallink' XML node with 'ads' type and retrieves the 'id' attribute.
+        - For reference type 2, it checks the 'extlink' XML node with 'ads' as the link type and retrieves the 'linkid' attribute.
+        If the bibcode is found and is the correct length (19 characters), it is returned.
+
+        :return: the bibcode as a string if found, or an empty string if not
         """
         if self.reference_type == self.reference_type_1:
             # <externallink type='ads' id='2005MNRAS.358..843H'></externallink>
@@ -305,10 +306,10 @@ class BLACKWELLreference(XMLreference):
 class BLACKWELLtoREFs(XMLtoREFs):
     """
     This class converts BLACKWELL XML references to a standardized reference format. It processes raw BLACKWELL references from
-    either a file or a buffer and outputs parsed references, including bibcodes, authors, title, journal, and other citation information.
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
     """
 
-    # to clean up the blocks of the reference XML
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'<bb id="[\w\d]+">'), r'<reference>'),
         (re.compile(r'</bb>'), r'</reference>'),
@@ -335,9 +336,9 @@ class BLACKWELLtoREFs(XMLtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        perform reference cleaning and then parse the references
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of dictionaries, each containing bibcodes and parsed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

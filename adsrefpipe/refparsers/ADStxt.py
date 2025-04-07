@@ -5,7 +5,6 @@ import argparse
 from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -36,9 +35,9 @@ class ADStxtToREFs(TXTtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        perform reference cleaning and call the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of processed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -313,9 +312,9 @@ class ThreeBibstemsTXTtoREFs(TXTtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        dispatch the reference processing to the appropriate parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of processed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         return self.parser.process_and_dispatch()
 
@@ -382,9 +381,9 @@ class PairsTXTtoREFs(ADStxtToREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        perform reference cleaning and then call the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of processed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

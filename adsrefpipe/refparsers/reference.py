@@ -9,15 +9,14 @@ except ImportError:
 
 from typing import List, Dict, Tuple, Any
 
-from adsrefpipe.refparsers.xmlFile import XmlString
-from adsrefpipe.refparsers.unicode import UnicodeHandler
-unicode_handler = UnicodeHandler()
-
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
+
+from adsrefpipe.refparsers.xmlFile import XmlString
+from adsrefpipe.refparsers.unicode import UnicodeHandler
+unicode_handler = UnicodeHandler()
 
 
 class ReferenceError(Exception):

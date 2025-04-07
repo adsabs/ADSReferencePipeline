@@ -5,7 +5,6 @@ import html
 from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -16,16 +15,16 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 class ICARUSreference(XMLreference):
     """
-    This class handles parsing Icarus references in XML format. It extracts citation information such as authors,
+    This class handles parsing ICARUS references in XML format. It extracts citation information such as authors,
     year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
     """
 
-    # to match '__amp__'
+    # to match 'amp'
     re_match_amp = re.compile(r'__amp__')
 
     def parse(self):
         """
-        parses ICARUS reference data and extracts relevant information
+        parse the ICARUS reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -104,29 +103,29 @@ class ICARUSreference(XMLreference):
 
 class ICARUStoREFs(XMLtoREFs):
     """
-    This class converts Icarus XML references to a standardized reference format. It processes raw WILEY references from
+    This class converts ICARUS XML references to a standardized reference format. It processes raw ICARUS references from
     either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
     """
 
-    # to clean up XML references by removing certain tags
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'<AUTHOR TYPE="\w+">'), '<AUTHOR>'),
     ]
 
     def __init__(self, filename: str, buffer: str):
         """
-        initialize the ICARUStoREFs object to process Icarus references
+        initialize the ICARUStoREFs object to process ICARUS references
 
-        :param filename: the filename to process
-        :param buffer: the buffer to process
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=ICARUStoREFs, tag='CITATION')
 
     def cleanup(self, reference: str) -> str:
         """
-        cleans up ICARUS reference by removing unwanted elements
+        clean up the reference string by replacing specific patterns
 
-        :param reference: reference string to clean up
+        :param reference: the raw reference string to clean
         :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:

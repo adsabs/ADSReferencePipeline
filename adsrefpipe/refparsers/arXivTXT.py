@@ -72,9 +72,9 @@ class ARXIVtoREFs(TXTtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        perform reference cleaning and then parse the references
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of dictionaries, each containing bibcodes and parsed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

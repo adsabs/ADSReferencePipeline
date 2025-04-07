@@ -2,9 +2,9 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -13,11 +13,17 @@ from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
-def read_data_files():
+def read_data_files() -> Dict:
+    """
+    read the data files and map LR codes to bibcodes
+
+    reads two data files, 'LRR.dat' and 'LRSP.dat', and parses their contents. Each file contains tab-separated
+    entries with a bibcode and a DOI. The function creates a dictionary mapping LR codes (from the DOI) to their
+    corresponding bibcodes and returns this dictionary.
+
+    :return: a dictionary mapping LR codes to bibcodes
     """
 
-    :return:
-    """
     LLR_id = os.path.dirname(__file__) + '/data_files/LRR.dat'
     LRSP_id = os.path.dirname(__file__) + '/data_files/LRSP.dat'
     LR2bibcode = {}
@@ -32,15 +38,19 @@ def read_data_files():
             continue
     return LR2bibcode
 
-
 # global lookup table
 LR2bibcode = read_data_files()
 
 
 class LivingReviewsreference(XMLreference):
+    """
+    This class handles parsing LivingReviews references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
     def parse(self):
         """
+        parse the LivingReviews reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -111,10 +121,14 @@ class LivingReviewsreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_eprint(self):
+    def parse_eprint(self) -> str:
         """
+        parse the eprint from the reference string
 
-        :return:
+        attempts to extract the eprint first from the 'eprint' XML node, then checks the 'onlineversion'
+        XML node for a URL containing 'arxiv'
+
+        :return: the extracted eprint if found, or an empty string if not
         """
         eprint_text = self.xmlnode_nodecontents('eprint')
         if eprint_text:
@@ -129,11 +143,13 @@ class LivingReviewsreference(XMLreference):
 
         return ''
 
-    def is_thesis(self):
+    def is_thesis(self) -> bool:
+        """
+        check if the reference is a thesis
+
+        :return: True if the reference is a thesis, False otherwise
         """
 
-        :return:
-        """
         thesis_types = ["mastersthesis", "phdthesis"]
         try:
             any_thesis = list(map(lambda a: bool(self.xmlnode_nodecontents(a)), thesis_types))
@@ -148,28 +164,32 @@ class LivingReviewsreference(XMLreference):
 
 
 class LivingReviewsToREFs(XMLtoREFs):
+    """
+    This class converts LivingReviews XML references to a standardized reference format. It processes raw LivingReviews references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to match XML-like tags with optional namespace prefix
     re_parse_lines = re.compile('<(/?)[a-z]+:(.*?)>')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the LivingReviewsToREFs object to process LivingReviews references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=LivingReviewsToREFs, tag='record')
 
-    def get_references(self, filename, encoding="utf8"):
+    def get_references(self, filename: str, encoding: str = "utf8") -> List:
         """
-        returns an array of bibcode and reference text blobs
-        parsed from the input file
+        attempts to parse content of the file to extract the bibcode and reference text
 
-        :param filename:
-        :param encoding:
-        :return:
+        :param filename: the path to the file containing the references
+        :param encoding: the file encoding to be used when reading the file (default is "utf8")
+        :return: a list of tuples containing bibcodes and reference text blobs
         """
+
         if filename:
             code = os.path.basename(filename).replace('.living.xml', '').strip()
             bibcode = LR2bibcode.get(code, 'NA')
@@ -182,10 +202,11 @@ class LivingReviewsToREFs(XMLtoREFs):
                     logger.error("Unable to open file %s. Exception %s." % (filename, error))
                     return []
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -208,8 +229,11 @@ class LivingReviewsToREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of LivingReviewsXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
-
 if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Living Reviews references')
     parser.add_argument('-f', '--filename', help='the path to source file')

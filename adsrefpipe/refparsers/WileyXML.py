@@ -22,9 +22,9 @@ class WILEYreference(XMLreference):
 
     # list of reference types (journal, book, other)
     types = ['journal', 'book', 'other']
-    # to match an initial
-    re_first = re.compile(r'\b(\w\.\s*)')
-    # to match the '&amp;'
+    # to match first initials
+    re_first_initial = re.compile(r'\b(\w\.\s*)')
+    # to match 'amp'
     re_match_amp = re.compile(r'__amp;?')
     # to match family name tag for editors
     re_add_familyname_tag_editor = re.compile(r'^([A-Z]+[A-Za-z\'\s]+)(,\s*<givenNames>.*</givenNames>)$')
@@ -37,7 +37,6 @@ class WILEYreference(XMLreference):
 
         :return:
         """
-
         self.parsed = 0
 
         authors = self.parse_authors()
@@ -173,8 +172,8 @@ class WILEYreference(XMLreference):
         authors = self.re_match_amp.sub('', authors)
         # we do some cleanup in author's strings that appear to
         # contain names in the form "F. Last1, O. Last2..."
-        if authors and self.re_first.match(authors):
-            authors = self.re_first.sub('', authors)
+        if authors and self.re_first_initial.match(authors):
+            authors = self.re_first_initial.sub('', authors)
 
         return authors
 

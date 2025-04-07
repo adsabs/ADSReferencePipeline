@@ -5,7 +5,6 @@ import argparse
 from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -26,7 +25,7 @@ class IPAPreference(XMLreference):
 
     def parse(self):
         """
-        parses IPAP reference data and extracts the reference string
+        parse the IPAP reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -56,8 +55,8 @@ class IPAPtoREFs(XMLtoREFs):
         """
         initialize the IPAPtoREFs object to process IPAP references
 
-        :param filename: the filename to process
-        :param buffer: the buffer to process
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=IPAPtoREFs, tag='BibUnstructured')
 

@@ -4,6 +4,7 @@
 import os
 import regex as re
 import html
+from typing import List
 try:
     from UserDict import UserDict
 except ImportError:
@@ -388,7 +389,7 @@ class UnicodeChar:
     represents a Unicode character with its entity, ASCII, and LaTeX representations
     """
 
-    def __init__(self, fields: list):
+    def __init__(self, fields: List):
         """
         initialize a UnicodeChar instance
 

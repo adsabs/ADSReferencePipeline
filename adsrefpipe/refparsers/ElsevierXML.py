@@ -13,10 +13,11 @@ from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.refparsers.toREFs import XMLtoREFs
 from adsrefpipe.refparsers.unicode import tostr
 
+
 class ELSEVIERreference(XMLreference):
     """
     This class handles parsing ELSEVIER references in XML format. It extracts citation information such as authors,
-    year, journal, title, volume, pages, DOI, eprint, and bibcode, and stores the parsed details.
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
     """
 
     # to match volume keyword like 'Vol.' or 'Vols.'
@@ -32,7 +33,7 @@ class ELSEVIERreference(XMLreference):
 
     def parse(self):
         """
-        parse the ELSEVIER reference
+        parse the ELSEVIER reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -180,10 +181,10 @@ class ELSEVIERreference(XMLreference):
 class ELSEVIERtoREFs(XMLtoREFs):
     """
     This class converts ELSEVIER XML references to a standardized reference format. It processes raw ELSEVIER references from
-    either a file or a buffer and outputs parsed references, including bibcodes, authors, title, journal, and other citation information.
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
     """
 
-    # to clean up XML blocks of references
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'<(/?)[a-z]+:(.*?)>'), r'<\1\2>'),  # the XML parser doesn't like the colon in the tags
         (re.compile(r'<math.*?>'), r'<math>'),  # remove MathML markup
@@ -192,6 +193,7 @@ class ELSEVIERtoREFs(XMLtoREFs):
         (re.compile(r'<other-ref>'), r'<reference>'),
         (re.compile(r'</other-ref>'), r'</reference>')
     ]
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'</bib-reference>\s*</bib-reference>\s*$'), r'</bib-reference>\n')
     ]
@@ -207,10 +209,10 @@ class ELSEVIERtoREFs(XMLtoREFs):
 
     def cleanup(self, reference: str) -> str:
         """
-        clean up the input reference by replacing specific patterns
+        clean up the reference string by replacing specific patterns
 
-        :param reference: the raw reference string to clean up
-        :return: the cleaned reference string
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
@@ -218,9 +220,9 @@ class ELSEVIERtoREFs(XMLtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        perform reference cleaning and then parse the references
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of dictionaries, each containing bibcodes and parsed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

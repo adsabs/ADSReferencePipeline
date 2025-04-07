@@ -7,6 +7,7 @@ import xml.dom.minidom as dom
 from xml.parsers.expat import ExpatError
 import regex as re
 from collections import UserList
+from typing import List
 
 
 class XmlList(dom.Element, UserList):
@@ -14,7 +15,7 @@ class XmlList(dom.Element, UserList):
     represents an XML list structure, combining functionalities of an XML element and a list of child elements
     """
 
-    def __init__(self, elements: list = None, name: str = None):
+    def __init__(self, elements: List = None, name: str = None):
         """
         initializes an XmlList object
 
@@ -129,5 +130,4 @@ class XmlString(XmlList):
         buffer_transform = "<%s> %s </%s>"%(top_tag, the_buffer, top_tag)
         xml = dom.parseString(buffer_transform)
         self.__doctype = doctype
-        print('...xml', xml.toprettyxml())
         XmlList.__init__(self, elements=xml.childNodes, name=doctype)

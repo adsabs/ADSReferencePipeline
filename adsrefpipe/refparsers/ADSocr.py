@@ -32,9 +32,9 @@ class ADSocrToREFs(OCRtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        process the references and dispatch them after cleaning
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of references with parsed bibcodes and references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         # method implementation
         references = []

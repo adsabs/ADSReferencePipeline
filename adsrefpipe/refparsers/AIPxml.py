@@ -5,7 +5,6 @@ import argparse
 from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -18,21 +17,13 @@ from adsrefpipe.refparsers.unicode import tounicode
 class AIPreference(XMLreference):
     """
     This class handles parsing AIP references in XML format. It extracts citation information such as authors,
-    year, volume, pages, DOI, eprint, journal, and title, and stores the parsed details.
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
     """
 
-    # to matches the pattern '__amp;' or '__amp;' with an optional trailing character
-    re_replace_amp = re.compile(r'__amp;?')
-    # to match one or more whitespace characters
-    re_extra_whitespace = re.compile(r"\s+")
+    # to match 'amp'
+    re_match_amp = re.compile(r'__amp;?')
     # to match URLs or links starting with 'http' or 'www'
     re_unstructured_url = re.compile(r'http\S+|www\S+')
-
-    # validates reference strings that are at least three characters long or match a year format
-    re_valid_refstr = [
-        re.compile(r'\w{3,}'),
-        re.compile(r'\b[12][09]\d\d\w?\b|\d+(st|nd|rd|th)+')
-    ]
 
     # to matches the <emph_1> tag to extract the title text
     re_title_outlier = [
@@ -41,26 +32,26 @@ class AIPreference(XMLreference):
 
     def parse(self):
         """
-        parse the AIP reference
+        parse the AIP reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
         self.parsed = 0
 
-        theref = self.reference_str.toxml()
-        theref = tounicode(self.re_replace_amp.sub('&', theref))
-        theref, authors = self.parse_authors(theref)
+        the_ref = self.reference_str.toxml()
+        the_ref = tounicode(self.re_match_amp.sub('&', the_ref))
+        the_ref, authors = self.parse_authors(the_ref)
 
-        theref, year = self.extract_tag(theref, 'year')
+        the_ref, year = self.extract_tag(the_ref, 'year')
         if not year:
             year = self.match_year(self.dexml(self.reference_str.toxml()))
-        theref, links = self.extract_tag(theref, 'plink')
-        theref, coden = self.extract_tag(theref, 'bicoden')
+        the_ref, links = self.extract_tag(the_ref, 'plink')
+        the_ref, coden = self.extract_tag(the_ref, 'bicoden')
 
         journal = self.xmlnode_nodecontents('journal')
         title = self.xmlnode_nodecontents('bititle')
         if not title:
-            title = self.parse_title(theref)
+            title = self.parse_title(the_ref)
 
         pages = self.xmlnode_nodecontents('pp')
         volume = self.xmlnode_nodecontents('vol')
@@ -100,19 +91,19 @@ class AIPreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self, theref: str) -> str:
+    def parse_authors(self, the_ref: str) -> str:
         """
         parse the authors from the reference string
 
-        :param theref: the reference string to extract authors from
+        :param the_ref: the reference string to extract authors from
         :return: the updated reference string and a comma-separated list of authors
         """
         authors = []
 
-        theref, biaugrp = self.extract_tag(theref, 'biaugrp')
+        the_ref, biaugrp = self.extract_tag(the_ref, 'biaugrp')
         biaugrp, biauth = self.extract_tag(biaugrp, 'biauth')
         if not biauth:
-            theref, biaugrp = self.extract_tag(theref, 'editor')
+            the_ref, biaugrp = self.extract_tag(the_ref, 'editor')
             biaugrp, biauth = self.extract_tag(biaugrp, 'biauth')
 
         while biauth:
@@ -124,17 +115,17 @@ class AIPreference(XMLreference):
             if author: authors.append(author)
             biaugrp, biauth = self.extract_tag(biaugrp, 'biauth')
 
-        return theref, ', '.join(authors)
+        return the_ref, ', '.join(authors)
 
-    def parse_title(self, theref: str) -> str:
+    def parse_title(self, the_ref: str) -> str:
         """
         parse the title from the reference string
 
-        :param theref: the reference string to extract title from
+        :param the_ref: the reference string to extract title from
         :return: the title if found, otherwise None
         """
         for one_set in self.re_title_outlier:
-            match = one_set.search(theref)
+            match = one_set.search(the_ref)
             if match:
                 title = match.group('TITLE')
                 # only accept multi word titles
@@ -145,11 +136,11 @@ class AIPreference(XMLreference):
 
 class AIPtoREFs(XMLtoREFs):
     """
-    This class converts AIP XML references to a standardized reference format. It processes raw AIP references from
-    either a file or a buffer and outputs parsed references, including bibcodes, DOIs, and author information.
+    This class converts AIP references to a standardized reference format. It processes raw AIP references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
     """
 
-    # to clean up XML reference tags and their attributes
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'<(\w+)\s+loc="(\w+)"(.*?)</\1>'), r'<\1_\2\3</\1_\2>'),
         (re.compile(r'<(\w+)\s+type="(\w+)"(.*?)</\1>'), r'<\1_\2\3</\1_\2>'),
@@ -157,18 +148,15 @@ class AIPtoREFs(XMLtoREFs):
         (re.compile(r'<prevau>'), '---'),  # prev author list
     ]
 
-    # to match the <prevau> tag, used for identifying previous author lists in XML
-    re_previous_tag = re.compile(r'<prevau>')
-
     # to match the <ibid> tag, which refers to repeated references in XML
     re_previous_ref = re.compile(r'<ibid>')
 
     def __init__(self, filename: str, buffer: str):
         """
-        initialize the AIPtoREFs object
+        initialize the AIPtoREFs object to process AIP references
 
         :param filename: the path to the source file
-        :param buffer: the xml references as a buffer
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=AIPtoREFs, tag='(ref|refitem)')
 
@@ -199,9 +187,9 @@ class AIPtoREFs(XMLtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        process the raw references and dispatch parsed references
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of dictionaries, each containing a bibcode and a list of parsed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

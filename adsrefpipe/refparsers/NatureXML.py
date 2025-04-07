@@ -2,49 +2,59 @@
 import sys, os
 import regex as re
 import argparse
-
-from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.refparsers.toREFs import XMLtoREFs
+from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
+
 
 class NATUREreference(XMLreference):
+    """
+    This class handles parsing NATURE references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
+    # to match variations of "et al." (case-insensitive)
     re_etal = re.compile(r"([Ee][Tt][.\s]*[Aa][Ll][.\s]+)")
+    # to match volume and page information with optional first and last page
     re_volume_page = re.compile(r"(?P<volume>[A-Z]?\d+)[\s,]+((?P<fpage>[BHPL]?\d+)[-]*(?P<lpage>[BHPL]?\d*))")
+    # to match volume information with "vol" or "volume" (case-insensitive)
     re_volume = re.compile(r"[Vv]+ol[ume.]*(?P<volume>\d+)")
+    # to match collaboration or group name inside <reftxt> tag
     re_collabrations = re.compile(r"<reftxt>(?P<COLLAB>.*(Collaboration|Consortium|Group|Team).*)<atl>", re.IGNORECASE)
 
     def parse(self):
         """
+        parse the NATURE reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
         self.parsed = 0
 
-        theref = self.reference_str.toxml()
+        the_ref = self.reference_str.toxml()
 
-        authors = self.parse_authors(theref)
+        authors = self.parse_authors(the_ref)
         # see if there are collaborations
         if not authors:
-            match = self.re_collabrations.search(theref)
+            match = self.re_collabrations.search(the_ref)
             if match:
                 authors = match.group('COLLAB').strip().rstrip('.')
-        theref, title = self.extract_tag(theref, 'atl', foldcase=1)
+        the_ref, title = self.extract_tag(the_ref, 'atl', foldcase=1)
         if not title:
-            theref, title = self.extract_tag(theref, 'btl', foldcase=1)
-        theref, journal = self.extract_tag(theref, 'jtl', foldcase=1)
-        theref, year = self.extract_tag(theref, 'cd', foldcase=1, attr=1)
+            the_ref, title = self.extract_tag(the_ref, 'btl', foldcase=1)
+        the_ref, journal = self.extract_tag(the_ref, 'jtl', foldcase=1)
+        the_ref, year = self.extract_tag(the_ref, 'cd', foldcase=1, attr=1)
         # see if year is in plaintext
         if not year:
-            year = self.match_year(theref)
-        volume, page = self.parse_volume_and_page(theref)
+            year = self.match_year(the_ref)
+        volume, page = self.parse_volume_and_page(the_ref)
 
-        theref, doi = self.extract_tag(theref, 'refdoi', foldcase=1)
+        the_ref, doi = self.extract_tag(the_ref, 'refdoi', foldcase=1)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
@@ -58,11 +68,11 @@ class NATUREreference(XMLreference):
 
         if not doi:
             # attempt to extract doi from reference text
-            doi = self.match_doi(theref)
+            doi = self.match_doi(the_ref)
             if doi:
                 self['doi'] = doi
         # attempt to extract arxiv id from reference text
-        eprint = self.match_arxiv_id(theref)
+        eprint = self.match_arxiv_id(the_ref)
         if eprint:
             self['eprint'] = eprint
 
@@ -72,13 +82,14 @@ class NATUREreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self, theref):
+    def parse_authors(self, the_ref: str) -> str:
         """
+        parse the authors from the reference string
 
-        :param theref:
-        :return:
+        :param the_ref: the reference string to extract authors from
+        :return: the updated reference string and a comma-separated list of authors
         """
-        authors, author = self.extract_tag(theref, 'refau')
+        authors, author = self.extract_tag(the_ref, 'refau')
         author_list = []
         while author:
             an_author = ''
@@ -89,7 +100,7 @@ class NATUREreference(XMLreference):
             if an_author: author_list.append(an_author)
             authors, author = self.extract_tag(authors, 'refau')
 
-        match = self.re_etal.search(theref)
+        match = self.re_etal.search(the_ref)
         if match:
             etal = ' ' + match.group(1)
         else:
@@ -98,15 +109,16 @@ class NATUREreference(XMLreference):
         # these fields are already formatted the way we expect them
         return ', '.join(author_list) + etal
 
-    def parse_volume_and_page(self, theref):
+    def parse_volume_and_page(self, the_ref: str) -> Tuple[str, str]:
         """
+        parse the volume and page number from the reference string
 
-        :param theref:
-        :return:
+        :param the_ref: the reference string containing the volume and page information
+        :return: a tuple containing the volume and page number, or (None, None) if not found
         """
-        match = self.re_volume_page.search(theref)
+        match = self.re_volume_page.search(the_ref)
         if not match:
-            match = self.re_volume.search(theref)
+            match = self.re_volume.search(the_ref)
             if not match:
                 return None, None
             volume = match.group("volume")
@@ -117,22 +129,25 @@ class NATUREreference(XMLreference):
 
 
 class NATUREtoREFs(XMLtoREFs):
+    """
+    This class converts NATURE XML references to a standardized reference format. It processes raw NATURE references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the NATUREtoREFs object to process NATURE references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=NATUREtoREFs, tag='(reftxt|REFTXT)')
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -157,6 +172,10 @@ class NATUREtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of NatureXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Nature references')

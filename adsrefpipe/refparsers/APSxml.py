@@ -5,7 +5,6 @@ import argparse
 from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -20,14 +19,14 @@ class APSreference(XMLreference):
     year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
     """
 
-    # to match a initials
-    re_first = re.compile(r'\w\.$')
+    # to match first initials
+    re_first_initial = re.compile(r'\w\.$')
     # to match series information with volume/issue
     re_series = re.compile(r'^(([A-Za-z\-\s\.]+)(Vol|No)\.?\s*\d+)')
 
     def parse(self):
         """
-        parses APS reference data and extracts relevant information
+        parse the APS reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -116,7 +115,7 @@ class APSreference(XMLreference):
 
         # otherwise parse it and recompose it as "Last F."
         first = parts.pop(0)
-        while len(parts) > 1 and self.re_first.match(parts[0]):
+        while len(parts) > 1 and self.re_first_initial.match(parts[0]):
             first = first + ' ' + parts.pop(0)
         authors = ' '.join(parts) + ' ' + first
 
@@ -146,7 +145,7 @@ class APStoREFs(XMLtoREFs):
     # to match ibid
     re_previous_ref = re.compile(r'<ibid>')
 
-    # to clean up XML references by removing certain tags
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'<formula.*?>.*?</formula>'), ''),
         (re.compile(r'<prevau>'), '---'),
@@ -154,20 +153,20 @@ class APStoREFs(XMLtoREFs):
 
     def __init__(self, filename: str, buffer: str):
         """
-        initializes the APStoREFs conversion process
+        initialize the APStoREFs object to process APS references
 
-        :param filename: the filename to process
-        :param buffer: the buffer to process
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=APStoREFs, tag='(ref|refitem)')
 
     def cleanup(self, reference: str, prev_reference: str) -> str:
         """
-        cleans up reference by removing unwanted elements and handling previous references
+        clean up the input reference by simplifying the XML structure and handling previous author tags
 
-        :param reference: reference string to clean up
-        :param prev_reference: previous reference to handle
-        :return: cleaned reference and updated previous reference
+        :param reference: the raw reference string to clean up
+        :param prev_reference: the previous reference to use in cleanup
+        :return: the cleaned-up reference string and the previous reference
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)

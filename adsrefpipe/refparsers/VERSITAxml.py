@@ -27,7 +27,7 @@ class VERSITAreference(XMLreference):
 
     def parse(self):
         """
-        parse the VERSITA reference
+        parse the VERSITA reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -193,10 +193,10 @@ class VERSITAtoREFs(XMLtoREFs):
 
     def cleanup(self, reference: str) -> str:
         """
-        clean up the input reference by replacing specific patterns
+        clean up the reference string by replacing specific patterns
 
-        :param reference: the raw reference string to clean up
-        :return: the cleaned reference string
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
@@ -204,9 +204,9 @@ class VERSITAtoREFs(XMLtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        perform reference cleaning and then parse the references
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of dictionaries, each containing bibcodes and parsed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -231,7 +231,7 @@ class VERSITAtoREFs(XMLtoREFs):
         return references
 
 
-# This is the main program used for manual testing and verification of VERSOTAxml references.
+# This is the main program used for manual testing and verification of VERSITAxml references.
 # It allows parsing references from either a file or a buffer, and if no input is provided,
 # it runs a source test file to verify the functionality against expected parsed results.
 # The test results are printed to indicate whether the parsing is successful or not.

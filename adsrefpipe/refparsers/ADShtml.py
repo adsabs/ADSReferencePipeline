@@ -6,7 +6,6 @@ import urllib.parse
 from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -58,9 +57,9 @@ class ADSHTMLtoREFs(HTMLtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        clean references and call the parser to process and dispatch them
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of references with bibcode and parsed reference details
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -132,7 +131,7 @@ class AnnRevHTMLtoREFs(ADSHTMLtoREFs):
 
     def __init__(self, filename: str, buffer: str):
         """
-        initialize the parser with the given filename and buffer
+        initialize the parser for AnnRevHTMLtoREFs
 
         :param filename: path to the reference file
         :param buffer: buffer containing the references
@@ -371,11 +370,11 @@ class AREPSHTMLtoREFs(HTMLtoREFs):
                              r'<TD>\s*([A-Z&][^<]*)<', (re.IGNORECASE | re.DOTALL))
             self.parser = ADSHTMLtoREFs(filename, buffer, parsername=AREPSHTMLtoREFs, tag=tag, file_type=self.single_bibcode)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        Process the references and dispatch them for further processing.
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: parsed references from the file
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         return self.parser.process_and_dispatch()
 
@@ -430,11 +429,11 @@ class PASJHTMLtoREFs(ADSHTMLtoREFs):
                          r'(?:</A>\s*)([A-Za-z][a-z]+[^<]*)(?=<A|<BR>)', (re.IGNORECASE | re.DOTALL))
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=PASJHTMLtoREFs, tag=tag, file_type=self.multi_bibcode, cleanup=self.reference_cleanup, encoding='latin-1')
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        Clean and process the references, then dispatch them for further processing.
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of parsed references with bibcodes
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

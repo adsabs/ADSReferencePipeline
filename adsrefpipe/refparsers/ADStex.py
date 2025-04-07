@@ -33,9 +33,9 @@ class ADStexToREFs(TEXtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        Clean the references and then process them using the parser.
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of references with bibcode and parsed reference details
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

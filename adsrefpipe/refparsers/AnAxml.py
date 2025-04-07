@@ -16,12 +16,12 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 class AnAreference(XMLreference):
     """
     This class handles parsing AnA references in XML format. It extracts citation information such as authors,
-    year, journal, volume, issue, pages, and eprint, and stores the parsed details.
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
     """
 
     def parse(self):
         """
-        parse the AnA reference
+        parse the AnA reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -67,10 +67,10 @@ class AnAreference(XMLreference):
 class AnAtoREFs(XMLtoREFs):
     """
     This class converts AnA XML references to a standardized reference format. It processes raw AnA references from
-    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, and pages.
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
     """
 
-    # list of regular expressions used to clean up XML references
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'\\&'), '&'),
         (re.compile(r'&amp;'), '&'),
@@ -79,7 +79,7 @@ class AnAtoREFs(XMLtoREFs):
 
     def __init__(self, filename: str, buffer: str):
         """
-        initialize the AnAtoREFs object
+        initialize the AnAtoREFs object to process AnA references
 
         :param filename: the path to the source file
         :param buffer: the XML references as a buffer
@@ -100,9 +100,9 @@ class AnAtoREFs(XMLtoREFs):
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function performs reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return: list of dictionaries, each containing a bibcode and a list of parsed references
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:

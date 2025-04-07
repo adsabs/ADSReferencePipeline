@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
@@ -13,11 +14,17 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 class EDPreference(XMLreference):
+    """
+    This class handles parsing EDP references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_replace_amp = re.compile(r'__amp;?')
+    # to match 'amp'
+    re_match_amp = re.compile(r'__amp;?')
 
     def parse(self):
         """
+        parse the EDP reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -42,7 +49,7 @@ class EDPreference(XMLreference):
                 year = tokens[7].strip()
 
                 # these fields are already formatted the way we expect them
-                self['authors'] = self.re_replace_amp.sub('&', authors)
+                self['authors'] = self.re_match_amp.sub('&', authors)
                 self['year'] = year
                 self['jrlstr'] = journal
 
@@ -61,22 +68,25 @@ class EDPreference(XMLreference):
 
 
 class EDPtoREFs(XMLtoREFs):
+    """
+    This class converts EDP XML references to a standardized reference format. It processes raw EDP references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the EDPtoREFs object to process EDP references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=EDPtoREFs, tag='bibliomixed')
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -99,6 +109,10 @@ class EDPtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of EDPxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse EDP references')

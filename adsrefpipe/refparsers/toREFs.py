@@ -7,11 +7,11 @@ from abc import abstractmethod
 from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
-from adsrefpipe.refparsers.reference import unicode_handler
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
+
+from adsrefpipe.refparsers.reference import unicode_handler
 
 
 class toREFs():

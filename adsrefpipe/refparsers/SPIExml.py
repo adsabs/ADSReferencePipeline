@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
@@ -14,21 +15,29 @@ from adsrefpipe.refparsers.unicode import tostr
 
 
 class SPIEreference(XMLreference):
+    """
+    This class handles parsing SPIE references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
+    # list of reference types
     types = ['journal', 'book', 'other', 'conf-proc', 'report','thesis', 'preprint', 'web', 'eprint', 'confproc',
              'supplementary-material', 'patent', 'communication']
-    re_first = re.compile(r'\b\w\.')
-    re_from_raw = re.compile(r'^(?P<auths>.*?)&quot;.*?&quot;\s+(?P<rest>.*?)\s+\(([A-Za-z]+\.?\s+)?(?P<year>\d{4})\)\.?',
-                        re.DOTALL | re.VERBOSE)
-    re_match_id = re.compile(r'''\sid\.\s+(\d{4})(.{2})''')
-    re_replace_amp = re.compile(r'__amp;?')
-    re_match_thesis = re.compile(r'(MS thesis|PhD Thesis)', re.IGNORECASE)
 
+    # to match first initials
+    re_first_initial = re.compile(r'\b\w\.')
+    # to match `amp`
+    re_match_amp = re.compile(r'__amp;?')
+    # to match specific thesis types (MS thesis or PhD Thesis) (case-insensitive)
+    re_match_thesis = re.compile(r'(MS thesis|PhD Thesis)', re.IGNORECASE)
+    # to remove non-alphabetic characters at the start of a string, leaving only alphabetic characters
     re_no_enumeration = re.compile(r'^[^A-Za-z]+([A-Za-z]+.*)$')
+    # to match numeric values, including alphanumeric combinations
     re_numeric = re.compile(r'\d[\d\w]*')
 
     def parse(self):
         """
+        parse the SPIE reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -98,10 +107,11 @@ class SPIEreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         authors = self.xmlnode_nodescontents('person-group', attrs={'person-group-type': 'author'}, keepxml=1) or \
                   self.xmlnode_nodescontents('name', keepxml=1) or \
@@ -128,23 +138,23 @@ class SPIEreference(XMLreference):
             author_list = collab + author_list
 
         authors = ", ".join(author_list)
-        authors = self.re_replace_amp.sub('', authors)
+        authors = self.re_match_amp.sub('', authors)
         # we do some cleanup in author's strings that appear to
         # contain names in the form "F. Last1, O. Last2..."
-        if authors and self.re_first.match(authors):
-            authors = self.re_first.sub(' ', authors).strip()
+        if authors and self.re_first_initial.match(authors):
+            authors = self.re_first_initial.sub(' ', authors).strip()
 
         return authors
 
-    def parse_numeric_values(self, refstr, year, volume, pages):
+    def parse_numeric_values(self, refstr: str, year: str, volume: str, pages: str) -> str:
         """
-        see if from numeric value not assigned to field in the refstr can be parsed out
+        parse numeric values not assigned to specific fields in the reference string
 
-        :param refstr:
-        :param year:
-        :param volume:
-        :param pages:
-        :return:
+        :param refstr: the reference string containing the potential numeric values
+        :param year: the year value already assigned to the reference (if available)
+        :param volume: the volume value already assigned to the reference (if available)
+        :param pages: the pages value already assigned to the reference (if available)
+        :return: the parsed numeric value if exactly one is found, or None if not
         """
         match = self.re_no_enumeration.search(refstr)
         if match:
@@ -172,44 +182,50 @@ class SPIEreference(XMLreference):
 
 
 class SPIEtoREFs(XMLtoREFs):
+    """
+    This class converts SPIE XML references to a standardized reference format. It processes raw SPIE references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'</?uri.*?>'), ''),
         (re.compile(r'\(<comment>.*?</comment>\)'), ''),
         (re.compile(r'</?ext-link.*?>'), ''),
         (re.compile(r'\s+xlink:href='), ' href=')
     ]
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'</?ext-link.*?>'), ''),
         (re.compile(r'__amp__quot;'), '"'),
         (re.compile(r"\'(<[^,']*)"), r"\1")
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the SPIEtoREFs object to process SPIE references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=SPIEtoREFs, tag='ref', cleanup=self.block_cleanup)
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -234,6 +250,10 @@ class SPIEtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of SPIExml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse SPIE references')
