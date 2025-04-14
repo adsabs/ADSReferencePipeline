@@ -31,7 +31,7 @@ class SPRINGERreference(XMLreference):
     # to match and clean up occurrences of "and" with optional commas around it
     re_cleanup_unstructured = re.compile(r'\s*,?\s*and\s*')
     # to match a specific format of unstructured citation with authors, title, journal, and year
-    rec_field_unstructured = re.compile(r'(?P<authors>([A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2},\s+){1,})(?P<title>[^,]{20,}),(?P<journal>.*?),\s*(?P<year>\d{4})\b')
+    rec_field_unstructured = re.compile(r'(?P<authors>(?:[A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2},\s+)+(?:and\s+)?(?:[A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2}[,\s]+)+)(?P<title>[^,]{20,}),(?P<journal>.*?),\s*(?P<year>\d{4})\b')
     # to match general unstructured citation text and arXiv IDs
     re_unstructured = [
         re.compile(r'([^\[]*)'),
@@ -89,8 +89,12 @@ class SPRINGERreference(XMLreference):
             doi = ''
 
         refstr = self.xmlnode_nodecontents('Citation')
+
+        if not title:
+            title = self.parse_title(refstr)
+
         if not doi:
-            doi = self.parse_doi(refstr)
+            doi = self.parse_doi()
         eprint = self.parse_eprint(refstr)
 
         # these fields are already formatted the way we expect them
@@ -148,14 +152,13 @@ class SPRINGERreference(XMLreference):
             authors.append(name)
         return ', '.join(authors)
 
-    def parse_doi(self, refstr: str) -> str:
+    def parse_doi(self) -> str:
         """
         parse the DOI from the reference string or XML elements
 
         attempts to extract a DOI by checking the 'RefTarget' elements for a DOI address or a handle in the 'Occurrence'
         elements. If no DOI is found in the XML, it attempts to extract it from the reference string.
 
-        :param refstr: the reference string potentially containing the DOI
         :return: the extracted DOI if found, or an empty string if not
         """
         targets =  self.reference_str.getElementsByTagName('RefTarget')
@@ -182,7 +185,7 @@ class SPRINGERreference(XMLreference):
         if doi:
             return doi
 
-        return self.match_doi(refstr)
+        return self.match_doi(self.xmlnode_nodecontents('Citation'))
 
     def parse_eprint(self, refstr: str) -> str:
         """
@@ -202,20 +205,18 @@ class SPRINGERreference(XMLreference):
 
         return self.match_arxiv_id(refstr)
 
-    def parse_title_and_year(self, refstr: str) -> Tuple[str, str]:
+    def parse_title(self, refstr: str) -> str:
         """
-        try to parse title and year out of unstructured string
+        try to parse title out of unstructured string
 
         :param refstr: the unstructured reference string containing the title and year
-        :return: a tuple containing the title and year if found, or (None, None) if not
+        :return: the title if found, or None otherwise
         """
         refstr = self.re_cleanup_unstructured.sub(', ', refstr, 1)
         match = self.rec_field_unstructured.match(refstr)
         if match:
-            year = match.group('year')
-            title = match.group('title')
-            return title,year
-        return None,None
+            return match.group('title')
+        return None
 
     def parse_unstructured_field(self, unstructured: str) -> str:
         """
@@ -249,7 +250,7 @@ class SPRINGERtoREFs(XMLtoREFs):
     """
 
     # to match DOI occurrences within <Occurrence> tags and extract the DOI value
-    re_doi = re.compile(r'<Occurrence\ Type="DOI"><Handle>(?P<doi>.*?)</Handle></Occurrence>')
+    re_doi = re.compile(r'\<Occurrence\ Type="DOI"\>\<Handle\>(?P<doi>.*?)\</Handle\>\</Occurrence\>')
 
     def __init__(self, filename: str, buffer: str):
         """
@@ -275,9 +276,8 @@ class SPRINGERtoREFs(XMLtoREFs):
         match = self.re_doi.search(reference)
         if match:
             doi = match.group('doi')
-            if doi.find('<') > 0:
-                newdoi = doi.replace('<', '&lt;').replace('>', '&gt;')
-                reference = reference.replace(doi, newdoi)
+            newdoi = doi.replace('<', '&lt;').replace('>', '&gt;')
+            reference = reference.replace(doi, newdoi)
         return reference
 
     def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:

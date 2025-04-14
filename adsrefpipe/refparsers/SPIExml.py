@@ -29,7 +29,7 @@ class SPIEreference(XMLreference):
     # to match `amp`
     re_match_amp = re.compile(r'__amp;?')
     # to match specific thesis types (MS thesis or PhD Thesis) (case-insensitive)
-    re_match_thesis = re.compile(r'(MS thesis|PhD Thesis)', re.IGNORECASE)
+    re_match_thesis = re.compile(r"(MS thesis|PhD Thesis|Master's Thesis)", re.IGNORECASE)
     # to remove non-alphabetic characters at the start of a string, leaving only alphabetic characters
     re_no_enumeration = re.compile(r'^[^A-Za-z]+([A-Za-z]+.*)$')
     # to match numeric values, including alphanumeric combinations
@@ -61,7 +61,7 @@ class SPIEreference(XMLreference):
             elif not journal:
                 journal = chapter_title
         if type == 'thesis' and not journal and not title:
-           journal = ''.join(self.re_match_thesis.findall(refstr))
+            journal = ''.join(self.re_match_thesis.findall(refstr))
         volume = self.xmlnode_nodecontents('volume')
         pages = self.xmlnode_nodecontents('fpage')
         issue = self.xmlnode_nodecontents('issue')

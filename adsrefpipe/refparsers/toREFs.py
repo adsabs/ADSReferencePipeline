@@ -393,7 +393,7 @@ class TXTtoREFs(toREFs):
         :return: The modified current reference string with authors inherited from the previous reference, if applicable
         """
         match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
+        if match and prev_refstr:
             # find the year and return everything that came before it
             prev_authors = self.re_prior_year.match(prev_refstr)
             if prev_authors:
@@ -919,7 +919,7 @@ class OCRtoREFs(toREFs):
         :return: updated current reference string
         """
         match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
+        if match and prev_refstr:
             # find the year and return everything that came before it
             prev_authors = self.re_prior_year.match(prev_refstr)
             if prev_authors:
@@ -1462,7 +1462,7 @@ class HTMLtoREFs(toREFs):
         :return: the modified current reference string with authors inherited from the previous reference, if applicable
         """
         match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
+        if match and prev_refstr:
             # find the year and return everything that came before it
             prev_authors = self.re_prior_year.match(prev_refstr)
             if prev_authors:

@@ -10,6 +10,8 @@ import re
 
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
+from adsrefpipe.refparsers.ADStxt import ADStxtToREFs, ARAnATXTtoREFs, PThPhTXTtoREFs, FlatTXTtoREFs, \
+    ThreeBibstemsTXTtoREFs, PairsTXTtoREFs
 
 from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.refparsers.unicode import tostr, UnicodeHandler, UnicodeHandlerError
@@ -67,43 +69,187 @@ class TestReferenceParsers(unittest.TestCase):
         references = verify('ADStex')(filename=reference_source, buffer=None).process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_ads_tex)
 
-    def test_txt_parser(self):
-        """ test parsers for text references """
-        txt_testing = [
-            (verify('ThreeBibsTxt'), '/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw', parsed_references.parsed_ARAnA_txt_0),
-            (verify('ThreeBibsTxt'), '/stubdata/txt/ARA+A/0/0001ARA+A...0.....Z.ref.refs', parsed_references.parsed_ARAnA_txt_1),
-            (verify('ThreeBibsTxt'), '/stubdata/txt/ARNPS/0/0000ADSTEST.0.....Z.ref.raw', parsed_references.parsed_ARNPS_txt_0),
-            (verify('ThreeBibsTxt'), '/stubdata/txt/ARNPS/0/0001ARNPS...0.....Z.ref.txt', parsed_references.parsed_ARNPS_txt_1),
-            (verify('ThreeBibsTxt'), '/stubdata/txt/AnRFM/0/0000ADSTEST.0.....Z.ref.raw', parsed_references.parsed_AnRFM_txt_0),
-            (verify('ThreeBibsTxt'), '/stubdata/txt/AnRFM/0/0001AnRFM...0.....Z.ref.txt', parsed_references.parsed_AnRFM_txt_1),
-            (verify('PThPhTXT'), '/stubdata/txt/PThPh/0/iss0.raw', parsed_references.parsed_PThPh_txt),
-            (verify('PThPhTXT'), '/stubdata/txt/PThPS/0/editor.raw', parsed_references.parsed_PThPS_txt),
-            (verify('ADStxt'), '/stubdata/txt/ADS/0/0000ADSTEST.0.....Z.raw', parsed_references.parsed_ads_txt),
-            (verify('PairsTXT'), '/stubdata/txt/AUTHOR/0/0000.pairs', parsed_references.parsed_pairs_txt_0),
-            (verify('PairsTXT'), '/stubdata/txt/ATel/0/0000.pairs', parsed_references.parsed_pairs_txt_1),
 
+class TestADStxtToREFs(unittest.TestCase):
+
+    def test_init(self):
+        """ test init """
+        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/txt/ADS/0/0000ADSTEST.0.....Z.raw')
+        references = ADStxtToREFs(filename=reference_source, buffer=None).process_and_dispatch()
+        self.assertEqual(references, parsed_references.parsed_ads_txt)
+
+
+class TestARAnATXTtoREFs(unittest.TestCase):
+
+    def test_get_references(self):
+        """ test the get_references method """
+
+        # test case 1: when bibcode is not found in the filename
+        testfile_content = '%R bibcode here\n%Z\nARAnA Reference 1\nARAnA Reference 2\n\n'
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+                ARAnATXTtoREFs('', buffer={}).get_references('testfile.ref.raw')
+                mock_logger.assert_called_with("Error in getting the bibcode from the reference file name testfile.ref.raw. Skipping!")
+
+        # test case 2: when no references are found in the file
+        testfile_content = '%R 0000ARA+A...0.....Z\n%Z\nARAnA Reference 1\nARAnA Reference 2\n\n'
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+                ARAnATXTtoREFs('', buffer={}).get_references('0000ARA+A...0.....Z.ref.raw')
+                mock_logger.assert_called_with("No references found in reference file 0000ARA+A...0.....Z.ref.raw.")
+
+        # test case 3: when file does not exit
+        with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+            ARAnATXTtoREFs('', buffer={}).get_references('testfile.ref.raw')
+            mock_logger.assert_called_with("Exception: [Errno 2] No such file or directory: 'testfile.ref.raw'")
+
+
+class TestPThPhTXTtoREFs(unittest.TestCase):
+
+    def test_init(self):
+        """ test init """
+        txt_testing = [
+            (PThPhTXTtoREFs, '/stubdata/txt/PThPh/0/iss0.raw', parsed_references.parsed_PThPh_txt),
+            (PThPhTXTtoREFs, '/stubdata/txt/PThPS/0/editor.raw', parsed_references.parsed_PThPS_txt),
         ]
         for (parser, filename, expected_results) in txt_testing:
             reference_source = os.path.abspath(os.path.dirname(__file__) + filename)
             references = parser(filename=reference_source, buffer=None).process_and_dispatch()
             self.assertEqual(references, expected_results)
 
-    def test_arxivtxt_parser(self):
-        """ test parser for arxivtxt """
+    def test_get_references(self):
+        """ test the get_references method """
+
+        # test case 1: when no references are found in the file
+        testfile_content = '%R 0000PThPh...0.....Z\n%Z\nPThPh Reference 1\nPThPh Reference 2\n\n'
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+                PThPhTXTtoREFs('', buffer={}).get_references('testfile.raw')
+                mock_logger.assert_called_with("No references found in reference file testfile.raw.")
+
+        # test case 2: when file does not exit
+        with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+            PThPhTXTtoREFs('', buffer={}).get_references('testfile.raw')
+            mock_logger.assert_called_with("Exception: [Errno 2] No such file or directory: 'testfile.raw'")
+
+        # test case 3: when there are more than one bibcode in the file
+        testfile_content = '%R 0000PThPh...0.....Z\n%Z\nP. Amaro-Seoane et al., arXiv:1201.3621.\n\n' + \
+                           '%R 0001PThPh...0.....Z\n%Z\nJ. Thornburg, arXiv:1102.2857.\n\n'
+        expected_results = [['0000PThPh...0.....Z', ['P. Amaro-Seoane et al., arXiv:1201.3621.']],
+                            ['0001PThPh...0.....Z', ['J. Thornburg, arXiv:1102.2857.']]]
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            results = PThPhTXTtoREFs('', buffer={}).get_references('testfile.raw')
+            self.assertEqual(results, expected_results)
+
+        # test case 4: when there is an empty line
+        testfile_content = '%R 0000PThPh...0.....Z\n%Z\nP. Amaro-Seoane et al., arXiv:1201.3621.\n   \nJ. Thornburg, arXiv:1102.2857.\n\n'
+        expected_results = [['0000PThPh...0.....Z', ['P. Amaro-Seoane et al., arXiv:1201.3621.', 'J. Thornburg, arXiv:1102.2857.']]]
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            results = PThPhTXTtoREFs('', buffer={}).get_references('testfile.raw')
+            self.assertEqual(results, expected_results)
+
+
+class TestFlatTXTtoREFs(unittest.TestCase):
+
+    def test_get_references(self):
+        """ test the get_references method """
+
+        # test case 1: when file does not exit
+        with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+            FlatTXTtoREFs('', buffer={}).get_references('testfile.raw')
+            mock_logger.assert_called_with("Exception: [Errno 2] No such file or directory: 'testfile.raw'")
+
+        # test case 2: when there is an empty line
+        testfile_content = 'Arp  H. 1998.  Seeing Red . Montreal: Apeiron\n    \nBurbidge  G, Hoyle  F. 1998.  Ap. J.  509:L1\n\n'
+        expected_results = [['0000ARA+A...0.....Z', ['Arp  H. 1998.  Seeing Red . Montreal: Apeiron', 'Burbidge  G, Hoyle  F. 1998.  Ap. J.  509:L1']]]
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            results = FlatTXTtoREFs('', buffer={}).get_references('0000ARA+A...0.....Z.ref.refs')
+            self.assertEqual(results, expected_results)
+
+
+class TestThreeBibstemsTXTtoREFs(unittest.TestCase):
+
+    def test_init(self):
+        """ test init """
+
+        txt_testing = [
+            (ThreeBibstemsTXTtoREFs, '/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw', parsed_references.parsed_ARAnA_txt_0),
+            (ThreeBibstemsTXTtoREFs, '/stubdata/txt/ARA+A/0/0001ARA+A...0.....Z.ref.refs', parsed_references.parsed_ARAnA_txt_1),
+            (ThreeBibstemsTXTtoREFs, '/stubdata/txt/ARNPS/0/0000ADSTEST.0.....Z.ref.raw', parsed_references.parsed_ARNPS_txt_0),
+            (ThreeBibstemsTXTtoREFs, '/stubdata/txt/ARNPS/0/0001ARNPS...0.....Z.ref.txt', parsed_references.parsed_ARNPS_txt_1),
+            (ThreeBibstemsTXTtoREFs, '/stubdata/txt/AnRFM/0/0000ADSTEST.0.....Z.ref.raw', parsed_references.parsed_AnRFM_txt_0),
+            (ThreeBibstemsTXTtoREFs, '/stubdata/txt/AnRFM/0/0001AnRFM...0.....Z.ref.txt', parsed_references.parsed_AnRFM_txt_1),
+        ]
+        for (parser, filename, expected_results) in txt_testing:
+            reference_source = os.path.abspath(os.path.dirname(__file__) + filename)
+            references = parser(filename=reference_source, buffer=None).process_and_dispatch()
+            self.assertEqual(references, expected_results)
+
+
+class TestPairsTXTtoREFs(unittest.TestCase):
+
+    def test_init(self):
+        """ test init """
+
+        txt_testing = [
+            (PairsTXTtoREFs, '/stubdata/txt/AUTHOR/0/0000.pairs', parsed_references.parsed_pairs_txt_0),
+            (PairsTXTtoREFs, '/stubdata/txt/ATel/0/0000.pairs', parsed_references.parsed_pairs_txt_1),
+        ]
+        for (parser, filename, expected_results) in txt_testing:
+            reference_source = os.path.abspath(os.path.dirname(__file__) + filename)
+            references = parser(filename=reference_source, buffer=None).process_and_dispatch()
+            self.assertEqual(references, expected_results)
+
+    def test_get_references(self):
+        """ test the get_references method """
+
+        # test case 1: when file does not exit
+        with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+            PairsTXTtoREFs('', buffer={}).get_references('testfile.pairs')
+            mock_logger.assert_called_with("Exception: [Errno 2] No such file or directory: 'testfile.pairs'")
+
+        # test case 2: when there is an empty line
+        testfile_content = '2004AnGla..38...97O	1994BoLMe..71..393V\n    \n2002AAAR...34..477O	1994BoLMe..71..393V\n    \n1999BoLMe..92...65D	1994GPC.....9...53M\n\n'
+        expected_results = [['1994BoLMe..71..393V', ['2004AnGla..38...97O', '2002AAAR...34..477O']],
+                            ['1994GPC.....9...53M', ['1999BoLMe..92...65D']]]
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            results = PairsTXTtoREFs('', buffer={}).get_references('testfile.pairs')
+            self.assertEqual(results, expected_results)
+
+        # test case 3: when no references are found in the file
+        testfile_content = '1994BoLMe..71..393V;\n1994BoLMe..71..393V;\n\n'
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            with patch('adsrefpipe.refparsers.ADStxt.logger.error') as mock_logger:
+                PairsTXTtoREFs('', buffer={}).get_references('testfile.pairs')
+                mock_logger.assert_called_with("No references found in reference file testfile.pairs.")
+
+
+class TestARXIVtoREFs(unittest.TestCase):
+
+    def test_init(self):
+        """ test init """
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/txt/arXiv/0/00000.raw')
         references = ARXIVtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
         self.assertEqual(references, parsed_references.parsed_arxiv)
 
-    ##### unicode module's unittests #####
 
-    def test_unicode_tostr_exception(self):
-        """ test unicode's tostr when ValueError is raised """
+class TestUnicode(unittest.TestCase):
+    """
+    Testing unicode module's methods
+    """
+    def test_tostr_exception(self):
+        """ test tostr method when ValueError is raised """
         mock_value = Mock(spec=str)
         mock_value.encode.side_effect = ValueError("Encoding error")
         self.assertEqual(tostr(mock_value), "")
 
-    def test_unicode_handler_init_exception(self):
-        """ test UnicodeHandler's init when ValueError is raised """
+
+class TestUnicodeHandler(unittest.TestCase):
+    """
+    Testing Unicode Handler Class
+    """
+    def test_init_exception(self):
+        """ test init when ValueError is raised """
 
         # Invalid code (not an int)
         mock_data = 'invalid_entry "entity" "ascii" "latex"\n'
@@ -111,8 +257,8 @@ class TestReferenceParsers(unittest.TestCase):
             handler = UnicodeHandler("dummy_path")
             self.assertNotIn("entity", handler)
 
-    def test_unicode_handler_sub_numasc_entity_exception(self):
-        """ test UnicodeHandler's __sub_numasc_entity when IndexError and OverflowError are raised """
+    def test_sub_numasc_entity_exception(self):
+        """ test __sub_numasc_entity when IndexError and OverflowError are raised """
 
         # mock file reading to prevent FileNotFoundError
         with patch("builtins.open", mock_open(read_data="")):
@@ -135,8 +281,8 @@ class TestReferenceParsers(unittest.TestCase):
                     handler._UnicodeHandler__sub_numasc_entity(match)
                 self.assertEqual(str(context.exception), "Unknown numeric entity: &#9999999999;")
 
-    def test_unicode_handler_sub_hexnumasc_entity(self):
-        """ test UnicodeHandler's __sub_hexnumasc_entity method """
+    def test_sub_hexnumasc_entity(self):
+        """ test __sub_hexnumasc_entity method """
 
         # mock file reading to prevent FileNotFoundError
         with patch("builtins.open", mock_open(read_data="")):
@@ -167,8 +313,8 @@ class TestReferenceParsers(unittest.TestCase):
             # ensure the exception message is correct
             self.assertEqual(str(context.exception), "Unknown hexadecimal entity: &#x99999;")
 
-    def test_unicode_handler_sub_hexnum_toent(self):
-        """ test UnicodeHandler's __sub_hexnum_toent method """
+    def test_sub_hexnum_toent(self):
+        """ test __sub_hexnum_toent method """
 
         # mock file reading to prevent FileNotFoundError
         with patch("builtins.open", mock_open(read_data="")):
@@ -197,8 +343,8 @@ class TestReferenceParsers(unittest.TestCase):
             # ensure the exception message is correct
             self.assertEqual(str(context.exception), "Unknown hexadecimal entity: 629145")
 
-    def test_unicode_handler_toentity(self):
-        """ test UnicodeHandler's __toentity method """
+    def test_toentity(self):
+        """ test __toentity method """
 
         # mock file reading to prevent FileNotFoundError
         with patch("builtins.open", mock_open(read_data="")):
@@ -217,8 +363,8 @@ class TestReferenceParsers(unittest.TestCase):
         # Ʃ (mathematical summation, ascii_value 425)
         self.assertEqual(handler._UnicodeHandler__toentity("Ʃ"), "&#425;")
 
-    def test_unicode_handler_cleanall(self):
-        """ test UnicodeHandler's cleanall method """
+    def test_cleanall(self):
+        """ test cleanall method """
 
         with patch("builtins.open", mock_open(read_data="")):
             handler = UnicodeHandler("dummy_path")
@@ -236,8 +382,8 @@ class TestReferenceParsers(unittest.TestCase):
         expected_output = "&lstrok;a and backslash"
         self.assertEqual(handler.cleanall(input_text, cleanslash=1), expected_output)
 
-    def test_unicode_handler_sub_accent(self):
-        """ test UnicodeHandler's __sub_accent method """
+    def test_sub_accent(self):
+        """ test __sub_accent method """
 
         with patch("builtins.open", mock_open(read_data="")):
             handler = UnicodeHandler("dummy_path")
@@ -250,8 +396,8 @@ class TestReferenceParsers(unittest.TestCase):
 
         self.assertEqual(handler._UnicodeHandler__sub_accent(match), "&egrave;")
 
-    def test_unicode_handler_sub_missent(self):
-        """ test UnicodeHandler's __sub_missent method """
+    def test_sub_missent(self):
+        """ test __sub_missent method """
 
         with patch("builtins.open", mock_open(read_data="")):
             handler = UnicodeHandler("dummy_path")
@@ -274,8 +420,8 @@ class TestReferenceParsers(unittest.TestCase):
         # test correction when entity does not exist
         self.assertEqual(handler._UnicodeHandler__sub_missent(match_non_existing), "e&scaron;")
 
-    def test_unicode_handler_sub_morenum(self):
-        """ test UnicodeHandler's __sub_morenum method """
+    def test_sub_morenum(self):
+        """ test __sub_morenum method """
 
         with patch("builtins.open", mock_open(read_data="")):
             handler = UnicodeHandler("dummy_path")

@@ -173,15 +173,15 @@ class MDPIreference(XMLreference):
         # <pub-id pub-id-type="arxiv">arXiv:10.1029/2001JB000553</pub-id>
         eprint = self.match_arxiv_id(self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'arxiv'}))
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         # <elocation-id content-type="arxiv">arXiv:1309.6955</elocation-id>
         eprint = self.match_arxiv_id(self.xmlnode_nodecontents('elocation-id', attrs={'content-type': 'arxiv'}))
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         # attempt to extract it from refstr
         eprint = self.match_arxiv_id(refstr)
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         return ''
 
 
@@ -239,7 +239,6 @@ class MDPItoREFs(XMLtoREFs):
         :param cur_reference: the current reference containing the author placeholder
         :return: the current reference with the author placeholder replaced, or the original current reference if no placeholder is found
         """
-
         if prev_reference and self.re_author_placeholder.search(cur_reference):
             match = self.re_author_tag.search(prev_reference)
             if match:

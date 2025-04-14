@@ -95,7 +95,7 @@ class CUPreference(XMLreference):
             self['eprint'] = eprint
 
         doi = self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'doi'}).strip()
-        if len(doi) == 0:
+        if not doi:
             # attempt to extract it from refstr
             doi = self.match_doi(refstr)
 

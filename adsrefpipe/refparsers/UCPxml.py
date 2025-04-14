@@ -86,7 +86,7 @@ class UCPreference(XMLreference):
         if doi:
             self['doi'] = doi
         if eprint:
-            self['eprint'] = eprint
+            self['eprint'] = f"arXiv:{eprint}"
 
         self['refstr'] = self.get_reference_str()
         if not self['refstr']:

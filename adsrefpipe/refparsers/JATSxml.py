@@ -21,7 +21,7 @@ class JATSreference(XMLreference):
     """
 
     # to match content inside quotation marks represented by __amp__ldquo; and __amp__rdquo;
-    re_title_in_quote = re.compile(r"__amp__ldquo;(?P<INQUOTES>[^__amp__rdquo;].*)__amp__rdquo;", re.MULTILINE)
+    re_title_in_quote = re.compile(r"``(?P<INQUOTES>[^__amp__rdquo;].*)''", re.MULTILINE)
     # to match external links with href attribute
     re_ext_link = re.compile(r'<ext-link.*href="(?P<EXT_LINK>[^"]*)"', re.MULTILINE)
     # to match external link for inspirehep.net search with 'find J' query
@@ -35,7 +35,7 @@ class JATSreference(XMLreference):
     re_match_amp = re.compile(r"&amp;", re.IGNORECASE)
 
     # to match unstructured title and journal information with possible HTML tags
-    re_unstructured_title_journal = re.compile(r"([:,]+\s*(?P<title>[^.(,]*)[.(,]+)([^<]*)(<italic.*>(?P<journal>.*)</italic>)", re.MULTILINE)
+    re_unstructured_title_journal = re.compile(r"([:,]*\s*(?P<title>[^.(,]*)[.(,]+)([^<]*)(<italic.*>(?P<journal>.*)</italic>)", re.MULTILINE)
     # to match unstructured title information with possible punctuation
     re_unstructured_title = re.compile(r"(:\s*(?P<title>[^.(<_/][A-Za-z.\s]+)[.,(<_/]+)([^<_/]*)", re.MULTILINE)
     # to match unstructured journal information with optional italic HTML tag
@@ -58,11 +58,10 @@ class JATSreference(XMLreference):
             year = self.match_year(refstr)
         issn = self.xmlnode_nodecontents('issn').strip()
 
-        try:
-            # 5/4/2021 types I found in JATs xmls are as follows
-            # journal, book, confproc, other, patent, thesis, eprint, report, website, and supplementary-material
-            type = self.xmlnode_attribute('mixed-citation', 'publication-type')
-        except:
+        # 5/4/2021 types I found in JATs xmls are as follows
+        # journal, book, confproc, other, patent, thesis, eprint, report, website, and supplementary-material
+        type = self.xmlnode_attribute('mixed-citation', 'publication-type')
+        if not type:
             # 5/14/2021 can have something like <mixed-citation publication-type=''>2 ...
             type = "other"
 
@@ -107,8 +106,11 @@ class JATSreference(XMLreference):
             journal = self.xmlnode_nodecontents('source')
 
         if not journal and not title:
+            # need this to identify journal with italic tag
+            unstructured_refstr = self.xmlnode_nodecontents('comment', keepxml=1).strip()
+
             # outlier: some references have title in between colon and dot, and the journal inside italic tag
-            match = self.re_unstructured_title_journal.search(refstr)
+            match = self.re_unstructured_title_journal.search(unstructured_refstr)
             if match:
                 journal = match.group('journal')
                 title = match.group('title')
@@ -118,7 +120,7 @@ class JATSreference(XMLreference):
                 if match:
                     title = match.group('title')
                 # outlier: do we have only journal inside italic tag
-                match = self.re_unstructured_journal.search(refstr)
+                match = self.re_unstructured_journal.search(unstructured_refstr)
                 if match:
                     journal = match.group('journal')
 
@@ -152,15 +154,15 @@ class JATSreference(XMLreference):
             # attempt to extract arxiv id from refstr
             eprint = self.match_arxiv_id(refstr)
             if eprint:
-                self['eprint'] = eprint
-            # see if there is a inspire link for eprint
+                self['eprint'] = f"arXiv:{eprint}"
+            # see if there is an inspire link for eprint
             elif ext_links:
                 for link in ext_links:
                     match = self.re_ext_link_inspire_EPRINT.match(link)
                     if match:
                         eprint = self.match_arxiv_id(match.group('ARXIV_ID'))
                         if eprint:
-                            self['eprint'] = eprint
+                            self['eprint'] = f"arXiv:{eprint}"
 
         if not title:
             match = self.re_title_in_quote.search(refstr)
@@ -234,7 +236,7 @@ class JATSreference(XMLreference):
                                 # there is firstname with out the last name or the other way around
                                 # if it is the first author and we have the lastname return that only
                                 if len(authors) == 0 and lastname:
-                                    authors.append(self.to_ascii(lastname.strip()))
+                                    authors = [self.to_ascii(lastname.strip())]
                                     break
                 else:
                     # <person-group person-group-type='author'>
@@ -291,18 +293,6 @@ class JATSreference(XMLreference):
         except:
             return None
 
-    def parse_external_links(self, refstr: str):
-        """
-        parse the external links from the reference string
-
-        :param refstr: the reference string to search for external links
-        :return: a list of external links if found, or None if no matches are found
-        """
-        match = self.re_ext_link.findall(refstr)
-        if match:
-            return match
-        return None
-
 
 class JATStoREFs(XMLtoREFs):
     """
@@ -323,6 +313,7 @@ class JATStoREFs(XMLtoREFs):
     # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'</?uri.*?>'), ''),
+        (re.compile(r'\s+xlink:href='), ' href='),
         (re.compile(r'\(<comment>.*?</comment>\)'), ''),
         (re.compile(r'<inline-formula[\w\s="\']*>.*?</inline-formula>', re.DOTALL), ''),
         (re.compile(r'<label>.*?</label>'), ''),

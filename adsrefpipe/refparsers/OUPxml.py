@@ -196,15 +196,15 @@ class OUPreference(XMLreference):
         # <pub-id pub-id-type="arxiv">arXiv:10.1029/2001JB000553</pub-id>
         eprint = self.match_arxiv_id(self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'arxiv'}))
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         # <elocation-id content-type="arxiv">arXiv:1309.6955</elocation-id>
         eprint = self.match_arxiv_id(self.xmlnode_nodecontents('elocation-id', attrs={'content-type': 'arxiv'}))
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         # attempt to extract it from refstr
         eprint = self.match_arxiv_id(refstr)
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         return ''
 
 

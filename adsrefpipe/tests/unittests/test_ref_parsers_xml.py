@@ -18,27 +18,27 @@ from adsrefpipe.refparsers.AnAxml import AnAtoREFs, AnAreference
 from adsrefpipe.refparsers.AIPxml import AIPtoREFs, AIPreference
 from adsrefpipe.refparsers.BlackwellXML import BLACKWELLtoREFs, BLACKWELLreference
 from adsrefpipe.refparsers.CrossRefXML import CrossRefToREFs
-from adsrefpipe.refparsers.CUPxml import CUPtoREFs
-from adsrefpipe.refparsers.EDPxml import EDPtoREFs
+from adsrefpipe.refparsers.CUPxml import CUPtoREFs, CUPreference
+from adsrefpipe.refparsers.EDPxml import EDPtoREFs, EDPreference
 from adsrefpipe.refparsers.EGUxml import EGUtoREFs
 from adsrefpipe.refparsers.ElsevierXML import ELSEVIERtoREFs, ELSEVIERreference
 from adsrefpipe.refparsers.IcarusXML import ICARUStoREFs, ICARUSreference
 from adsrefpipe.refparsers.IOPFTxml import IOPFTtoREFs
-from adsrefpipe.refparsers.IOPxml import IOPtoREFs
+from adsrefpipe.refparsers.IOPxml import IOPtoREFs, IOPreference
 from adsrefpipe.refparsers.IPAPxml import IPAPtoREFs
-from adsrefpipe.refparsers.JATSxml import JATStoREFs
-from adsrefpipe.refparsers.JSTAGExml import JSTAGEtoREFs
+from adsrefpipe.refparsers.JATSxml import JATStoREFs, JATSreference
+from adsrefpipe.refparsers.JSTAGExml import JSTAGEtoREFs, JSTAGEreference
 from adsrefpipe.refparsers.LivingReviewsXML import LivingReviewsToREFs
-from adsrefpipe.refparsers.MDPIxml import MDPItoREFs
+from adsrefpipe.refparsers.MDPIxml import MDPItoREFs, MDPIreference
 from adsrefpipe.refparsers.NLM3xml import NLMtoREFs
 from adsrefpipe.refparsers.NatureXML import NATUREtoREFs
 from adsrefpipe.refparsers.ONCPxml import ONCPtoREFs
-from adsrefpipe.refparsers.OUPxml import OUPtoREFs
+from adsrefpipe.refparsers.OUPxml import OUPtoREFs, OUPreference
 from adsrefpipe.refparsers.PASAxml import PASAtoREFs
-from adsrefpipe.refparsers.RSCxml import RSCtoREFs
-from adsrefpipe.refparsers.SpringerXML import SPRINGERtoREFs
-from adsrefpipe.refparsers.SPIExml import SPIEtoREFs
-from adsrefpipe.refparsers.UCPxml import UCPtoREFs
+from adsrefpipe.refparsers.RSCxml import RSCtoREFs, RSCreference
+from adsrefpipe.refparsers.SpringerXML import SPRINGERtoREFs, SPRINGERreference
+from adsrefpipe.refparsers.SPIExml import SPIEtoREFs, SPIEreference
+from adsrefpipe.refparsers.UCPxml import UCPtoREFs, UCPreference
 from adsrefpipe.refparsers.VERSITAxml import VERSITAtoREFs, VERSITAreference
 from adsrefpipe.refparsers.WileyXML import WILEYtoREFs, WILEYreference
 
@@ -314,6 +314,7 @@ class TestAnAreference(unittest.TestCase):
         reference = AnAreference('<bibliomixed XRefLabel="bara02" N="4"><biblioset></biblioset></bibliomixed>')
         self.assertEqual(reference.get_parsed_reference(), {})
 
+
 class TestAnAtoREFs(unittest.TestCase):
 
     def test_init(self):
@@ -533,6 +534,40 @@ class TestCrossRefToREFs(unittest.TestCase):
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
 
 
+class TestCUPreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test the parse method"""
+
+        # test case 1: when the citation type is "thesis" but no journal (title/university) can be extracted
+        reference = CUPreference('<citation citation-type="thesis" id="ref017"><name><surname>Derra</surname><given-names>G.</given-names></name><year>1986</year>.</citation>')
+        reference.parse()
+        self.assertEqual(reference['jrlstr'], 'Thesis')
+
+        # test case 2: when the citation type is "confproc" and there is a series tag
+        reference = CUPreference('<citation citation-type="confproc" id="ref004"><name><surname>Campbell</surname><given-names>D. J.</given-names></name><etal/><year>1985</year> <series>Controlled Fusion and Plasma Physics</series>.</citation>')
+        reference.parse()
+        self.assertEqual(reference['jrlstr'], 'Controlled Fusion and Plasma Physics')
+
+        # test case 3: when there is a DOI
+        reference = CUPreference('<citation citation-type="journal" id="ref4"><name><surname>Rao</surname><given-names>S.</given-names></name><year>2003</year><source>ApJ</source><volume>595</volume><fpage>94</fpage><pub-id pub-id-type="doi">10.1086/377964</pub-id></citation>')
+        reference.parse()
+        self.assertEqual(reference['doi'], '10.1086/377964')
+
+    def test_parse_authors(self):
+        """ test parse_authors method """
+
+        # test case 1: when authors tag name is missing, so use authors from `string-name` tag
+        reference = CUPreference('<citation id="ref16" publication-type="other"><year>1967</year>, in: <string-name name-style="western"><given-names>J.</given-names><surname>Dommanget</surname></string-name> (ed.), <italic>On the Evolution of Double Stars</italic>, Communications Serie B, No. 17 Computes Rondus, p. 105</citation>')
+        authors = reference.parse_authors()
+        self.assertEqual(authors, 'Dommanget, J.')
+
+        # test case 2: when authors are not found but collab exists
+        reference = CUPreference('<citation citation-type="journal" id="ref2"><collab>Collaborative Group</collab><year>2006</year><source>ApJ</source><volume>630</volume><fpage>108</fpage></citation>')
+        authors = reference.parse_authors()
+        self.assertEqual(authors, 'Collaborative Group')
+
+
 class TestCUPtoREFs(unittest.TestCase):
 
     def test_init(self):
@@ -559,6 +594,28 @@ class TestCUPtoREFs(unittest.TestCase):
 
                 mock_logger.error.assert_called_with("CUPxml: error parsing reference: ReferenceError")
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
+
+
+class TestEDPreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test parse method """
+
+        # test case 1: when there is an arXiv link
+        reference = EDPreference('<bibliomixed XRefLabel="AlBa02" N="1"> R. Albert, A.-L. Barabási, Rev. Mod. Phys. 74, 47 (2002)<biblioset><Title>Rev. Mod. Phys.</Title><Date>2002</Date><VolumeNum>74</VolumeNum><ArtPageNums>47</ArtPageNums><bibliomisc id="epjb||Rev. Mod. Phys.| R. Albert, A.-L. Barabási|74||47|2002||AlBa02[1]|"/></biblioset><ulink Type="arXiv">https://arxiv.org/abs/1234.5678</ulink> </bibliomixed>')
+        reference.parse()
+        self.assertEqual(reference['eprint'], 'https://arxiv.org/abs/1234.5678')  # eprint assigned from ulink
+
+        # test case 2: when there is no bibliomixed tag, but other tags are there, so the reference is be parsed correctly
+        reference = EDPreference('<biblioset><Title>Rev. Mod. Phys.</Title><Date>2002</Date><VolumeNum>74</VolumeNum><ArtPageNums>47</ArtPageNums><bibliomisc id="epjb||Rev. Mod. Phys.| R. Albert, A.-L. Barabási|74||47|2002||AlBa02[1]|"/></biblioset>')
+        reference.parse()
+        expected_parsed_reference = {'authors': 'R. Albert, A.-L. Barabási',
+                                     'year': '2002',
+                                     'journal': 'Rev. Mod. Phys.',
+                                     'volume': '74',
+                                     'page': '47',
+                                     'refstr': 'R. Albert, A.-L. Barabási, 2002. Rev. Mod. Phys., 74, 47.'}
+        self.assertEqual(reference.get_parsed_reference(), expected_parsed_reference)
 
 
 class TestEDPtoREFs(unittest.TestCase):
@@ -737,6 +794,16 @@ class TestIOPFTtoREFs(unittest.TestCase):
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
 
 
+class TestIOPreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test parse method """
+
+        # test when volume and year are equal and there is an issue number, issue is assigned to volume
+        reference = IOPreference("<?xml version='1.0' encoding='ISO-8859-1' standalone='yes' ?><reference type='journal'> <ref_label>[7]</ref_label> <ref_citation>Ma X. 2017 Modelling and Simulation Based on ADAMS for Elevator Wire Rope System Journal of Hunan Institute of Engineering: Natural Science Edition 3 32-36</ref_citation> <ref_item_title>Modelling and Simulation Based on ADAMS for Elevator Wire Rope System</ref_item_title> <ref_authors>Ma X.</ref_authors> <ref_journal>Journal of Hunan Institute of Engineering: Natural Science Edition</ref_journal> <ref_issn>1671-119X</ref_issn> <ref_volume>2017</ref_volume> <ref_year>2017</ref_year> <ref_start_page>32</ref_start_page> <ref_end_page>36</ref_end_page> <ref_issue>2</ref_issue></reference>")
+        self.assertEqual(reference.get('volume'), '2')
+
+
 class TestIOPtoREFs(unittest.TestCase):
 
     def test_init(self):
@@ -806,7 +873,8 @@ class TestIPAPtoREFs(unittest.TestCase):
         '''
         expected_results = [
             ['0000JaJAP...0.....Z', '<BibUnstructured>M. Sheik-Bahae, A. A. Said, T. H. Wei, D. J. Hagan, and E. W. Van Stryland: IEEE J. Quantum Electron. 26 (1990) 760.</BibUnstructured>\n                     '],
-            ['0000JaJAP...1.....Z', '<BibUnstructured>T. D. Krauss and F. W. Wise: Appl. Phys. Lett. 65 (1994) 1739.</BibUnstructured>\n        ']]
+            ['0000JaJAP...1.....Z', '<BibUnstructured>T. D. Krauss and F. W. Wise: Appl. Phys. Lett. 65 (1994) 1739.</BibUnstructured>\n        ']
+        ]
 
         with patch('builtins.open', mock_open(read_data=testfile_content)):
             results = IPAPtoREFs("testfile.ipap.xml", None).get_references("testfile.ipap.xml")
@@ -827,6 +895,72 @@ class TestIPAPtoREFs(unittest.TestCase):
             results = torefs.cleanup("<BibUnstructured>Author1 et al. Journal1</BibUnstructured>")
             self.assertEqual(results, [])
             mock_logger.error.assert_called_with("IPAPxml: reference string does not match expected syntax: Author1 et al. Journal1")
+
+
+class TestJATSreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test parse method """
+
+        # test case 1: when publication type is missing, set type to other and proceed
+        reference = JATSreference('<mixed-citation publication-type="other">(1) L. A. Barroso: &#x201C;The Price of Performance&#x201D;, Queue, Vol. 3, No. 7, pp. 48-53 (2005)</mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.parsed, 1)
+
+        # test case 2: when multiple 'conf-name' tags (conference names in separate tags)
+        reference = JATSreference('<mixed-citation publication-type="confproc"> <string-name> <given-names>E.</given-names> <surname>Schiassi</surname> </string-name>, <string-name> <given-names>A.</given-names> <surname>D"Ambrosio</surname> </string-name>, <string-name> <given-names>H.</given-names> <surname>Johnston</surname> </string-name>, <string-name> <given-names>R.</given-names> <surname>Furfaro</surname> </string-name>, <string-name> <given-names>F.</given-names> <surname>Curti</surname> </string-name>, and <string-name> <given-names>D.</given-names> <surname>Mortari</surname> </string-name>, &ldquo; <article-title>Complete energy optimal landing on planetary bodies via theory of functional connections</article-title>,&rdquo; in <conf-name>Proceedings of the Astrodynamics Specialist Conference, AAS</conf-name> <conf-name>Advances in Spacecraft Navigation and Control</conf-name>, pp. <fpage>20</fpage>&ndash;<lpage>557</lpage>. </mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('ttlstr'), 'Proceedings of the Astrodynamics Specialist Conference, AAS')
+        self.assertEqual(reference.get('jrlstr'), 'Advances in Spacecraft Navigation and Control')
+
+        # test case 3: parse title and journal from unstructured field
+        reference = JATSreference('<mixed-citation publication-type="other"> <person-group person-group-type="author"> <string-name> <given-names>K.</given-names> <x xml:space="preserve"> </x> <surname>McGrattan</surname> </string-name> <x xml:space="preserve"> and </x> <string-name> <given-names>S.</given-names> <x xml:space="preserve"> </x> <surname>Miles</surname> </string-name> </person-group> <x xml:space="preserve">, </x> <comment> Modeling fires using computational fluid dynamics (CFD): in <italic>Society of Fire Protection Engineering, SFPE Handbook Fire Prot. Eng.</italic>, 5th Ed., 2016, pp. 1034–1065 </comment> <x xml:space="preserve">.</x> </mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('ttlstr'), 'Modeling fires using computational fluid dynamics')
+        self.assertEqual(reference.get('jrlstr'), 'Society of Fire Protection Engineering, SFPE Handbook Fire Prot. Eng.')
+
+        # test case 4: parse journal from unstructured field
+        reference = JATSreference('<mixed-citation publication-type="other"> <person-group person-group-type="author"> <string-name> <given-names>K.</given-names> <x xml:space="preserve"> </x> <surname>McGrattan</surname> </string-name> <x xml:space="preserve"> and </x> <string-name> <given-names>S.</given-names> <x xml:space="preserve"> </x> <surname>Miles</surname> </string-name> </person-group> <x xml:space="preserve">, </x> <comment> in <italic>Society of Fire Protection Engineering, SFPE Handbook Fire Prot. Eng.</italic>, 5th Ed., 2016, pp. 1034–1065 </comment> <x xml:space="preserve">.</x> </mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('ttlstr', ''), '')
+        self.assertEqual(reference.get('jrlstr'), 'Society of Fire Protection Engineering, SFPE Handbook Fire Prot. Eng.')
+
+        # test case 5: when eprint is in an external link tag
+        reference = JATSreference('<mixed-citation publication-type="other">D.M. McAvity and H. Osborn, <italic>Conformal field theories near a boundary in general dimensions</italic>, <italic>Nucl. Phys. B</italic><bold>455</bold> (1995) 522 [<ext-link href="https://inspirehep.net/search?p=find%2BEPRINT%2Bcond-mat%2F9505127" ext-link-type="url">INSPIRE</ext-link>].</mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('eprint'), 'arXiv:cond-mat/9505127')
+
+        # test case 6: when the only indication to identify the title are quotes around it
+        reference = JATSreference('<mixed-citation publication-type="other">__amp__ldquo;American Association of Textile Chemists and Colorists, AATCC 61---Test Method for Colorfastness to Laundering__amp__rdquo;, Accelerated, 2013.</mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('ttlstr'), 'American Association of Textile Chemists and Colorists, AATCC 61---Test Method for Colorfastness to Laundering')
+
+    def test_parse_authors(self):
+        """ test parse_authors method """
+
+        # test case 1: when IndexError exception is thrown since author surname or given-names are missing
+        reference = JATSreference('<mixed-citation publication-type="journal"> <name> <surname>Doe</surname> </name><name> <given-names>Jane</given-names> <surname>Doe</surname> </name> <article-title>A study on computational methods</article-title> <source>Journal of Computational Science</source> <year>2021</year> </mixed-citation>')
+        self.assertEqual(reference.parse_authors(), 'Doe')
+
+        # test case 2: when an author element has no child nodes
+        reference = JATSreference('<mixed-citation publication-type="journal"> <person-group person-group-type="author"/>  <article-title>Sample Article</article-title> <source>Sample Journal</source> <year>2021</year> </mixed-citation>')
+        self.assertEqual(reference.parse_authors(), '')
+
+        # test case 3: when an author element type is not included
+        reference = JATSreference('<mixed-citation publication-type="journal"> <person-group> <name> <given-names>John</given-names> <surname>Doe</surname> </name> <name>no child element here</name> </person-group> <article-title>Sample Article</article-title> <source>Sample Journal</source> <year>2021</year> </mixed-citation>')
+        self.assertEqual(reference.parse_authors(), '')
+
+        # test case 4: when <name> tag is missing for an author
+        reference = JATSreference('<mixed-citation publication-type="journal"> <person-group person-group-type="author"> <name> <given-names>John</given-names> <surname>Doe</surname> </name> <!-- missing tagName, simulate AttributeError --> <given-names>Jane</given-names> <surname>Smith</surname> </person-group> <article-title>Sample Article</article-title> <source>Sample Journal</source> <year>2021</year> </mixed-citation>')
+        self.assertEqual(reference.parse_authors(), 'Doe, John')
+
+        # test case 5: when author lastname is  not provided, throw an exception and return None
+        reference = JATSreference('<mixed-citation publication-type="journal"> <person-group person-group-type="author"> <name> <given-names>John</given-names> <!-- missing surname to simulate error --> </name> <name> <given-names>Jane</given-names> <!-- missing surname to simulate error --> </name> </person-group> </mixed-citation>')
+        self.assertIsNone(reference.parse_authors())
+
+        # test case 6: malformed XML with an empty <string-name> element (no child nodes)
+        reference = JATSreference('<mixed-citation publication-type="journal"> <person-group person-group-type="author"> <string-name> <given-names>J.</given-names> <surname>Doe</surname> </string-name> <string-name></string-name> <!-- this <string-name> has no child nodes --> </person-group> <article-title>Sample Article</article-title> <source>Sample Journal</source> <year>2021</year> </mixed-citation>')
+        self.assertEqual(reference.parse_authors(), 'Doe, J.')
 
 
 class TestJATStoREFs(unittest.TestCase):
@@ -855,6 +989,16 @@ class TestJATStoREFs(unittest.TestCase):
 
                 mock_logger.error.assert_called_with("JATSxml: error parsing reference: ReferenceError")
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
+
+
+class TestJSTAGEreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test parse method """
+
+        # test when there is a volume
+        reference = JSTAGEreference("<Citation order='5'> <CitAuthor>[in Japanese]</CitAuthor> <CitJournalName>[in Japanese]</CitJournalName> <CitVol>47</CitVol> <CitFirstPage>65</CitFirstPage> <CitLastPage>80</CitLastPage> <CitYear>2005</CitYear> <Original lang='ja'>&#x67cf;&#x6728;&#x6d0b;&#x5f66;&#xff0c;&#x9e7f;&#x5712;&#x76f4;&#x5efa;(2005)&#xff1a;&#x65e5;&#x672c;&#x306e;&#x5806;&#x7a4d;&#x76c6;&#x3092;&#x60f3;&#x5b9a;&#x3057;&#x305f;&#x4e8c;&#x9178;&#x5316;&#x70ad;&#x7d20;&#x5730;&#x4e2d;&#x8caf;&#x7559;&#x306b;&#x304a;&#x3051;&#x308b;&#x6c34;-&#x5ca9;&#x77f3;&#x53cd;&#x5fdc;&#x306e;&#x691c;&#x8a0e;&#xff1a;&#x5343;&#x8449;&#x770c;&#x623f;&#x7dcf;&#x534a;&#x5cf6;&#x306e;&#x4f8b;&#xff0e;&#x65e5;&#x672c;&#x5730;&#x4e0b;&#x6c34;&#x5b66;&#x4f1a;&#x8a8c;&#xff0c;47, 65-80.</Original> <Original lang='en'/> </Citation>")
+        self.assertEqual(reference.get('volume'), '47')
 
 
 class TestJSTAGEtoREFs(unittest.TestCase):
@@ -918,6 +1062,51 @@ class TestLivingReviewstoREFs(unittest.TestCase):
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
 
 
+class TestMDPIreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test the parse method """
+
+        # test case 1: when type is thesis with no 'conf-name' and 'source', but a 'comment' field containing 'thesis'
+        reference = MDPIreference("<mixed-citation publication-type='journal'> <person-group person-group-type='author'> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> <year>2013</year> <!-- missing 'source' and 'conf-name' --> <comment>Thesis: Some interesting title on advanced physics</comment> </mixed-citation>")
+        reference.parse()
+        self.assertEqual(reference.get('jrlstr'), 'Thesis: Some interesting title on advanced physics')
+
+        # test case 2: when comment contains only volume or pages but not both, so it cannot tell which is which
+        reference = MDPIreference("<citation citation-type='journal'> <comment>123</comment> <!-- this comment contains only one numeric, needed two volume and pages --> <year>2021</year> </citation>")
+        reference.parse()
+        self.assertEqual(reference.get('volume'), '')
+        self.assertEqual(reference.get('pages'), '')
+
+        # test case 3: when DOI is included in the 'comment' field
+        reference = MDPIreference("<mixed-citation publication-type='journal'> <comment>DOI: 10.1234/example.doi</comment> <year>2021</year> <article-title>Sample Article</article-title> <source>Sample Journal</source> </mixed-citation>")
+        reference.parse()
+        self.assertEqual(reference.get('doi'), '10.1234/example.doi')
+
+        # test case 4: when DOI is included with no tag, parsed from refstr
+        reference = MDPIreference("<mixed-citation publication-type='journal'> <year>2021</year> <article-title>Sample Article</article-title> <source>Sample Journal</source> DOI: 10.5678/another.doi <!-- included with no tag !--> </mixed-citation>")
+        reference.parse()
+        self.assertEqual(reference.get('doi'), '10.5678/another.doi')
+
+        # test case 5: when eprint is parsed from <pub-id> with pub-id-type='arxiv'
+        reference = MDPIreference('<mixed-citation publication-type="journal"> <pub-id pub-id-type="arxiv">arXiv:2312.08579</pub-id> <year>2021</year> <article-title>Sample Article</article-title> <source>Sample Journal</source> </mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('eprint'), 'arXiv:2312.08579')
+
+        # test case 6: when eprint is parsed from <elocation-id> with content-type='arxiv'
+        reference = MDPIreference('<mixed-citation publication-type="journal"> <elocation-id content-type="arxiv">arXiv:2312.08579</elocation-id> <year>2021</year> <article-title>Sample Article</article-title> <source>Sample Journal</source> </mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('eprint'), 'arXiv:2312.08579')
+
+
+    def test_parse_authors(self):
+        """ test parse_authors method """
+
+        # test case: when there is no tag lastname and first name tags
+        reference = MDPIreference("<mixed-citation publication-type='journal'> <person-group person-group-type='author'>Schultheis M.<etal>et al</etal> </person-group> <collab>University Collaborators</collab> </mixed-citation>")
+        self.assertEqual(reference.parse_authors(), 'University Collaborators, Schultheis M. et. al')
+
+
 class TestMDPItoREFs(unittest.TestCase):
 
     def test_init(self):
@@ -944,6 +1133,14 @@ class TestMDPItoREFs(unittest.TestCase):
 
                 mock_logger.error.assert_called_with("MDPIxml: error parsing reference: ReferenceError")
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
+
+    def test_missing_authors(self):
+        """ test missing_authors method """
+
+        torefs = MDPItoREFs(filename='', buffer=None)
+        result = torefs.missing_authors(prev_reference='<person-group person-group-type="author"> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group>',
+                                        cur_reference='--- the rest of the reference')
+        self.assertEqual(result, '<person-group person-group-type="author"> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> the rest of the reference')
 
 
 class TestNLM3toREFs(unittest.TestCase):
@@ -1029,6 +1226,48 @@ class TestONCPtoREFs(unittest.TestCase):
                 mock_logger.error.assert_called_with("ONCPxml: error parsing reference: ReferenceError")
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
 
+    def test_get_references(self):
+        """ test get_references methode """
+
+        # test when there are multiple bibcodes in the file
+        testfile_content = '''
+                     <ADSBIBCODE>0000AcPSl...0.....Z</ADSBIBCODE><bibtext seqNum="1"> R. Hofstadter, F. Bumiller, M. R. Yearian, &lt;i&gt;Rev. Mod. Phys.&lt;/i&gt; 30 (1958) 483.</bibtext>
+                     <ADSBIBCODE>0000AcPSl...1.....Z</ADSBIBCODE><bibtext seqNum="1"> J. J. Sakurai, Currents and Mesons, Univ. of Chicago Press, 1967.</bibtext>
+        '''
+        expected_results = [
+            ['0000AcPSl...0.....Z', '<bibtext seqNum="1"> R. Hofstadter, F. Bumiller, M. R. Yearian, &lt;i&gt;Rev. Mod. Phys.&lt;/i&gt; 30 (1958) 483.</bibtext>\n                     '],
+            ['0000AcPSl...1.....Z', '<bibtext seqNum="1"> J. J. Sakurai, Currents and Mesons, Univ. of Chicago Press, 1967.</bibtext>\n        ']
+        ]
+
+        with patch('builtins.open', mock_open(read_data=testfile_content)):
+            results = ONCPtoREFs("testfile.meta.xml", None).get_references("testfile.meta.xml")
+
+            self.assertEqual(results, expected_results)
+
+
+class TestOUPreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test the parse method """
+
+        # test case 1: when comment contains only volume or pages but not both, so it cannot tell which is which
+        reference = OUPreference("<?xml version='1.0' encoding='ISO-8859-1' standalone='yes' ?><ref id='bib56'> <citation citation-type='journal'> <comment>123</comment> <!-- this comment contains only one numeric, needed two volume and pages --> <year>2021</year></citation> </ref>")
+        reference.parse()
+        self.assertEqual(reference.get('volume'), '')
+        self.assertEqual(reference.get('pages'), '')
+
+        # test case 2: when eprint is parsed from <elocation-id> with content-type='arxiv'
+        reference = OUPreference('<mixed-citation publication-type="journal"> arXiv:2312.08579 <year>2021</year> <article-title>Sample Article</article-title> <source>Sample Journal</source> </mixed-citation>')
+        reference.parse()
+        self.assertEqual(reference.get('eprint'), 'arXiv:2312.08579')
+
+    def test_parse_authors(self):
+        """ test parse_authors method """
+
+        # test case: when there is no tag lastname and first name tags
+        reference = OUPreference("<mixed-citation publication-type='journal'> <person-group person-group-type='author'>Schultheis M.<etal>et al</etal> </person-group> <collab>University Collaborators</collab> </mixed-citation>")
+        self.assertEqual(reference.parse_authors(), 'University Collaborators, Schultheis M. et. al')
+
 
 class TestOUPtoREFs(unittest.TestCase):
 
@@ -1056,6 +1295,14 @@ class TestOUPtoREFs(unittest.TestCase):
 
                 mock_logger.error.assert_called_with("OUPxml: error parsing reference: ReferenceError")
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
+
+    def test_missing_authors(self):
+        """ test missing_authors method """
+
+        torefs = OUPtoREFs(filename='', buffer=None)
+        result = torefs.missing_authors(prev_reference='<person-group person-group-type="author"> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group>',
+                                        cur_reference='--- the rest of the reference')
+        self.assertEqual(result, '<person-group person-group-type="author"> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> the rest of the reference')
 
 
 class TestPASAtoREFs(unittest.TestCase):
@@ -1086,6 +1333,22 @@ class TestPASAtoREFs(unittest.TestCase):
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
 
 
+class TestRSCReference(unittest.TestCase):
+
+    def test_parse(self):
+        """Test the parse method for DOI and eprint extraction"""
+
+        # test case 1: when there is a DOI
+        reference = RSCreference('<citgroup id="cit1"> <journalcit> <citauth><fname>L.-S.</fname><surname>Li</surname></citauth> <citauth><fname>J.</fname><surname>Hu</surname></citauth> <citauth><fname>W.</fname><surname>Yang</surname></citauth> <citauth><fname>A. P.</fname><surname>Alivisatos</surname></citauth> <title>Nano Lett.</title> <year>2001</year> <volumeno>1</volumeno> <pages><fpage>349</fpage><lpage>351</lpage></pages> <link type="doi">10.1021/nl010040z</link> </journalcit></citgroup>')
+        reference.parse()
+        self.assertEqual(reference['doi'], '10.1021/nl010040z')
+
+        # test case 2: when there is an eprint
+        reference = RSCreference('<citgroup id="cit3"> <journalcit> <citauth><fname>L.</fname><surname>Cademartiri</surname></citauth> <citauth><fname>G. A.</fname><surname>Ozin</surname></citauth> <title>Adv. Mater.</title> <year>2008</year> <volumeno>20</volumeno> <pages><fpage>A1</fpage><lpage>8</lpage></pages> <link type="arxiv">https://arxiv.org/abs/0807.2314</link> </journalcit> </citgroup>')
+        reference.parse()
+        self.assertEqual(reference['eprint'], 'arXiv:0807.2314')
+
+
 class TestRSCtoREFs(unittest.TestCase):
 
     def test_init(self):
@@ -1112,6 +1375,35 @@ class TestRSCtoREFs(unittest.TestCase):
 
                 mock_logger.error.assert_called_with("RSCxml: error parsing reference: ReferenceError")
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
+
+
+class TestSPIEreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test he parse method """
+
+        # test case 1: when type is unknown
+        with patch('adsrefpipe.refparsers.SPIExml.logger') as mock_logger:
+            reference = SPIEreference("<ref id='r1'> <label>1.</label> <mixed-citation publication-type='unknown_type'> <collab>E. National Academies of Science and Medicine</collab>, <source>Exoplanet Science Strategy</source>, <publisher-name>The National Academies Press</publisher-name>, <publisher-loc>Washington DC</publisher-loc> (<year>2018</year>).</mixed-citation> </ref>")
+            reference.parse()
+            mock_logger.error.assert_called_with("SPIExml: found unknown reference type 'unknown_type'")
+
+        # test case 2: when there is only a chapter title assign it to title
+        spie_ref = SPIEreference("<ref id='r6'> <label>6.</label> <mixed-citation publication-type='book'> <person-group person-group-type='author'> <string-name> <given-names>P. F.</given-names> <surname>McManamon</surname> </string-name> </person-group>, <chapter-title>Chapter Title Example</chapter-title>, <publisher-name>SPIE</publisher-name>, <publisher-loc>Bellingham, WA</publisher-loc>.</mixed-citation> </ref>")
+        spie_ref.parse()
+        self.assertEqual(spie_ref.get('jrlstr', ''), '')
+        self.assertEqual(spie_ref.get('ttlstr'), 'Chapter Title Example')
+
+        # test case 3: when there is only a chapter title and also title assign chapter title to journal
+        reference = SPIEreference("<ref id='r2'> <label>2.</label> <mixed-citation publication-type='other'><article-title>Non-contact vibration measurement</article-title>, <chapter-title>Chapter Title Example</chapter-title>, <ext-link ext-link-type='uri' href='https://www.polytec.com/uk/vibrometry/'>https://www.polytec.com/uk/vibrometry/</ext-link>.</mixed-citation> </ref>")
+        reference.parse()
+        self.assertEqual(reference.get('jrlstr'), 'Chapter Title Example')
+        self.assertEqual(reference.get('ttlstr'), 'Non-contact vibration measurement')
+
+        # test case 4: when type is 'thesis' and journal/title tags are missing
+        reference = SPIEreference("<ref id='r9'> <label>9.</label> <mixed-citation publication-type='thesis'> <person-group person-group-type='author'> <string-name> <given-names>K. A.</given-names> <surname>Menard</surname> </string-name> </person-group>, Master's Thesis, UCF (<year>1995</year>).</mixed-citation> </ref>")
+        reference.parse()
+        self.assertEqual(reference.get('jrlstr'), "Master's Thesis")
 
 
 class TestSPIEtoREFs(unittest.TestCase):
@@ -1142,6 +1434,48 @@ class TestSPIEtoREFs(unittest.TestCase):
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
 
 
+class TestSPRINGERreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test the parse method """
+
+        # test case 1: no chapter title, so booktitle is assigned to title
+        reference = SPRINGERreference('<Citation ID="CR1"> <BibChapter> <ChapterTitle/> <BookTitle>Book Title</BookTitle> <SeriesTitle>Series Title</SeriesTitle> <Year>2022</Year> </BibChapter> <BibUnstructured>Book Title, Series Title, 2022</BibUnstructured> </Citation>')
+        reference.parse()
+        self.assertEqual(reference.get('ttlstr'), 'Book Title')
+        self.assertEqual(reference.get('jrlstr'), 'Series Title')
+
+        # test case 2: reference type BibIssue, journal set, title is empty
+
+        reference = SPRINGERreference('<Citation ID="CR17"> <BibIssue> <JournalTitle>Journal Title</JournalTitle> <Year>2017</Year> <VolumeID>1893</VolumeID> <IssueID>1</IssueID> </BibIssue> <BibUnstructured>Numerical Analysis of Wave Propagation, AIP Conf. Proc. 1893 (1), 030130 (2017).</BibUnstructured> </Citation>')
+        reference.parse()
+        self.assertEqual(reference.get('jrlstr'), 'Journal Title')
+        self.assertEqual(reference.get('ttlstr', ''), '')
+
+        # test case 3: no title and no year, should parse title and year from refstr
+        reference = SPRINGERreference('<Citation ID="CR2"> <BibUnstructured>Smith, J., Doe, A., and Johnson, R. Some Title of the Paper, Journal of Research, 2021</BibUnstructured> </Citation>')
+        reference.parse()
+        self.assertEqual(reference.get('ttlstr'), 'Some Title of the Paper')
+        self.assertEqual(reference.get('year'), '2021')
+        self.assertEqual(reference.get('refstr'), None)
+        self.assertEqual(reference.get('refplaintext'), 'Smith, J., Doe, A., and Johnson, R. Some Title of the Paper, Journal of Research, 2021')
+
+    def test_parse_authors(self):
+        """ test parse_authors method"""
+
+        # test parse authors with institutional authors if no authors exist
+        reference = SPRINGERreference('<Citation ID="CR4"> <BibArticle> <InstitutionalAuthorName>Some Institutional Author</InstitutionalAuthorName> </BibArticle> </Citation>')
+        authors = reference.parse_authors()
+        self.assertEqual(authors, 'Some Institutional Author')
+
+    def test_parse_doi(self):
+        """ test parse_doi method"""
+
+        # test DOI extraction when an exception happen
+        doi = SPRINGERreference('<Citation ID="CR5"> <BibArticle> <Occurrence Type="DOI"> <Handle></Handle>  <!-- empty Handle to trigger the exception --> </Occurrence> </BibArticle> </Citation>').parse_doi()
+        self.assertEqual(doi, None)
+
+
 class TestSpringertoREFs(unittest.TestCase):
 
     def test_init(self):
@@ -1168,6 +1502,65 @@ class TestSpringertoREFs(unittest.TestCase):
 
                 mock_logger.error.assert_called_with("SPRINGERxml: error parsing reference: ReferenceError")
                 self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
+
+    def test_cleanup_(self):
+        """ Test cleanup method """
+
+        cleaned_reference = SPRINGERtoREFs('', {}).cleanup('<Occurrence Type="DOI"><Handle><https://doi.org/10.1000/xyz></Handle></Occurrence>')
+        # assert that the DOI has been cleaned, i.e., < and > have been replaced
+        self.assertIn('<Handle>&lt;', cleaned_reference)
+        self.assertIn('&gt;</Handle>', cleaned_reference)
+        self.assertNotIn('<Handle><', cleaned_reference)
+        self.assertNotIn('></Handle>', cleaned_reference)
+
+
+class TestUCPreference(unittest.TestCase):
+
+    def test_parse(self):
+        """ test the parse method """
+
+        # test case 1: when tag for year is missing, but it is pased correctly
+        reference = UCPreference("<citation> <person-group person-group-type='author'> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> <article-title>Astrophysics Study</article-title> <source>Astrophys. J.</source> <volume>343</volume> <fpage>481</fpage> <lpage>488</lpage> 2020 <!-- year without any tag --> </citation>")
+        reference.parse()
+        self.assertEqual(reference.get('year'), "2020")
+
+        # test case 2: when type is thesis, but no other information is provided, 'Thesis' is assigned to journal
+        reference = UCPreference("<citation citation-type='thesis'> <person-group person-group-type='author'> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> <year>2020</year> </citation>")
+        reference.parse()  # Invoke the parsing method
+        self.assertEqual(reference.get('jrlstr'), 'Thesis')
+
+        # test case 3: extract jounal from comment
+        reference = UCPreference("<citation> <person-group person-group-type='author'> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> <year>2020</year> <article-title>Astrophysics Study</article-title> <comment>, Technical Instrument Report <pub-id pub-id-type='art-access-id'>WFPC2 98-01</pub-id></comment> </citation>")
+        reference.parse()
+        self.assertEqual(reference.get('jrlstr'), "Technical Instrument Report  WFPC2 98-01")
+
+        # test case 4: parsing doi
+        reference = UCPreference('<citation> <person-group person-group-type="author"> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> <year>2020</year> <article-title>Astrophysics Study</article-title> <source>Astrophys. J.</source> <volume>343</volume> <fpage>481</fpage> <lpage>488</lpage> <pub-id pub-id-type="doi">10.1109/XYZ2020</pub-id> </citation>')
+        reference.parse()
+        self.assertEqual(reference.get('doi'), "10.1109/XYZ2020")
+
+        # test case 5: parsing eprint
+        reference = UCPreference('<citation> <person-group person-group-type="author"> <name><surname>Makarenko</surname><given-names>A.N.</given-names></name> <name><surname>Obukhov</surname><given-names>V.V.</given-names></name> <name><surname>Kirnos</surname><given-names>I.V.</given-names></name> </person-group> <year>2020</year> <article-title>Astrophysics Study</article-title> <source>Astrophys. J.</source> <volume>343</volume> <fpage>481</fpage> <lpage>488</lpage> <pub-id pub-id-type="arxiv">arXiv:2001.01234</pub-id> </citation>')
+        reference.parse()
+        self.assertEqual(reference.get('eprint'), "arXiv:2001.01234")
+
+        # test case 6: parsing doi when there is no doi tag
+        reference = UCPreference('<citation> <person-group person-group-type="author"> <name><surname>Smith</surname><given-names>J.</given-names></name> </person-group> <year>2021</year> <article-title>Scientific Discoveries in Astrophysics</article-title> <source>Astrophysical Journal</source> DOI: 10.1234/astrophys.2021.123456</citation>')
+        reference.parse()
+        self.assertEqual(reference.get('doi'), '10.1234/astrophys.2021.123456')
+
+        # test case 7: parsing eprint when there is no tag
+        reference = UCPreference('<citation> <person-group person-group-type="author"> <name><surname>Smith</surname><given-names>J.</given-names></name> </person-group> <year>2021</year> <article-title>Scientific Discoveries in Astrophysics</article-title> <source>Astrophysical Journal</source> arXiv:2101.12345 </citation>')
+        reference.parse()  # Invoke the parsing method
+        self.assertEqual(reference.get('eprint'), 'arXiv:2101.12345')
+
+    def test_parse_authors(self):
+        """ test parse_authors method """
+
+        # test case, when there is a colab
+        reference = UCPreference('<citation> <person-group person-group-type="author"> <name><surname>Smith</surname><given-names>J.</given-names></name> <name><surname>Johnson</surname><given-names>A.</given-names></name> </person-group> <collab>Global Collaboration Team</collab> <year>2021</year> <article-title>Scientific Discoveries in Astrophysics</article-title> <source>Astrophysical Journal</source> </citation>')
+        reference.parse()
+        self.assertEqual(reference.get('authors'), "Global Collaboration Team, Smith, J.")
 
 
 class TestUCPtoREFs(unittest.TestCase):

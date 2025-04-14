@@ -95,7 +95,10 @@ class ARAnATXTtoREFs(ADStxtToREFs):
                 if bibcode:
                     is_enumerated = False
                     if len(reader) > 1:
-                        if self.re_enumeration.search(reader[0]) or self.re_enumeration.search(reader[1]):
+                        for i, line in enumerate(reader):
+                            if line.startswith('%'):
+                                continue
+                        if self.re_enumeration.search(reader[i]):
                             is_enumerated = True
 
                     block_references = []
@@ -113,6 +116,7 @@ class ARAnATXTtoREFs(ADStxtToREFs):
                         references.append([bibcode, block_references])
                 else:
                     logger.error("Error in getting the bibcode from the reference file name %s. Skipping!" % (filename))
+                    return []
 
             if len(references) > 0:
                 logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
@@ -122,6 +126,7 @@ class ARAnATXTtoREFs(ADStxtToREFs):
         except Exception as e:
             logger.error('Exception: %s' % (str(e)))
             return []
+
 
 class PThPhTXTtoREFs(ADStxtToREFs):
     """
@@ -206,26 +211,6 @@ class PThPhTXTtoREFs(ADStxtToREFs):
             logger.error('Exception: %s' % (str(e)))
             return []
 
-    def fix_inheritance(self, cur_refstr: str, prev_refstr: str) -> str:
-        """
-        if author list is the same as the reference above it, for this publication the place holder
-        is ibid followed by volume and then year, hence
-        get the list of authors from the previous reference and add it to the current one
-
-        :param cur_refstr: the current reference string
-        :param prev_refstr: the previous reference string
-        :return: updated reference string with inherited authors
-        """
-        match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
-            try:
-                # find the volume/year and return everything that came before it
-                prev_authors = self.re_prior_volume_year.match(prev_refstr)
-                if prev_authors:
-                    cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
-            except TypeError:
-                pass
-        return cur_refstr
 
 class FlatTXTtoREFs(ADStxtToREFs):
     """
@@ -251,22 +236,25 @@ class FlatTXTtoREFs(ADStxtToREFs):
         """
         try:
             references = []
+            with open(filename, 'r', encoding=encoding, errors='ignore') as f:
+                reader = f.readlines()
+                block_references = []
+                prev_reference = ''
 
-            match = self.re_bibcode.match(os.path.basename(filename))
-            if match:
-                bibcode = match.group(1)
+                bibcode = None
+                match = self.re_bibcode.match(os.path.basename(filename))
+                if match:
+                    bibcode = match.group(1)
 
-                with open(filename, 'r', encoding=encoding, errors='ignore') as f:
-                    reader = f.readlines()
-                    block_references = []
-                    prev_reference = ''
-                    for line in reader:
-                        if not line.strip():
-                            continue
-                        if self.is_reference(line):
-                            reference = self.fix_inheritance(line, prev_reference)
-                            block_references.append(reference.strip())
-                            prev_reference = reference
+                for line in reader:
+                    if not line.strip():
+                        continue
+                    if self.is_reference(line):
+                        reference = self.fix_inheritance(line, prev_reference)
+                        block_references.append(reference.strip())
+                        prev_reference = reference
+
+                if bibcode and block_references:
                     references.append([bibcode, block_references])
             if len(references) > 0:
                 logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
@@ -276,6 +264,7 @@ class FlatTXTtoREFs(ADStxtToREFs):
         except Exception as e:
             logger.error('Exception: %s' % (str(e)))
             return []
+
 
 class ThreeBibstemsTXTtoREFs(TXTtoREFs):
     """
@@ -318,6 +307,7 @@ class ThreeBibstemsTXTtoREFs(TXTtoREFs):
         """
         return self.parser.process_and_dispatch()
 
+
 class PairsTXTtoREFs(ADStxtToREFs):
     """
     This class processes references from a pairs text format, which can be separated by semicolons or tabs.
@@ -359,7 +349,10 @@ class PairsTXTtoREFs(ADStxtToREFs):
                         # for this flavor, the order is: manuscript bibcode, citation bibcode, and possible refstr
                         if not accumulator.get(fields[0], None):
                             accumulator[fields[0]] = []
-                        accumulator[fields[0]].append((fields[1], fields[2]))
+                        if len(fields) == 3:
+                            accumulator[fields[0]].append((fields[1], fields[2]))
+                        elif len(fields) == 2:
+                            accumulator[fields[0]].append((fields[1]))
                     else:
                         fields = line.split('\t')
                         # for this flavor, the order is: citation bibcode, and manuscript bibcode
@@ -368,7 +361,8 @@ class PairsTXTtoREFs(ADStxtToREFs):
                         accumulator[fields[1]].append((fields[0]))
 
             for bibcode,block_references in accumulator.items():
-                references.append([bibcode, block_references])
+                if bibcode and block_references[0]:
+                    references.append([bibcode, block_references])
 
             if len(references) > 0:
                 logger.debug("Read source file %s, and got %d records." % (filename, len(references)))
@@ -448,6 +442,7 @@ if __name__ == '__main__':  # pragma: no cover
         txt_testing = [
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARA+A/0/0001ARA+A...0.....Z.ref.refs'),
+            (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARA+A/0/0002ARA+A...0.....Z.ref.refs'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARNPS/0/0000ADSTEST.0.....Z.ref.raw'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARNPS/0/0001ARNPS...0.....Z.ref.txt'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/AnRFM/0/0000ADSTEST.0.....Z.ref.raw'),
