@@ -102,6 +102,7 @@ name_to_parser_dict = {
     'PairsTXTE3': PairsTXTtoREFs,
     'PairsTXTE4': PairsTXTtoREFs,
     'PairsTXTE5': PairsTXTtoREFs,
+    'PairsTXTE6': PairsTXTtoREFs,
     'PASA': PASAtoREFs,
     'PASJhtml': PASJHTMLtoREFs,
     'PASPhtml': PASPHTMLtoREFs,
