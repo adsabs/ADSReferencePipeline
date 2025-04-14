@@ -2,9 +2,9 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -13,12 +13,19 @@ from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.refparsers.toREFs import XMLtoREFs
 from adsrefpipe.refparsers.reference import unicode_handler
 
-class IPAPreference(XMLreference):
 
+class IPAPreference(XMLreference):
+    """
+    This class handles parsing IPAP references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
+
+    # to match XML tags and extract reference strings
     re_xml_to_text = re.compile(r'<([A-Za-z_]*)\b[^>]*>(?P<ref_str>.*?)</\1>')
 
     def parse(self):
         """
+        parse the IPAP reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -31,25 +38,29 @@ class IPAPreference(XMLreference):
         self.parsed = 1
 
 class IPAPtoREFs(XMLtoREFs):
+    """
+    This class converts IPAP XML references to a standardized reference format. It processes raw IPAP references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to match and extract citation data from BibUnstructured tags
     re_parse_line = re.compile(r'(?i)<BibUnstructured.*?>(?P<citation>.*?)</BibUnstructured>')
     citation_format = '<BibUnstructured>%s</BibUnstructured>'
-
+    # to match author, journal, and year pattern in citations
     re_ref_inline = re.compile(r'(?P<authors>.*?):(?P<journal>.+)\((?P<year>\d{4})[a-zA-Z]?\)(?P<rest>.*)')
+    # to match years in citation strings
     re_match_years = re.compile(r'\(\d{4}\)')
 
-
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the IPAPtoREFs object to process IPAP references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=IPAPtoREFs, tag='BibUnstructured')
 
-    def get_references(self, filename, encoding="utf8"):
+    def get_references(self, filename: str, encoding: str = "utf8") -> List[Dict]:
         """
         *.ipap.xml source files are not true tagged xml files,
         so overwriting the generic read method to read this kind of files correctly
@@ -70,9 +81,9 @@ class IPAPtoREFs(XMLtoREFs):
         returns an array of bibcode and reference text blobs
         parsed from the input file
 
-        :param filename:
-        :param encoding:
-        :return:
+        :param filename: the filename to read from
+        :param encoding: the encoding to use for reading the file
+        :return: list of parsed references
         """
         if filename:
             try:
@@ -99,12 +110,14 @@ class IPAPtoREFs(XMLtoREFs):
                 logger.error("Unable to open file %s. Exception %s." % (filename, error))
                 return []
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> List[str]:
         """
+        cleans up and reformats a reference string into a canonical format
 
-        :param reference:
-        :return:
+        :param reference: reference string to clean up
+        :return: list of cleaned references
         """
+        cleaned_references = []
         match = self.re_parse_line.search(reference.replace('\r', ' ').replace('\n', ' ').strip())
         if match:
             citation = unicode_handler.ent2asc(match.group('citation')).strip()
@@ -123,25 +136,25 @@ class IPAPtoREFs(XMLtoREFs):
                 # treat this as a single refstring
                 citations = [citation]
 
-            cleaned_references = []
             for ref in citations:
-                # reformat string so that it is in our canonical form:
-                # Authors year journal rest
                 if not ref:
                     continue
                 match = self.re_ref_inline.match(ref)
                 if match:
+                    # reformat string so that it is in our canonical form:
+                    # authors year journal rest
                     tagged_reference = self.citation_format%(match.group('authors') + ' ' + match.group('year') + ' ' + match.group('journal') + ' ' + match.group('rest'))
                     cleaned_references.append(tagged_reference)
                 else:
                     logger.error("IPAPxml: reference string does not match expected syntax: %s" %ref)
 
-            return cleaned_references
+        return cleaned_references
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -167,6 +180,10 @@ class IPAPtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of IPAPXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse IPAP references')

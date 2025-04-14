@@ -2,59 +2,76 @@
 
 import os
 import regex as re
-import string, operator
 
 from abc import abstractmethod
+from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
-from adsrefpipe.refparsers.reference import unicode_handler
-
-logger = setup_logging('toREFs')
+logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.reference import unicode_handler
+
 
 class toREFs():
+    """
+    base class for reference extraction and processing
+    """
+
+    # to match ADS bibcode in XML format
     re_format_xml = re.compile(r'<ADSBIBCODE>(?P<bibcode>.*?)</ADSBIBCODE>\s*')
-    re_format_text = re.compile(r'\\adsbibcode\{(?P<bibcode>.*?)\}\s*')
+    # to match ADS bibcode in LaTeX format
+    re_format_tex = re.compile(r'\\adsbibcode\{(?P<bibcode>.*?)\}\s*')
+    # to match ADS bibcode in custom tag format
     re_format_tag = re.compile(r'(((^|\n)\%R\s+)|(\sbibcode="))(?P<bibcode>\S{18,19})[\s+"]')
-    format_pattern = {'xml': re_format_xml, 'tex': re_format_text, 'tag': re_format_tag}
+
+    # dictionary mapping reference formats to their corresponding regular expressions
+    format_pattern = {'xml': re_format_xml, 'tex': re_format_tex, 'tag': re_format_tag}
+    # list of supported reference formats
     reference_format = format_pattern.keys()
 
+    # template strings for formatting references in different formats
     format_identifier_pattern = {'xml': '<ADSBIBCODE>%s</ADSBIBCODE>\n%s', 'tex': '\\adsbibcode{%s}\n%s',
                                  'tag': '%%R %s\n%s'}
+
+    # header patterns for different reference formats
     format_header_pattern = {'xml': '''<?xml version="1.0" encoding="%s" standalone="yes" ?>''', 'tex': '', 'tag': ''}
 
+    # to match and validate Bibcodes
     re_bibcode = re.compile(r"^(bibcode)?.*([12][089]\d\d[A-Za-z\.0-9&+]{14}[A-Z\.])$", re.IGNORECASE)
 
-    arxiv_category = ['acc-phys', 'adap-org', 'alg-geom', 'ao-sci', 'astro-ph', 'atom-ph', 'bayes-an', 'chao-dyn', 'chem-ph',
-                      'cmp-lg', 'comp-gas', 'cond-mat', 'cs', 'dg-ga', 'funct-an', 'gr-qc', 'hep-ex', 'hep-lat', 'hep-ph',
-                      'hep-th', 'math', 'math-ph', 'mtrl-th', 'nlin', 'nucl-ex', 'nucl-th', 'patt-sol', 'physics', 'plasm-ph',
-                      'q-alg', 'q-bio', 'quant-ph', 'solv-int', 'supr-con']
-    re_arxiv_old_pattern = re.compile(
-        r'\b(?:arXiv\W*)?(' + "|".join(arxiv_category) + r')(\.[A-Z]{2})?/(\d{7})(:?v\d+)?\b', re.IGNORECASE)
-    re_arxiv_new_pattern = re.compile(r'\b(?:(?:arXiv\s*\W?\s*)|(?:(?:' + "|".join(
-        arxiv_category) + r')\s*[:/]?\s*)|(?:http://.*?/abs/)|(?:))(\d{4})\.(\d{4,5})(?:v\d+)?\b', re.IGNORECASE)
+    # list of arXiv categories used in the arXiv identifier format
+    arxiv_category = ['acc-phys', 'adap-org', 'alg-geom', 'ao-sci', 'astro-ph', 'atom-ph', 'bayes-an', 'chao-dyn',
+                      'chem-ph', 'cmp-lg', 'comp-gas', 'cond-mat', 'cs', 'dg-ga', 'funct-an', 'gr-qc', 'hep-ex',
+                      'hep-lat', 'hep-ph', 'hep-th', 'math', 'math-ph', 'mtrl-th', 'nlin', 'nucl-ex', 'nucl-th',
+                      'patt-sol', 'physics', 'plasm-ph', 'q-alg', 'q-bio', 'quant-ph', 'solv-int', 'supr-con']
+
+    # to match the old arXiv identifier format
+    re_arxiv_old_pattern = re.compile(r'\b(?:arXiv\W*)?(' + "|".join(arxiv_category) + r')(\.[A-Z]{2})?/(\d{7})(:?v\d+)?\b', re.IGNORECASE)
+    # to match the new arXiv identifier format
+    re_arxiv_new_pattern = re.compile(r'\b(?:(?:arXiv\s*\W?\s*)|(?:(?:' + "|".join(arxiv_category) + r')\s*[:/]?\s*)|(?:http://.*?/abs/)|(?:))(\d{4})\.(\d{4,5})(?:v\d+)?\b', re.IGNORECASE)
 
     def __init__(self):
         """
-
+        initializes an empty list to store raw references
         """
         self.raw_references = []
 
-    def is_bibcode(self, text):
+    def is_bibcode(self, text: str) -> bool:
         """
         verify that text is a bibcode
 
-        :param text:
-        :return:
+        :param text: input text to be checked
+        :return: true if the text matches a bibcode pattern, false otherwise
         """
         return self.re_bibcode.match(text)
 
-    def get_bibcodes(self):
+    def get_bibcodes(self) -> List:
         """
+        extract bibcodes from stored raw references
 
-        :return:
+        :return: list of bibcodes extracted from raw references
         """
         bibcodes = []
         for block in self.raw_references:
@@ -63,20 +80,25 @@ class toREFs():
 
     @abstractmethod
     def prcess_and_dispatch(self):
+        """
+        abstract method for processing and dispatching references
+        """
         return
 
     def dispatch(self):
         """
         this function just calls the parser
-        :return:
+
+        :return: result of process_and_dispatch method
         """
         return self.process_and_dispatch()
 
-    def has_arXiv_id(self, reference):
+    def has_arXiv_id(self, reference: str) -> bool:
         """
+        check if a reference contains an arXiv identifier
 
-        :param reference:
-        :return:
+        :param reference: reference string to be checked
+        :return: true if an arXiv ID is found, false otherwise
         """
         if self.re_arxiv_old_pattern.search(reference):
             return True
@@ -84,14 +106,13 @@ class toREFs():
             return True
         return False
 
-    def any_item_num(self, item_nums, idx):
+    def any_item_num(self, item_nums: List, idx: int) -> Dict:
         """
-        when references are reprocess, the original item_num is used
-        if references are being processed for the first time, there is no item_num
+        retrieve the original item number of a reference if available
 
-        :param item_nums:
-        :param idx:
-        :return:
+        :param item_nums: list of item numbers
+        :param idx: index of the item number to retrieve
+        :return: dictionary containing the item number if available
         """
         try:
             item_num = item_nums[idx]
@@ -100,48 +121,59 @@ class toREFs():
             pass
         return {}
 
-    def merge(self, dict1, dict2):
+    def merge(self, dict1: Dict, dict2: Dict) -> Dict:
         """
         combine dict2 into dict1 and return dict1
 
-        :param dict1:
-        :param dict2:
-        :return:
+        :param dict1: primary dictionary
+        :param dict2: secondary dictionary to be merged into dict1
+        :return: updated dict1 after merging with dict2
         """
         dict1.update(dict2)
         return dict1
 
 
 class TXTtoREFs(toREFs):
+    """
+    class for processing references in TXT format
+    """
 
+    # to match the "http://stacks.iop.org" URL pattern
     re_stacks_iop_org = re.compile('http://stacks.iop.org')
 
+    # list of tuples containing regular expressions for cleaning up unwanted elements in reference blocks
     block_cleanup = [
-        (re.compile(r'&deg;'), ' '),
-        (re.compile(r'°'), ' '),
-        (re.compile(r'Ê'), ' '),
-        (re.compile(r'<A HREF=.*?>'), ' '),
-        (re.compile(r'</A>'), ''),
+        (re.compile(r'&deg;'), ' '),        # replace degree symbol with a space
+        (re.compile(r'°'), ' '),            # replace the degree character with a space
+        (re.compile(r'Ê'), ' '),            # replace the character 'Ê' with a space
+        (re.compile(r'<A HREF=.*?>'), ' '), # remove HTML anchor tags
+        (re.compile(r'</A>'), ''),          # remove closing HTML anchor tags
     ]
 
+    # list of regular expressions for cleaning up specific parts of a reference, like URLs or LaTeX commands.
     reference_cleanup_1 = [
-        (re.compile('http://dx.doi.org/'), 'doi:'),
-        (re.compile(r'\\emph\{([^\}]*)\}'), r'\1'),
-        (re.compile(r'[\{\}]'), ''),
-        (re.compile(r'\\(it|bf|em)', flags=re.IGNORECASE), ''),
-        (re.compile(r'\\(textit|textbf)'), ''),
-        (re.compile(r'&amp;'), r'&'),
-        (re.compile(r'&nbsp;'), ' '),
-        (re.compile('(&#65533;)+'), ''),
-        (re.compile(r'</?SU[BP]>', flags=re.IGNORECASE), ''),  # remove SUB/SUP tags
-        (re.compile(r'\\ibidrule'), '--- '),
-    ]
-    reference_cleanup_2 = [
-        (re.compile(r'&#x0096;'), '-'),
-        (re.compile(r'Ð'), '-')
+        (re.compile('http://dx.doi.org/'), 'doi:'),             # replace DOI URL with "doi:"
+        (re.compile(r'\\emph\{([^\}]*)\}'), r'\1'),             # remove LaTeX emphasis tags
+        (re.compile(r'[\{\}]'), ''),                            # remove curly braces
+        (re.compile(r'\\(it|bf|em)', flags=re.IGNORECASE), ''), # remove LaTeX font style commands
+        (re.compile(r'\\(textit|textbf)'), ''),                 # remove LaTeX font style commands
+        (re.compile(r'&amp;'), r'&'),                           # replace "&amp;" with "&"
+        (re.compile(r'&nbsp;'), ' '),                           # replace non-breaking space with a regular space
+        (re.compile('(&#65533;)+'), ''),                        # remove invalid characters
+        (re.compile(r'</?SU[BP]>', flags=re.IGNORECASE), ''),   # remove LaTeX subscript and superscript tags
+        (re.compile(r'\\ibidrule'), '--- '),                    # replace LaTeX "\ibidrule" with a dash
     ]
 
+    # list of regular expressions for additional cleanup tasks after the first round of cleaning
+    reference_cleanup_2 = [
+        (re.compile(r'&#x0096;'), '-'),  # replace the hex code for an en dash with a regular dash
+        (re.compile(r'Ð'), '-'),         # replace character 'Ð' with a dash
+    ]
+
+    # regular expression to match multiple spaces and replace them with a single space.
     re_remove_spaces = re.compile(r'\s\s+')
+
+    # regular expression to match enumeration patterns, like numbering or item list formats
     re_enumeration = re.compile(r'^(\s*\d{1,3}\.?|'
                                 r'\s*\(\d{1,3}\)|'
                                 r'\s*\[\d{1,3}\]|'
@@ -149,8 +181,11 @@ class TXTtoREFs(toREFs):
                                 r'[\s\t]+)'
                                 r'([\sA-Zdv]+|'
                                 r'[&h]+[a-z]+)')
+
+    # regular expression to match multi-references, where multiple references are combined in one line
     re_multi_references = re.compile(r'(\d+\W*;\s*\(?[12]\d\d\d[a-z]*\)?\W+)(?=.*[\w\d]+)')
 
+    # pattern for matching multiple enumerated references, includes various types of numbering formats
     multi_enumerated_references_pattern = r'(' \
                                           r'(?:^|[;,]+\s+)\(\d{1,3}\)\s+|' \
                                           r'(?:^|[.,]+\s+)\d{1,3}\)\s+|' \
@@ -165,36 +200,44 @@ class TXTtoREFs(toREFs):
                                           r'(?:^|;\s*)\d{1,3}\-\s+|' \
                                           r'(?:^|;\s*)\d{1,3}\-\s*' \
                                           r')'
-    # this will decide if there are multiple enumeration on the same line, needs to lookahead and determine the count if they include year
+
+    # for identifying multi-references that contain a year in their structure, with a lookahead
     re_multi_enumerated_references_w_year_lookahead = re.compile(r'%s%s' % (multi_enumerated_references_pattern, r'(?=\s*[A-Z]+[\w\W]{2,}\s+[A-Za-z]+)(?=.*[12]\d\d\d[a-z]*\b)'))
-    # this is used to split multiple enumeration, this should not include the year, since if there is a reference missing a year, it needs to be split and
-    # later it is checked if it is a valid reference including if it has the year
+    # for splitting multi-references that don't include a year
     re_multi_enumerated_references = re.compile(multi_enumerated_references_pattern)
-
+    # placeholder for matching author lists with a placeholder pattern (e.g., "--" or "__")
     re_author_list_placeholder = re.compile(r'[-_]{2,}\.?')
-    re_prior_year = re.compile(r'(.*)(?=[\s\(]+[12]+\d\d\d[a-z]*)')
+    # to match prior a year in a reference following author list, used to extract the author list from previous references if necessary
+    re_prior_year = re.compile(r'((\S+\s+){2,})(?=[\s\(\[]+[12]+[09]+\d\d(\S+\s+){2,})')
+    # to match 4-digit years, possibly with lowercase letters (e.g., 2020a)
     re_year = re.compile(r'([12]+\d\d\d[a-z]*)')
+    # to match DOI patterns in a reference
     re_doi = re.compile(r'doi:(.*?)', re.IGNORECASE)
+    # to match the bibcode format in a reference, ensuring it matches a 19-character format
     re_bibcode = re.compile(r'(^\d{4}[\w\.&+]{14}[A-Z\.]{1})')
-    re_a_reference = re.compile(r'^(\s*[A-Z][a-z]+,?\s+[A-Z]+\.?|[A-Z]+\.?\s+[A-Z][a-z]+,)+\s+[^\d]*.*?(\d+)\W+(\d+)')
+    # to match the author part of a reference, often used in citation styles with year and volume/page info
+    re_a_reference = re.compile(r'^(\s*[A-Z][a-z]+,?\s+[A-Z]+\.,?)(?:\s+and\s+[A-Z][a-z]+,?\s+[A-Z]+\.?)*\s+[^\d]*.*?(\d+)\W+(\d+)')
 
-    def __init__(self, filename, buffer, parsername, cleanup=None, encoding='UTF-8'):
+    def __init__(self, filename: str, buffer: Dict, parsername: str, cleanup: List = None, encoding: str = 'UTF-8'):
         """
+        initializes the TXTtoREFs object and processes the reference file
 
-        :param filename:
-        :param buffer:
-        :param parsername:
-        :param cleanup:
-        :param encoding:
+        :param filename: path to the TXT file
+        :param buffer: dictionary containing buffer data
+        :param parsername: name of the parser
+        :param cleanup: optional list of regex patterns for cleanup
+        :param encoding: character encoding for the file
         """
         toREFs.__init__(self)
 
+        self.raw_references = []
         if buffer:
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
+            for buf in buffer['block_references']:
+                block_references, item_nums = [[ref['refraw'] for ref in buf['references']], [ref['item_num'] for ref in buf['references']]]
+                self.raw_references.append({'bibcode': buf['source_bibcode'], 'block_references': block_references, 'item_nums': item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -210,15 +253,16 @@ class TXTtoREFs(toREFs):
 
                 if cleanup:
                     for (compiled_re, replace_str) in cleanup:
-                        references = compiled_re.sub(replace_str, references)
+                        references = [compiled_re.sub(replace_str, ref) for ref in references]
 
                 self.raw_references.append({'bibcode': bibcode, 'block_references': references})
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by applying various replacements
 
-        :param reference:
-        :return:
+        :param reference: the reference string to be cleaned up
+        :return: cleaned reference string
         """
         if 'stacks.iop.org' in reference:
             reference = self.re_stacks_iop_org.sub('doi:10.1088', reference).replace('i=', '').replace('a=', '')
@@ -229,16 +273,17 @@ class TXTtoREFs(toREFs):
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_a_reference(self, is_enumerated, line, next_line, reference, prev_reference, block_references):
+    def process_a_reference(self, is_enumerated: bool, line: str, next_line: str, reference: str, prev_reference: str, block_references: List) -> Tuple:
         """
+        process a single reference, splitting it if necessary
 
-        :param is_enumerated: True if the entire reference list is enumerated
-        :param line:
-        :param next_line:
-        :param reference:
-        :param prev_reference:
-        :param block_references:
-        :return:
+        :param is_enumerated: true if references are enumerated
+        :param line: current line of the reference
+        :param next_line: next line in the reference block
+        :param reference: current reference being processed
+        :param prev_reference: previous reference for inheritance checks
+        :param block_references: list to store processed references
+        :return: updated reference, previous reference, and block of references
         """
         # ignore anything after %
         line = line.split('%')[0].replace('\n', '')
@@ -263,12 +308,13 @@ class TXTtoREFs(toREFs):
 
         return reference, prev_reference, block_references
 
-    def process_enumeration(self, line, block_references):
+    def process_enumeration(self, line: str, block_references: List) -> List:
         """
+        process enumerated references
 
-        :param line:
-        :param block_references:
-        :return:
+        :param line: line containing the references
+        :param block_references: list to store processed references
+        :return: list of processed references
         """
         enumerated_references = [ref.strip() for ref in self.re_multi_enumerated_references.split(line) if ref]
         if enumerated_references:
@@ -280,14 +326,14 @@ class TXTtoREFs(toREFs):
                     prev_reference = enumerated_reference
         return block_references
 
-    def get_references(self, filename, encoding="ISO-8859-1"):
+    def get_references(self, filename: str, encoding: str = "ISO-8859-1") -> List:
         """
-        read reference file for this text format
+        read reference file and extract references
 
-        :param filename:
-        :return:
+        :param filename: path to the TXT file
+        :param encoding: character encoding for the file
+        :return: list of references extracted from the file
         """
-
         try:
             references = []
 
@@ -329,41 +375,38 @@ class TXTtoREFs(toREFs):
                     references.append([bibcode, block_references])
 
             if len(references) > 0:
-                logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (
-                filename, len(references), bibcode))
+                logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
             elif len(references) == 0:
                 logger.error('No references found in reference file %s.' % (filename))
             return references
         except Exception as e:
-            logger.error('Exception: %s' % (str(e)))
+            logger.error(f'Exception: {str(e)}')
             return []
 
-    def fix_inheritance(self, cur_refstr, prev_refstr):
+    def fix_inheritance(self, cur_refstr: str, prev_refstr: str) -> str:
         """
-        if author list is the same as the reference above it, a dash is inserted
-        get the list of authors from the previous reference and add it to the current one
+        checks if the author list in the current reference is the same as the one in the previous reference,
+        and if so, appends the previous authors to the current reference. A dash is inserted to separate the authors
 
-        :param cur_refstr:
-        :param prev_refstr:
-        :return:
+        :param cur_refstr: The current reference string that may need author inheritance
+        :param prev_refstr: The previous reference string from which authors might be inherited
+        :return: The modified current reference string with authors inherited from the previous reference, if applicable
         """
         match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
-            try:
-                # find the year and return everything that came before it
-                prev_authors = self.re_prior_year.match(prev_refstr)
-                if prev_authors:
-                    cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
-            except TypeError:
-                pass
+        if match and prev_refstr:
+            # find the year and return everything that came before it
+            prev_authors = self.re_prior_year.match(prev_refstr)
+            if prev_authors:
+                cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
         return cur_refstr
 
-    def is_reference(self, reference):
+    def is_reference(self, reference: str) -> bool:
         """
-        a reference has either year or doi or have at least author/volume/page
+        determines if a given reference string is a valid reference by checking for a year, DOI, or
+        sufficient author/volume/page information
 
-        :param reference:
-        :return:
+        :param reference: The reference string to be validated
+        :return: True if the reference is valid, otherwise False
         """
         if  self.re_year.search(reference) or self.re_doi.search(reference) or self.has_arXiv_id(reference):
             return True
@@ -375,16 +418,20 @@ class TXTtoREFs(toREFs):
 
 
 class XMLtoREFs(toREFs):
-    def __init__(self, filename, buffer, parsername, tag=None, cleanup=None, encoding=None):
-        """
+    """
+    class for processing references in XML format
+    """
 
-        :param filename:
-        :param buffer:
-        :param parsername:
-        :param tag:
-        :param cleanup:
-        :param encoding:
-        :param method_identifiers:
+    def __init__(self, filename: str, buffer: Dict, parsername: str, tag: str = None, cleanup: List = None, encoding: str = None):
+        """
+        initializes the XMLtoREFs object and processes the XML reference file
+
+        :param filename: path to the XML file
+        :param buffer: dictionary containing buffer data
+        :param parsername: name of the parser
+        :param tag: optional XML tag for processing
+        :param cleanup: optional list of regex patterns for cleanup
+        :param encoding: optional character encoding for the file
         """
         toREFs.__init__(self)
 
@@ -392,8 +439,9 @@ class XMLtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
+            for buf in buffer['block_references']:
+                block_references, item_nums = [[ref['refraw'] for ref in buf['references']], [ref['item_num'] for ref in buf['references']]]
+                self.raw_references.append({'bibcode': buf['source_bibcode'], 'block_references': block_references, 'item_nums': item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -401,47 +449,44 @@ class XMLtoREFs(toREFs):
             pairs = self.get_references(filename=filename)
             for pair in pairs:
                 bibcode = pair[0]
-                buffer = pair[1]
+                references = pair[1]
 
                 if len(bibcode) != 19:
-                    logger.error(
-                        "Error in getting a bibcode along with the reference strings from reference file %s. Returned %s for bibcode. Skipping!" % (filename, bibcode))
+                    logger.error("Error in getting a bibcode along with the reference strings from reference file %s. Returned %s for bibcode. Skipping!" % (filename, bibcode))
                     continue
 
                 if cleanup:
                     for (compiled_re, replace_str) in cleanup:
-                        buffer = compiled_re.sub(replace_str, buffer)
+                        references = compiled_re.sub(replace_str, references)
 
-                block_references = self.get_xml_block(buffer, tag, encoding)
+                block_references = self.get_xml_block(references, tag, encoding)
                 self.raw_references.append({'bibcode': bibcode, 'block_references': block_references})
 
-    def get_references(self, filename, encoding="utf8"):
+    def get_references(self, filename: str, encoding: str = "utf8") -> List:
         """
-        returns an array of bibcode and reference text blobs
-        parsed from the input file
+        extract references from an XML file
 
-        :param filename:
-        :param buffer:
-        :param encoding:
-        :return:
+        :param filename: path to the XML file
+        :param encoding: character encoding for the file
+        :return: list of references extracted from the file
         """
-        if filename:
-            try:
-                buffer = open(filename, encoding=encoding, errors='ignore').read()
-            except Exception as error:
-                logger.error("Unable to open file %s. Exception %s." % (filename, error))
+        try:
+            buffer = open(filename, encoding=encoding, errors='ignore').read()
+            if not buffer:
+                logger.error(f"File {filename} is empty.")
                 return []
-        if buffer is None:
+
+            return self.get_reference_blob(buffer, self.detect_ref_format(buffer))
+        except Exception as e:
+            logger.error(f"Unable to open file {filename}. Exception {str(e)}.")
             return []
 
-        return self.get_reference_blob(buffer, self.detect_ref_format(buffer))
-
-    def detect_ref_format(self, text):
+    def detect_ref_format(self, text: str) -> str:
         """
-        attempts to detect reference format used in text
+        detect the reference format used in the XML text
 
-        :param text:
-        :return:
+        :param text: XML text to detect the format from
+        :return: reference format (xml, tex, tag)
         """
         for format in self.reference_format:
             pattern = self.format_pattern[format]
@@ -449,14 +494,13 @@ class XMLtoREFs(toREFs):
                 return format
         return None
 
-    def get_reference_blob(self, buffer, format):
+    def get_reference_blob(self, buffer: str, format: str) -> List:
         """
-        returns an array of bibcode and reference text blobs
-        extracted from input buffer
+        extract references from a buffer based on the detected format
 
-        :param buffer:
-        :param format:
-        :return:
+        :param buffer: buffer containing the XML content
+        :param format: detected reference format
+        :return: list of references extracted from the buffer
         """
         result = []
 
@@ -477,17 +521,15 @@ class XMLtoREFs(toREFs):
 
         return result
 
-    def get_xml_block(self, buffer, tag, encoding=None, strip=0):
+    def get_xml_block(self, buffer: str, tag: str, encoding: str = None, strip: int = 0) -> List:
         """
-        returns XML fragments obtained by splitting the input buffer on <tag>
-        we do this with regexps rather than a real XML parser for efficiency
-        (and because the XML may be just fragments)
+        extract XML fragments from the buffer based on a specified tag
 
-        :param buffer:
-        :param tag:
-        :param encoding:
-        :param strip:
-        :return:
+        :param buffer: buffer containing the XML content
+        :param tag: XML tag to extract the content from
+        :param encoding: optional encoding for the XML content
+        :param strip: flag to indicate whether to strip the XML tags
+        :return: list of extracted XML fragments
         """
         start_tag = '<' + tag + r'\s*[\s>]'
         end_tag = '</' + tag + r'\s*>'
@@ -497,18 +539,16 @@ class XMLtoREFs(toREFs):
             header = self.format_header_pattern['xml'] % encoding
             return list(map(lambda a: header + a, self.cut_apart(buffer, start_tag, end_tag, strip)))
 
-    def cut_apart(self, buffer, start_tag, end_tag, strip):
+    def cut_apart(self, buffer: str, start_tag: str, end_tag: str, strip: int) -> List:
         """
-        this is the main function that uses regular expressions to break
-        up a reference section into individual references;
-        some post-processing of the output may be necessary to join/split
-        lines depending on what the source is
+        this function uses regular expressions to break up a reference section into individual references
+        some post-processing of the output may be necessary to join or split lines depending on the source
 
-        :param buffer:
-        :param start_tag:
-        :param end_tag:
-        :param strip:
-        :return:
+        :param buffer: containing the reference section to be processed
+        :param start_tag: regular expression for the start tag of the reference
+        :param end_tag: regular expression for the end tag of the reference
+        :param strip: if set to 1, the tag will be stripped from the reference, otherwise, it will remain
+        :return: list of references as strings, extracted from the input buffer
         """
         references = []
 
@@ -537,14 +577,15 @@ class XMLtoREFs(toREFs):
 
         return references
 
-    def strip_tag(self, strip, match, side):
+    def strip_tag(self, strip: int, match, side: str) -> int:
         """
-        if strip is set to 1, then the tag defined in regular expression is removed
+        this method determines whether to remove the matched tag from the reference string,
+        based on the 'side' parameter
 
-        :param strip:
-        :param match:
-        :param side:
-        :return:
+        :param strip: if set to 1, the tag defined in regular expression is removed; otherwise, it is not
+        :param match: the match object from the regular expression search
+        :param side: the side of the tag to consider ('Left' or 'Right')
+        :return: the position in the string where the tag should be stripped, or where the reference should be split
         """
         if side == 'Left':
             if strip:
@@ -555,11 +596,20 @@ class XMLtoREFs(toREFs):
                 return match.start()
             return match.end()
 
-    def extract_tag(self, refstr, tag, remove=1, keeptag=0, greedy=0, foldcase=0, attr=0, join=''):
+    def extract_tag(self, refstr: str, tag: str, remove: int = 1, keeptag: int = 0, greedy: int = 0, foldcase: int = 0, attr: int = 0, join: str = '') -> Tuple:
         """
-        extracts an XML tag from the input reference string
-        and returns the (potentially) modified input string
+        extracts an XML tag from the input reference string and returns the (potentially) modified input string,
         as well as the extracted tag
+
+        :param refstr: input reference string containing XML tags
+        :param tag: XML tag to extract
+        :param remove: if set to 1, removes the matched tag; otherwise, leaves it in the string
+        :param keeptag: if set to 1, keeps the tag in the extracted reference; otherwise, it is removed
+        :param greedy: if set to 1, uses greedy matching for the regular expression; otherwise, uses non-greedy matching
+        :param foldcase: if set to 1, makes the regular expression case-insensitive; otherwise, it is case-sensitive
+        :param attr: if set to 1, matches attributes within the tag; otherwise, it does not
+        :param join: string to join the parts of the reference if they are split; defaults to an empty string
+        :return: modified reference string (after tag extraction) and the extracted tag (if found)
         """
         if not refstr: return '', None
 
@@ -585,14 +635,22 @@ class XMLtoREFs(toREFs):
 
 
 class OCRtoREFs(toREFs):
+    """
+    class for processing references in OCR format
+    """
 
+    # to match a year with optional letters following it
     re_year = re.compile(r'([l12]+\d\d\d[a-z]*)')
+    # to match a DOI (Digital Object Identifier)
     re_doi = re.compile(r'doi:(.*?)', re.IGNORECASE)
+    # to match a reference citation with author names and year
     re_a_reference = re.compile(r'([A-Z][a-z]+,?\s+[A-Z]+\.?|[A-Z]+\.?\s+[A-Z][a-z]+,)+[^\d]*.*?(\d+)\W+(\d+)')
-
+    # to match author list placeholders, such as dashes or asterisks
     re_author_list_placeholder = re.compile(r'\s*([-_]{2,}\.?|[-_*]{1,}\s*:)')
-    re_prior_year = re.compile(r'(.*)(?=[\s\(]*[l12]+\d\d\d[a-z]*)')
+    # to match a prior year in a reference string for author inheritance
+    re_prior_year = re.compile(r'((\S+\s+){2,})(?=[\s\(]*[l12]+[o09]+\d\d(\S+\s+){2,})')
 
+    # patterns and their replacements for cleaning up reference strings
     re_cleanup = [
         (re.compile(r'\[E'), '&'),
         (re.compile(r'\[H'), '-'),
@@ -607,28 +665,37 @@ class OCRtoREFs(toREFs):
         (re.compile("Co ?11"), "Coll"),
     ]
 
+    # to match a bibcode in the format used in ADS references
     re_bibcode = re.compile(r'(^\d{4}[\w\.&+]{14}[A-Z\.]{1})')
 
+    # all punctuation characters for enumeration matching
     punctuations = r'!\"#\$%&\'\(\)\*\+,-\./:;<=>\?@\[\]\^_`{\|}~\\'
+    # to match enumeration with optional punctuations and numbers
     enumeration = r'^(?:\s{0,1}|\x0f)[%s]*\d{1,3}[a-z]{0,1}[%s\s]+' % (punctuations, punctuations)
+    # to lookahead for references with uppercase letters or four-digit years
     enumeration_lookahead = r'(?=.*[A-Z]{1}[\.\s]+)(?=.*[12]\d\d\d[a-z]*)?'
+
+    # to match the start of a reference with enumeration and lookahead
     re_reference_start = re.compile(r'(%s)%s' % (enumeration, enumeration_lookahead))
+    # to remove enumeration from reference lines
     re_remove_enumeration = re.compile(r'%s%s' % (enumeration, enumeration_lookahead))
+    # to match multi-enumerated references, such as when multiple references are in one line
     re_multi_enumerated_references = re.compile(r'((?:^|[.;\s]+)[\(\[~-]*\d{1,3}[\)\]\.]+\s*)'
                                                 r'(?=.*[A-Z\d]+[\w\W]{2,}\s+|[A-Z]+[a-z\.\'~]+)(?=.*[12]\d\d\d[a-z]*\b)')
+    # to match the continuation of a reference in the next line
     re_reference_continue = re.compile(r'^(\s{2,}|\t)(.*)$')
-
+    # to match the first line of references (e.g., 'References Cited' or similar variations)
     re_first_line = re.compile(r'(\s*References cited[:]|\s*Reference[s:.-\s]*|\s*Ref[\w\s~]+es)', re.IGNORECASE)
 
-    def __init__(self, filename, buffer, parsername, cleanup=None, encoding='UTF-8'):
+    def __init__(self, filename: str, buffer: Dict, parsername: str, cleanup: List = None, encoding: str = 'UTF-8'):
         """
+        initializes the OCRtoREFs object and processes the OCR reference file
 
-        :param filename:
-        :param buffer:
-        :param parsername:
-        :param cleanup:
-        :param encoding:
-        :param method_identifiers:
+        :param filename: path to the OCR file
+        :param buffer: dictionary containing buffer data
+        :param parsername: name of the parser
+        :param cleanup: optional list of regex patterns for cleanup
+        :param encoding: character encoding for the file
         """
         toREFs.__init__(self)
 
@@ -639,8 +706,9 @@ class OCRtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
+            for buf in buffer['block_references']:
+                block_references, item_nums = [[ref['refraw'] for ref in buf['references']], [ref['item_num'] for ref in buf['references']]]
+                self.raw_references.append({'bibcode': buf['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -656,19 +724,18 @@ class OCRtoREFs(toREFs):
 
                 if cleanup:
                     for (compiled_re, replace_str) in cleanup:
-                        for i in range(len(references)):
-                            references[i] = compiled_re.sub(replace_str, references[i])
+                        references = [compiled_re.sub(replace_str, ref) for ref in references]
 
                 self.raw_references.append({'bibcode': bibcode, 'block_references': references})
 
-    def verify_accept(self, block_references, current_reference, prev_reference):
+    def verify_accept(self, block_references: List, current_reference: str, prev_reference: str) -> Tuple:
         """
-        verify that this is a complete reference, fix author inheritance if need to, and append it to the structure
+        verify that a reference is complete, and handle author inheritance if needed
 
-        :param block_references:
-        :param current_reference:
-        :param prev_reference:
-        :return:
+        :param block_references: list of references to be updated
+        :param current_reference: current reference being processed
+        :param prev_reference: previous reference for inheritance checks
+        :return: updated block references, current reference, and previous reference
         """
         if self.is_reference(current_reference):
             reference = self.fix_inheritance(current_reference, prev_reference)
@@ -677,14 +744,12 @@ class OCRtoREFs(toREFs):
             current_reference = ''
         return block_references, current_reference, prev_reference
 
-    def merge_split_process(self, reader):
+    def merge_split_process(self, reader: List) -> List:
         """
-        some of the reference files contain references that are split in multiple line, and where
-        one reference finishes another starts. For these it is best to merge all lines, and then
-        split on the enumeration, and process them.
+        merge and process references that are split across multiple lines
 
-        :param reader:
-        :return:
+        :param reader: list of lines in the reference file
+        :return: processed block references
         """
         buffer = [line.strip().rstrip('-') for line in reader]
         buffer = ' '.join(buffer).replace('\n', ' ').replace('\r', ' ')
@@ -696,20 +761,19 @@ class OCRtoREFs(toREFs):
             block_references, _, prev_reference = self.verify_accept(block_references, line, prev_reference)
         return block_references
 
-    def process_with_header_line(self, reader):
+    def process_with_header_line(self, reader: List) -> List:
         """
-        process reference files that have a header `References` or `References Cited`.
+        process reference files with a header line (e.g., 'References')
 
-        :param lines:
-        :return:
+        :param reader: list of lines in the reference file
+        :return: processed block references
         """
         block_references = []
-        prev_reference = ''
         # remove the section header, if any
         for i in range(len(reader)):
             if not reader[i].strip():
                 continue
-            # first non empty line, does it start with References/References Cited?
+            # first non-empty line, does it start with References/References Cited?
             if self.re_first_line.search(reader[i].strip()):
                 reader[i] = self.re_first_line.sub('', reader[i]).strip()
                 # if enumerated, combine them into a single line
@@ -722,20 +786,20 @@ class OCRtoREFs(toREFs):
                     break
         return block_references
 
-    def remove_enumeration(self, line, enumeration_status):
+    def remove_enumeration(self, line: str, enumeration_status: int) -> Tuple:
         """
+        remove enumeration from a reference line
 
-        :param line:
-        :param enumeration_status:
-        :return:
+        :param line: reference line to process
+        :param enumeration_status: current enumeration status
+        :return: updated line and enumeration status
         """
-        # remove any enumeration
         try:
             match = self.re_reference_start.search(line)
             # if there is an enumeration
             if match:
                 enumeration_status = 1
-            # if there was a enumerated reference, show that this is now the continuation
+            # if there was an enumerated reference, show that this is now the continuation
             elif not match and enumeration_status in [1, -1]:
                 enumeration_status = -1
             # not enumerated
@@ -744,18 +808,19 @@ class OCRtoREFs(toREFs):
 
             if enumeration_status == 1:
                 line = list(filter(None, self.re_remove_enumeration.split(line)))[0]
-        except:
+        except (IndexError, Exception) as e:
             enumeration_status = 0
-            pass
+            logger.error(f"Error while removing enumeration. Exception {str(e)}")
 
         return line, enumeration_status
 
-    def get_references(self, filename, encoding="ISO-8859-1"):
+    def get_references(self, filename: str, encoding: str = "ISO-8859-1") -> List:
         """
-        read reference file for this text format
+        read reference file and extract references
 
-        :param filename:
-        :return:
+        :param filename: path to the OCR file
+        :param encoding: character encoding for the file
+        :return: list of references extracted from the file
         """
         try:
             references = []
@@ -834,43 +899,39 @@ class OCRtoREFs(toREFs):
                     if bibcode and block_references:
                         references.append([bibcode, block_references])
                 else:
-                    logger.error("Error in getting the bibcode from the reference file name %s. Skipping!" % (filename))
+                    logger.error(f'Error in getting the bibcode from the reference file name {filename}. Skipping!')
 
             if len(references) > 0:
-                logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
+                logger.debug(f'Read source file {filename}, and got {len(references)} references to resolve for bibcode {bibcode}.')
             elif len(references) == 0:
-                logger.error('No references found in reference file %s.' % (filename))
+                logger.error(f'No references found in reference file {filename}.')
             return references
         except Exception as e:
-            logger.error('Exception: %s' % (str(e)))
+            logger.error(f'Exception: {str(e)}')
             return []
 
-    def fix_inheritance(self, cur_refstr, prev_refstr):
+    def fix_inheritance(self, cur_refstr: str, prev_refstr: str) -> str:
         """
-        if author list is the same as the reference above it, a dash is inserted
-        get the list of authors from the previous reference and add it to the current one
+        handle inheritance of author list when the current reference is similar to the previous one
 
-        :param cur_refstr:
-        :param prev_refstr:
-        :return:
+        :param cur_refstr: current reference string
+        :param prev_refstr: previous reference string
+        :return: updated current reference string
         """
         match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
-            try:
-                # find the year and return everything that came before it
-                prev_authors = self.re_prior_year.match(prev_refstr)
-                if prev_authors:
-                    cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
-            except TypeError:
-                pass
+        if match and prev_refstr:
+            # find the year and return everything that came before it
+            prev_authors = self.re_prior_year.match(prev_refstr)
+            if prev_authors:
+                cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
         return cur_refstr
 
-    def is_reference(self, reference):
+    def is_reference(self, reference: str) -> bool:
         """
-        a reference has either year or doi or have at least author/volume/page
+        determine if a reference is valid based on year, DOI, or other criteria
 
-        :param reference:
-        :return:
+        :param reference: reference string to be validated
+        :return: true if the reference is valid, false otherwise
         """
         if self.re_year.search(reference) or self.re_doi.search(reference) or self.has_arXiv_id(reference):
             return True
@@ -882,62 +943,95 @@ class OCRtoREFs(toREFs):
 
 
 class TEXtoREFs(toREFs):
+    """
+    class for processing references in LaTeX (TEX) format
+    """
 
+    # to match the start of reference block, including LaTeX keywords like \begin{references} or \begin{thebibliography}
     reference_block_specifier = r'^(\\begin{references}|(?:%Z\s*)?\\begin{thebibliography}|%Z|\\begin)'
+    # to match the reference block specifier
     re_reference_block_specifier = re.compile(reference_block_specifier)
-    re_reference_block_specifier_to_ignore = re.compile(r'%s({[^\s]*}|$)'%reference_block_specifier)
+    # to match and ignore certain reference block specifiers
+    re_reference_block_specifier_to_ignore = re.compile(r'%s({[^\s]*}|$)' % reference_block_specifier)
+    # to match LaTeX reference start identifiers like \bibitem, \reference, \item, \refb
     reference_start_reference = r'(\\?bibitem|\\?reference|\\item|\\refb)'
+    # to match the reference start specifier like \bibitem or \reference
     reference_block_specifier_and_start_reference = re.compile(r'^(\\bibitem|\\reference|\\refb)')
+    # to match the start of a reference line in LaTeX, like \bibitem or \reference
     re_reference_line_start = re.compile(reference_start_reference)
+
+    # to match the full reference block including optional content inside brackets and curly braces
     re_reference_block = re.compile(
-        r'%s?'  # beginning of reference block (sometimes appear on the same line as first reference)
-        r'\s*'  # optional spaces
-        r'\\?%s'  # latex keyword for start of reference
-        r'\s*'  # optional spaces
-        r'(\[([^\]]*)\])?'  # optional brackets block
-        r'\s*'  # optional spaces
-        r'({([^}]*)})?'  # optional curly brackets block
-        r'\s*'  # optional spaces
-        r'(?P<content>[^\n%%]*)'  # the rest
+        r'%s?'                      # beginning of reference block (sometimes appears on the same line as the first reference)
+        r'\s*'                      # optional spaces
+        r'\\?%s'                    # LaTeX keyword for the start of reference
+        r'\s*'                      # optional spaces
+        r'(\[([^\]]*)\])?'          # optional brackets block
+        r'\s*'                      # optional spaces
+        r'({([^}]*)})?'             # optional curly brackets block
+        r'\s*'                      # optional spaces
+        r'(?P<content>[^\n%%]*)'    # the rest of the content
         % (reference_block_specifier, reference_start_reference)
     )
+
+    # to match reference blocks entirely surrounded by brackets
     re_reference_block_all_bracketed = re.compile(
-        r'%s'  # latex keyword for start of reference
-        r'\s*'  # optional spaces
-        r'({)(?P<content>.*)(})\W*$'  # content is in brackets
+        r'%s'                           # LaTeX keyword for the start of reference
+        r'\s*'                          # optional spaces
+        r'({)(?P<content>.*)(})\W*$'     # content inside curly brackets
         % (reference_start_reference)
     )
+
+    # to match reference blocks without content, only brackets
     re_reference_block_no_content = re.compile(
-        r'^%s'  # latex keyword for start of reference
-        r'\s*'  # optional spaces
-        r'(?P<content>.*)'  # content is in brackets
+        r'^%s'              # LaTeX keyword for the start of reference
+        r'\s*'              # optional spaces
+        r'(?P<content>.*)'  # content inside the block
         % (reference_start_reference)
     )
+
+    # to match only the citation key in the reference block (one word only)
     re_reference_block_citiation_key_only = re.compile(
-        r'%s?'  # beginning of reference block (sometimes appear on the same line as first reference)
-        r'\s*'  # optional spaces
-        r'\\?%s'  # latex keyword for start of reference
-        r'\s*'  # optional spaces
+        r'%s?'              # beginning of reference block
+        r'\s*'              # optional spaces
+        r'\\?%s'            # LaTeX keyword for the start of reference
+        r'\s*'              # optional spaces
         r'(\[([^\]]*)\])?'  # optional brackets block
-        r'\s*'  # optional spaces
-        r'({[^\s]+}|$)'  # citiation key, one word only
+        r'\s*'              # optional spaces
+        r'({[^\s]+}|$)'     # citation key (one word only)
         % (reference_block_specifier, reference_start_reference)
     )
+
+    # to match the reference document block and extract bibcode
     re_reference_doc_block = re.compile(r'(?:%R\s+|\\adsbibcode)\b[\s\{]*(?P<bibcode>[^\n\}]*)')
+    # to add a starting block for bibcode with a \bibitem tag
     re_add_start_block = re.compile(r'(\\adsbibcode\{[\w\d\W]{19}\})\n(\\bibitem)', flags=re.MULTILINE)
+    # to detect duplicated references in the document
     re_duplicate = re.compile(r'%s\s*\1\s*' % reference_start_reference)
+    # to match the beginning of references (bibitem, reference, or item)
     re_start_reference = re.compile(r'(\.|{\\)(bibitem|reference|item)')
+    # to match extra elements in the reference line, like newblock, jcd, or other tags
     re_extras = re.compile(r'(\\newblock\s*|\\jcd[,]|(?<!\\adsbibcode){[^\s}]*}|\[[^\s]*\])')
+    # to match citation keys inside brackets in references
     re_citation_key = re.compile(r'(\[(.*?)(\]|$))')
+    # to match section headers in the reference file
     re_section = re.compile(r'^(%[A-Z]+|\\[^bibitem]*)\b')
+    # to match multi-references in a line, such as when multiple references are grouped together
     re_multi_reference = re.compile(r'%s' % reference_start_reference)
+    # to match lines with only punctuation characters (typically for empty lines)
     re_only_punctuations = re.compile(r'^(\W+)$')
+    # to match and remove end brackets like {} or []
     re_brackets_end = re.compile(r'({}|\[\])$')
+    # to ignore certain middle lines, such as LaTeX commands or non-reference lines
     re_start_middle_line_ignore = re.compile(r'^(\\end|\\def|\\hspace|\\vspace|\\typeout|\\htmladdURL|%|{[^\s]*})')
+    # to match capitalized author names, typically the first part of an author list
     re_name = re.compile('([A-Z]+[A-Za-z]+)')
+    # to match numeric values in references, like years or volumes
     re_numeric = re.compile(r'(\d+)\b')
+    # to match 'et al.' in references
     re_etal = re.compile(r'(et al\b)')
 
+    # list of tuples to remove LaTeX-specific formatting from reference strings
     re_reference_debraket = [
         (re.compile(r'({\\)(it|bf|em|tt)([^}]*)(})'), r'\3'),
         (re.compile(r'(\\textbf{|\\emph{)([^}]*)(})'), r'\2'),
@@ -945,24 +1039,23 @@ class TEXtoREFs(toREFs):
         (re.compile(r'(\s*,\s*)?\{([A-Za-z\\&\s]{,16}|\d+)\}(\s*,\s*)'), r'\1\2\3'),
     ]
 
+    # list of tuples for cleaning up reference strings by applying replacements
     re_cleanup = [
-        (re.compile(r'^(\.)(.*)$'), r'\2'),
-        # now if there is still anything in curly brackets, bring them out too
-        (re.compile(r'({)(.*)(})'), r'\2'),
-        # if there is curly brackets within curly brackets
-        (re.compile(r'({)(.*)(})'), r'\2'),
-        # remove any extra spaces
-        (re.compile(r'(\s)(\s+)'), r'\1')
+        (re.compile(r'^(\.)(.*)$'), r'\2'),     # remove a leading period from the reference string
+        (re.compile(r'({)(.*)(})'), r'\2'),     # if there is still anything in curly brackets, bring them out too
+        (re.compile(r'({)(.*)(})'), r'\2'),     # if there is curly brackets within curly brackets
+        (re.compile(r'(\s)(\s+)'), r'\1')       # remove any extra spaces
     ]
 
-    def __init__(self, filename, buffer, parsername, cleanup=None, encoding='UTF-8'):
+    def __init__(self, filename: str, buffer: Dict, parsername: str, cleanup: List = None, encoding: str = 'UTF-8'):
         """
+        initializes the TEXtoREFs object and processes the LaTeX reference file
 
-        :param filename:
-        :param buffer:
-        :param parsername:
-        :param cleanup:
-        :param encoding:
+        :param filename: path to the LaTeX file
+        :param buffer: dictionary containing buffer data
+        :param parsername: name of the parser
+        :param cleanup: optional list of regex patterns for cleanup
+        :param encoding: character encoding for the file
         """
         toREFs.__init__(self)
 
@@ -970,8 +1063,9 @@ class TEXtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
+            for buf in buffer['block_references']:
+                block_references, item_nums = [[ref['refraw'] for ref in buf['references']], [ref['item_num'] for ref in buf['references']]]
+                self.raw_references.append({'bibcode': buf['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -987,17 +1081,16 @@ class TEXtoREFs(toREFs):
 
                 if cleanup:
                     for (compiled_re, replace_str) in cleanup:
-                        references = compiled_re.sub(replace_str, references)
+                        references = [compiled_re.sub(replace_str, ref) for ref in references]
 
                 self.raw_references.append({'bibcode': bibcode, 'block_references': references})
 
-    def split(self, reference):
+    def split(self, reference: str) -> str:
         """
-        do not depend on linefeed to have a single or part of single reference
-        multi references can appear with the latex identifier (ie, \bibitem) in a single line
+        split a reference string if it contains multiple references
 
-        :param reference:
-        :return:
+        :param reference: reference string to be split
+        :return: split reference string
         """
         key = self.re_multi_reference.search(reference)
         if not key:
@@ -1015,11 +1108,12 @@ class TEXtoREFs(toREFs):
             if results:
                 yield ' '.join(results)
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by applying various replacements
 
-        :param reference:
-        :return:
+        :param reference: the reference string to be cleaned up
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.re_cleanup:
             reference = compiled_re.sub(replace_str, reference)
@@ -1033,44 +1127,45 @@ class TEXtoREFs(toREFs):
                 references.append(clean_reference)
         return references
 
-    def debraket(self, reference):
+    def debraket(self, reference: str) -> str:
         """
+        remove LaTeX-specific bracket formatting from the reference
 
-        :param reference:
-        :return:
+        :param reference: reference string to be processed
+        :return: de-bracketed reference string
         """
         for (compiled_re, replace_str) in self.re_reference_debraket:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def get_references(self, filename, encoding):
+    def append(self, reference: str, bibcode: str, block_references: List, references: List) -> Tuple:
         """
-        read reference file of text format
-        this is a generic function
+        append a reference to the list of references
 
-        :param filename:
-        :return:
+        :param reference: reference string to be appended
+        :param bibcode: bibcode associated with the reference
+        :param block_references: list of references to update
+        :param references: final list of references
+        :return: updated reference, bibcode, block references, and references list
         """
+        if reference.strip():
+            for ref in self.cleanup(reference.strip()):
+                block_references.append(ref)
+            reference = ''
+        if bibcode and block_references:
+            references.append([bibcode, block_references])
+            bibcode = ''
+            block_references = []
+        return reference, bibcode, block_references, references
 
-        def append(reference, bibcode, block_references, references):
-            """
+    def get_references(self, filename: str, encoding: str) -> List:
+        """
+        read LaTeX reference file and extract references
 
-            :param reference:
-            :param bibcode:
-            :param block_references:
-            :param references:
-            :return:
-            """
-            if reference.strip():
-                for ref in self.cleanup(reference.strip()):
-                    block_references.append(ref)
-                reference = ''
-            if bibcode and block_references:
-                references.append([bibcode, block_references])
-                bibcode = ''
-                block_references = []
-            return reference, bibcode, block_references, references
-
+        :param filename: path to the LaTeX file
+        :param encoding: character encoding for the file
+        :return: list of references extracted from the file
+        """
         try:
             references = []
             with open(filename, 'r', encoding=encoding, errors='ignore') as f:
@@ -1092,7 +1187,7 @@ class TEXtoREFs(toREFs):
                         if match:
                             # add anything already read to the returned structure
                             # to move on to this doc
-                            reference, bibcode, block_references, references = append(reference, bibcode, block_references, references)
+                            reference, bibcode, block_references, references = self.append(reference, bibcode, block_references, references)
                             a_block = False
                             bibcode = match.group('bibcode')
                         # is it the beginning of reference block
@@ -1139,13 +1234,16 @@ class TEXtoREFs(toREFs):
                             #  A.~V. 2012, Astrophys. Bull., 67, 147
                             # however need to distinguish between that and
                             # %Z \reference {Conselice, C. J., Gallagher, J. S., \& Wyse, R. F. G. 2001, AJ, 122, 2281}\
-                            elif line and self.re_reference_block_specifier.search(line):
-                                match = self.re_reference_block_all_bracketed.search(line)
-                                if match:
-                                    reference = match.group('content')
-                                elif self.re_reference_line_start.search(line):
-                                    reference = ' '
-                reference, bibcode, block_references, references = append(reference, bibcode, block_references, references)
+                            # golnaz -- while adding unittests 3/11/2025 not able to get to this,
+                            # I am sure this block is never going to be reached, so commenting it
+                            # but not removing it
+                            # elif line and self.re_reference_block_specifier.search(line):
+                            #     match = self.re_reference_block_all_bracketed.search(line)
+                            #     if match:
+                            #         reference = match.group('content')
+                            #     elif self.re_reference_line_start.search(line):
+                            #         reference = ' '
+                reference, bibcode, block_references, references = self.append(reference, bibcode, block_references, references)
 
             if len(references):
                 logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
@@ -1153,40 +1251,54 @@ class TEXtoREFs(toREFs):
                 logger.error('No references found in reference file %s.' % (filename))
             return references
         except Exception as e:
-            logger.error('Exception: %s' % (str(e)))
+            logger.error(f'Exception: {str(e)}')
             return []
 
 
 class HTMLtoREFs(toREFs):
+    """
+    class for processing references in HTML format
+    """
 
+    # to match bibcode format
     re_bibcode = re.compile(r'(^\d{4}[\w\.&+]{14}[A-Z\.]{1})')
+    # to match DOI in the reference string
     re_doi = re.compile(r'doi:(.*?)', re.IGNORECASE)
+    # to match reference block with ADS bibcode
     re_reference_block = re.compile(r'(<ADSBIBCODE>.*?)(?=<ADSBIBCODE>|$)')
+    # to extract bibcode from reference block
     re_block_bibcode = re.compile(r'<ADSBIBCODE>(.*?)</ADSBIBCODE>')
+
+    # list of tuples for cleaning up reference strings
     block_cleanup = [
-        (re.compile(r'(<I>|</I>|<B>|</B>|<EM>|</EM>|<STRONG>|</STRONG>|<DT>|</DT>|<DD>|</DD>|<TT>|</TT>|<SUB>|</SUB>|<SUP>|</SUP>)', re.I), ''),
+        (re.compile(r'(<I>|</I>|<B>|</B>|<EM>|</EM>|<STRONG>|</STRONG>|<DT>|</DT>|<DD>|</DD>|<TT>|</TT>|<SUB>|</SUB>|<SUP>|</SUP>)',re.I), ''),
         (re.compile(r'&amp;'), '&'),
         (re.compile(r'&nbsp;'), ' '),
     ]
 
+    # to match placeholder for author list in references
     re_author_list_placeholder = re.compile(r'[-_]{2,}\.?')
-    re_prior_year = re.compile(r'(.*)(?=\b[12]+\d\d\d[a-z]*)')
-
+    # to capture prior year in references
+    re_prior_year = re.compile(r'((\S+\s+){2,})(?=[\s\(\[]*[12]+[09]+\d\d(\S+\s+){2,})')
+    # to match year in reference string
     re_year = re.compile(r'([12]+\d\d\d[a-z]*)')
+    # to match author and year format in reference string
     re_a_reference = re.compile(r'([A-Z][a-z]+,?\s+[A-Z]+\.?|[A-Z]+\.?\s+[A-Z][a-z]+,)+[^\d]*.*?(\d+)\W+(\d+)')
 
+    # constants to identify single or multi bibcode types
     single_bibcode, multi_bibcode = range(2)
 
-    def __init__(self, filename, buffer, parsername, tag, file_type, cleanup=None, encoding='UTF-8'):
+    def __init__(self, filename: str, buffer: Dict, parsername: str, tag: str, file_type: int, cleanup: List = None, encoding: str = 'UTF-8'):
         """
+        initializes the HTMLtoREFs object and processes the HTML reference file
 
-        :param filename:
-        :param buffer:
-        :param parsername:
-        :param tag:
-        :param file_type:
-        :param cleanup:
-        :param encoding:
+        :param filename: path to the HTML file
+        :param buffer: dictionary containing buffer data
+        :param parsername: name of the parser
+        :param tag: HTML tag for extracting references
+        :param file_type: type of the file (single or multiple bibcodes)
+        :param cleanup: optional list of regex patterns for cleanup
+        :param encoding: character encoding for the file
         """
         toREFs.__init__(self)
 
@@ -1196,8 +1308,9 @@ class HTMLtoREFs(toREFs):
             self.filename = buffer['source_filename']
             self.parsername = buffer['parser_name']
 
-            block_references, item_nums = [[b['refraw'] for b in buffer['references']], [b['item_num'] for b in buffer['references']]]
-            self.raw_references.append({'bibcode': buffer['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
+            for buf in buffer['block_references']:
+                block_references, item_nums = [[ref['refraw'] for ref in buf['references']], [ref['item_num'] for ref in buf['references']]]
+                self.raw_references.append({'bibcode': buf['source_bibcode'], 'block_references': block_references, 'item_nums':item_nums})
         else:
             self.filename = filename
             self.parsername = parsername
@@ -1213,17 +1326,17 @@ class HTMLtoREFs(toREFs):
 
                 self.raw_references.append({'bibcode': bibcode, 'block_references': references})
 
-    def get_references(self, filename, encoding, tag, file_type):
+    def get_references(self, filename: str, encoding: str, tag: str, file_type: int) -> List:
         """
-        read reference file of html format
+        extract references from an HTML file based on the file type
 
-        :param filename:
-        :param encoding:
-        :param tag:
-        :param file_type:
-        :return:
+        :param filename: path to the HTML file
+        :param encoding: character encoding for the file
+        :param tag: HTML tag for extracting references
+        :param file_type: type of the file (single or multiple bibcodes)
+        :return: list of references extracted from the file
         """
-        # some html references contain multiple manuscripts and have the bibcode for each record in the file
+        # some html references to contain multiple manuscripts and have the bibcode for each record in the file
         # on the other hand, some html references contain only one manuscript, and the bibcode is in the filename
         if file_type == self.single_bibcode:
             match = self.re_bibcode.match(os.path.basename(filename))
@@ -1231,27 +1344,30 @@ class HTMLtoREFs(toREFs):
                 return self.get_references_single_record(filename, encoding, tag, bibcode=match.group(1))
         if file_type == self.multi_bibcode:
             return self.get_references_multi_records(filename, encoding, tag)
-        return None
+        return []
 
-    def cleanup(self, reference, reference_cleanup):
+    def cleanup(self, reference: str, reference_cleanup: List) -> str:
         """
+        clean up a reference string by applying the provided cleanup rules
 
-        :param reference:
-        :return:
+        :param reference: reference string to be cleaned up
+        :param reference_cleanup: list of cleanup rules (regex replacements)
+        :return: cleaned reference string
         """
         if reference_cleanup:
             for (compiled_re, replace_str) in reference_cleanup:
                 reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def get_references_single_record(self, filename, encoding, tag, bibcode):
+    def get_references_single_record(self, filename: str, encoding: str, tag: str, bibcode: str) -> List:
         """
+        extract references from a single record in the HTML file
 
-        :param filename:
-        :param encoding:
-        :param tag:
-        :param bibcode:
-        :return:
+        :param filename: path to the HTML file
+        :param encoding: character encoding for the file
+        :param tag: HTML tag for extracting references
+        :param bibcode: bibcode for the reference
+        :return: list of references extracted from the file
         """
         if not bibcode:
             logger.error('No bibcode extracted in reference file %s.' % (filename))
@@ -1277,27 +1393,28 @@ class HTMLtoREFs(toREFs):
                                 block_references.append(reference)
                                 prev_reference = reference
                 else:
-                    logger.debug("Unable to parse source file %s, no tag was provided." % (filename))
+                    logger.debug(f"Unable to parse source file {filename}, no tag was provided.")
 
                 if bibcode and block_references:
                     references.append([bibcode, block_references])
 
             if len(references):
-                logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
+                logger.debug(f"Read source file {filename}, and got {len(references)} references to resolve for bibcode {bibcode}.")
             elif len(references) == 0:
-                logger.error('No references found in reference file %s.' % (filename))
+                logger.error(f'No references found in reference file {filename}.')
             return references
         except Exception as e:
-            logger.error('Exception: %s' % (str(e)))
+            logger.error(f'Exception: {str(e)}')
             return []
 
-    def get_references_multi_records(self, filename, encoding, tag):
+    def get_references_multi_records(self, filename: str, encoding: str, tag: str) -> List:
         """
+        extract references from multiple records in the HTML file
 
-        :param filename:
-        :param encoding:
-        :param tag:
-        :return:
+        :param filename: path to the HTML file
+        :param encoding: character encoding for the file
+        :param tag: HTML tag for extracting references
+        :return: list of references extracted from the file
         """
         try:
             references = []
@@ -1327,40 +1444,37 @@ class HTMLtoREFs(toREFs):
                     if bibcode and block_references:
                         references.append([bibcode, block_references])
             if len(references):
-                logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
+                logger.debug(f"Read source file {filename}, and got {len(references)} references to resolve for bibcode {bibcode}.")
             elif len(references) == 0:
-                logger.error('No references found in reference file %s.' % (filename))
+                logger.error(f'No references found in reference file {filename}.')
             return references
         except Exception as e:
-            logger.error('Exception: %s' % (str(e)))
+            logger.error(f'Exception: {str(e)}')
             return []
 
-    def fix_inheritance(self, cur_refstr, prev_refstr):
+    def fix_inheritance(self, cur_refstr: str, prev_refstr: str) -> str:
         """
         if author list is the same as the reference above it, a dash is inserted
         get the list of authors from the previous reference and add it to the current one
 
-        :param cur_refstr:
-        :param prev_refstr:
-        :return:
+        :param cur_refstr: the current reference string that may need author inheritance
+        :param prev_refstr: the previous reference string from which authors might be inherited
+        :return: the modified current reference string with authors inherited from the previous reference, if applicable
         """
         match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
-            try:
-                # find the year and return everything that came before it
-                prev_authors = self.re_prior_year.match(prev_refstr)
-                if prev_authors:
-                    cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
-            except TypeError as error:
-                pass
+        if match and prev_refstr:
+            # find the year and return everything that came before it
+            prev_authors = self.re_prior_year.match(prev_refstr)
+            if prev_authors:
+                cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
         return cur_refstr
 
-    def is_reference(self, reference):
+    def is_reference(self, reference: str) -> bool:
         """
-        a reference has either year or doi or have at least author/volume/page
+        a reference has either year or doi or has at least author/volume/page
 
-        :param reference:
-        :return:
+        :param reference: the reference string to be validated
+        :return: True if the reference is valid, otherwise False
         """
         if  self.re_year.search(reference) or self.re_doi.search(reference) or self.has_arXiv_id(reference):
             return True

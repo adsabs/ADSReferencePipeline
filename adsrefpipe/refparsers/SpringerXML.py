@@ -2,14 +2,15 @@
 import sys, os
 import regex as re
 import argparse
-
-from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.refparsers.toREFs import XMLtoREFs
+from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
+
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 # The Springer XML references contain different citing elements:
@@ -19,23 +20,32 @@ config.update(load_config())
 #   <BibUnstructured>
 # We need to look for content tags in that order because multiple of
 # these tags can appear in a reference.  For instance, <BibChapter>
-# references contain a <BibBook> section about the book they appear in,
+# references to contain a <BibBook> section about the book they appear in,
 # and all of them also contain a <BibUnstructured>
 class SPRINGERreference(XMLreference):
+    """
+    This class handles parsing SPRINGER references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
+    # to match and clean up occurrences of "and" with optional commas around it
     re_cleanup_unstructured = re.compile(r'\s*,?\s*and\s*')
-    rec_field_unstructured = re.compile(r'(?P<authors>([A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2},\s+){1,})(?P<title>[^,]{20,}),(?P<journal>.*?),\s*(?P<year>\d{4})\b')
-    re_external_ref = re.compile(r'<ExternalRef>.*?</ExternalRef>')
+    # to match a specific format of unstructured citation with authors, title, journal, and year
+    rec_field_unstructured = re.compile(r'(?P<authors>(?:[A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2},\s+)+(?:and\s+)?(?:[A-Z][a-z_;]{1,15},\s+([A-Z]\.){1,2}[,\s]+)+)(?P<title>[^,]{20,}),(?P<journal>.*?),\s*(?P<year>\d{4})\b')
+    # to match general unstructured citation text and arXiv IDs
     re_unstructured = [
         re.compile(r'([^\[]*)'),
         re.compile(r'\b(arXiv[:\s]*[\w\.]+)\b'),
     ]
+    # to match URLs starting with "http" followed by any non-whitespace characters
     re_unstructured_url = re.compile(r'http\S+')
+    # to match unstructured numbered references in square brackets
     re_unstructured_num = re.compile(r'^(\s*\[[^\]].*\]\s*)(.*)$')
 
     def parse(self):
         """
-        
+        parse the SPRINGER reference and extract citation information such as authors, year, title, and DOI
+
         :return:
         """
         self.parsed = 0
@@ -79,9 +89,13 @@ class SPRINGERreference(XMLreference):
             doi = ''
 
         refstr = self.xmlnode_nodecontents('Citation')
+
+        if not title:
+            title = self.parse_title(refstr)
+
         if not doi:
-            doi = self.parse_doi(refstr)
-        eprint = self.parse_arXiv(refstr)
+            doi = self.parse_doi()
+        eprint = self.parse_eprint(refstr)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
@@ -107,11 +121,11 @@ class SPRINGERreference(XMLreference):
 
         self.parsed = 1
 
-
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         elements = self.reference_str.getElementsByTagName('BibAuthorName')
         if not elements or len(elements) == 0:
@@ -138,11 +152,14 @@ class SPRINGERreference(XMLreference):
             authors.append(name)
         return ', '.join(authors)
 
-    def parse_doi(self, refstr):
+    def parse_doi(self) -> str:
         """
+        parse the DOI from the reference string or XML elements
 
-        :param refstr:
-        :return:
+        attempts to extract a DOI by checking the 'RefTarget' elements for a DOI address or a handle in the 'Occurrence'
+        elements. If no DOI is found in the XML, it attempts to extract it from the reference string.
+
+        :return: the extracted DOI if found, or an empty string if not
         """
         targets =  self.reference_str.getElementsByTagName('RefTarget')
         doi = None
@@ -168,12 +185,17 @@ class SPRINGERreference(XMLreference):
         if doi:
             return doi
 
-        return self.match_doi(refstr)
+        return self.match_doi(self.xmlnode_nodecontents('Citation'))
 
-    def parse_arXiv(self, refstr):
+    def parse_eprint(self, refstr: str) -> str:
         """
+        parse the eprint from the reference string
 
-        :return:
+        attempts to extract the eprint from the 'RefSource' XML node,
+        then tries to extract it from the reference string if not found in the XML node
+
+        :param refstr: the reference string potentially containing the eprint
+        :return: the extracted eprint if found, or an empty string if not
         """
         refsrc = self.xmlnode_nodescontents('RefSource')
         for entry in refsrc:
@@ -183,25 +205,25 @@ class SPRINGERreference(XMLreference):
 
         return self.match_arxiv_id(refstr)
 
-    def parse_title_and_year(self, refstr):
+    def parse_title(self, refstr: str) -> str:
         """
-        try to parse title and year out of unstructured string
-        :return:
-        """
+        try to parse title out of unstructured string
 
+        :param refstr: the unstructured reference string containing the title and year
+        :return: the title if found, or None otherwise
+        """
         refstr = self.re_cleanup_unstructured.sub(', ', refstr, 1)
         match = self.rec_field_unstructured.match(refstr)
         if match:
-            year = match.group('year')
-            title = match.group('title')
-            return title,year
-        return None,None
+            return match.group('title')
+        return None
 
-    def parse_unstructured_field(self, unstructured):
+    def parse_unstructured_field(self, unstructured: str) -> str:
         """
+        parse and clean the unstructured reference string
 
-        :param unstructured:
-        :return:
+        :param unstructured: the unstructured reference string to be parsed
+        :return: the cleaned reference text if found, or None if no relevant text is found
         """
         if unstructured:
             # remove any numbering parts at the beginning of unstructured string if any
@@ -222,24 +244,29 @@ class SPRINGERreference(XMLreference):
 
 
 class SPRINGERtoREFs(XMLtoREFs):
+    """
+    This class converts SPRINGER XML references to a standardized reference format. It processes raw SPRINGER references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
-    re_doi = re.compile(r'<Occurrence\ Type="DOI"><Handle>(?P<doi>.*?)</Handle></Occurrence>')
+    # to match DOI occurrences within <Occurrence> tags and extract the DOI value
+    re_doi = re.compile(r'\<Occurrence\ Type="DOI"\>\<Handle\>(?P<doi>.*?)\</Handle\>\</Occurrence\>')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the SPRINGERtoREFs object to process SPRINGER references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=SPRINGERtoREFs, tag='Citation')
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         # first check for those horrible DOIs with < and > in them
         # and replace those with &lt; and &gt;
@@ -249,16 +276,15 @@ class SPRINGERtoREFs(XMLtoREFs):
         match = self.re_doi.search(reference)
         if match:
             doi = match.group('doi')
-            if doi.find('<') > 0:
-                newdoi = doi.replace('<', '&lt;').replace('>', '&gt;')
-                reference = reference.replace(doi, newdoi)
+            newdoi = doi.replace('<', '&lt;').replace('>', '&gt;')
+            reference = reference.replace(doi, newdoi)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -283,6 +309,10 @@ class SPRINGERtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of SpringerXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Springer references')

@@ -2,29 +2,40 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
+
+from adsputils import setup_logging, load_config
+logger = setup_logging('refparsers')
+config = {}
+config.update(load_config())
 
 from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.refparsers.toREFs import XMLtoREFs
 from adsrefpipe.refparsers.unicode import tostr
 
-from adsputils import setup_logging, load_config
-
-logger = setup_logging('refparsers')
-config = {}
-config.update(load_config())
-
 
 class MDPIreference(XMLreference):
+    """
+    This class handles parsing MDPI references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_replace_amp = re.compile(r'(__amp;?|amp)')
+    # to match `amp`
+    re_match_amp = re.compile(r'(__amp;?|amp)')
+    # to match and remove <etal> tags and their contents (case-insensitive)
     re_replace_etal = re.compile(r'<etal>.*</etal>', flags=re.IGNORECASE)
+    # to match and remove unnecessary XML processing instructions
     re_replace_useless_tag = re.compile(r'(<\?[^\?>]*\?>)')
+    # to match and remove extra spaces before a semicolon
     re_replace_extra_space = re.compile(r'^\s*;\s*')
+    # to match any alphabetic characters in a year string
     re_char_in_year = re.compile('[A-Za-z]')
+    # to match the words 'thesis' or 'dissertation' (case-insensitive)
     re_thesis = re.compile('(thesis|dissertation)', flags=re.IGNORECASE)
 
     def parse(self):
         """
+        parse the MDPI reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -44,7 +55,7 @@ class MDPIreference(XMLreference):
         volume = ''
         journal = self.xmlnode_nodecontents('source')
         if journal:
-            journal = self.re_replace_amp.sub('&', journal)
+            journal = self.re_match_amp.sub('&', journal)
         else:
             journal = self.xmlnode_nodecontents('conf-name')
             if not journal:
@@ -89,10 +100,11 @@ class MDPIreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         authors = self.xmlnode_nodescontents('person-group', attrs={'person-group-type': 'author'}, keepxml=1) or \
                   self.xmlnode_nodescontents('name', keepxml=1) or \
@@ -119,16 +131,20 @@ class MDPIreference(XMLreference):
             author_list = collab + author_list
 
         authors = ", ".join(author_list)
-        authors = self.re_replace_amp.sub('', authors)
+        authors = self.re_match_amp.sub('', authors)
 
         return authors
 
-    def parse_doi(self, refstr, comment):
+    def parse_doi(self, refstr: str, comment: str) -> str:
         """
+        parse the DOI from the reference string or comment field, falling back to extracting it from the refstr
 
-        :param refstr:
-        :param comment:
-        :return:
+        attempts to extract a DOI from different sources: first, from the 'pub-id' XML node content; if not found,
+        it checks the comment field; if neither contains the DOI, it tries to extract it from the reference string.
+
+        :param refstr: the reference string potentially containing the DOI
+        :param comment: a comment related to the reference that may contain the DOI
+        :return: the extracted DOI if found, or an empty string if not
         """
         doi = self.match_doi(self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'doi'}))
         if doi:
@@ -143,30 +159,39 @@ class MDPIreference(XMLreference):
             return doi
         return ''
 
-    def parse_eprint(self, refstr):
+    def parse_eprint(self, refstr: str) -> str:
         """
+        parse the eprint from the reference string
 
-        :param refstr:
-        :return:
+        attempts to extract the eprint from the 'pub-id' and 'elocation-id' XML nodes,
+        then tries to extract it from the reference string if not found in the XML nodes
+
+        :param refstr: the reference string potentially containing the eprint
+        :return: the extracted eprint if found, or an empty string if not
         """
         # note that the id might have been identified incorrectly, hence verify it
         # <pub-id pub-id-type="arxiv">arXiv:10.1029/2001JB000553</pub-id>
         eprint = self.match_arxiv_id(self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'arxiv'}))
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         # <elocation-id content-type="arxiv">arXiv:1309.6955</elocation-id>
         eprint = self.match_arxiv_id(self.xmlnode_nodecontents('elocation-id', attrs={'content-type': 'arxiv'}))
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         # attempt to extract it from refstr
         eprint = self.match_arxiv_id(refstr)
         if eprint:
-            return eprint
+            return f"arXiv:{eprint}"
         return ''
 
 
 class MDPItoREFs(XMLtoREFs):
+    """
+    This class converts MDPI XML references to a standardized reference format. It processes raw MDPI references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'</?ext-link.*?>'), ''),
         (re.compile(r'</?uri.*?>'), ''),
@@ -177,38 +202,42 @@ class MDPItoREFs(XMLtoREFs):
         (re.compile(r'\r?\n'), ''),
         (re.compile(r'\s+'), ' '),
     ]
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'[^\x00-\x7F]'), ''),
     ]
+    # to match <person-group> tags and their contents
     re_author_tag = re.compile(r'(<person-group.*</person-group>)')
+    # to match author placeholder represented by three or more hyphens
     re_author_placeholder = re.compile(r'(-{3,})')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the MDPItoREFs object to process MDPI references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=MDPItoREFs, tag='ref', cleanup=self.block_cleanup, encoding='ISO-8859-1')
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def missing_authors(self, prev_reference, cur_reference):
+    def missing_authors(self, prev_reference: str, cur_reference: str) -> str:
         """
+        replace author placeholder in the current reference with authors from the previous reference
 
-        :param prev_reference:
-        :param cur_reference:
-        :return:
+        :param prev_reference: the previous reference containing the author information
+        :param cur_reference: the current reference containing the author placeholder
+        :return: the current reference with the author placeholder replaced, or the original current reference if no placeholder is found
         """
         if prev_reference and self.re_author_placeholder.search(cur_reference):
             match = self.re_author_tag.search(prev_reference)
@@ -216,11 +245,11 @@ class MDPItoREFs(XMLtoREFs):
                 return self.re_author_placeholder.sub(match.group(0), cur_reference)
         return cur_reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -248,6 +277,10 @@ class MDPItoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of MDPIxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse MDPI references')
@@ -262,7 +295,6 @@ if __name__ == '__main__':  # pragma: no cover
     elif not args.filename and not args.buffer:
         filename = os.path.abspath(os.path.dirname(__file__) + '/../tests/unittests/stubdata/test.mdpi.xml')
         result = MDPItoREFs(filename=filename, buffer=None).process_and_dispatch()
-        print(result)
         if result == parsed_references.parsed_mdpi:
             print('Test passed!')
         else:

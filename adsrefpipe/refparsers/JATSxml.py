@@ -3,33 +3,48 @@ import sys, os
 import regex as re
 import argparse
 import urllib.parse
-
-from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.refparsers.toREFs import XMLtoREFs
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
+
 
 class JATSreference(XMLreference):
+    """
+    This class handles parsing JATS references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_title_in_quote = re.compile(r"__amp__ldquo;(?P<INQUOTES>[^__amp__rdquo;].*)__amp__rdquo;", re.MULTILINE)
+    # to match content inside quotation marks represented by __amp__ldquo; and __amp__rdquo;
+    re_title_in_quote = re.compile(r"``(?P<INQUOTES>[^__amp__rdquo;].*)''", re.MULTILINE)
+    # to match external links with href attribute
     re_ext_link = re.compile(r'<ext-link.*href="(?P<EXT_LINK>[^"]*)"', re.MULTILINE)
+    # to match external link for inspirehep.net search with 'find J' query
     re_ext_link_inspire_J = re.compile(r'http[s]?:\/\/inspirehep.net\/search\?p=find\+J\s*"(?P<METADATA>.*)"')
+    # to match external link for inspirehep.net search with 'find doi' query
     re_ext_link_inspire_doi = re.compile(r'http[s]?:\/\/inspirehep.net\/search\?p=find\+doi\s*"(?P<DOI>.*)"')
+    # to match external link for inspirehep.net search with 'find EPRINT' query
     re_ext_link_inspire_EPRINT = re.compile(r'http[s]?:\/\/inspirehep.net\/search\?p=find\+EPRINT\+(?P<ARXIV_ID>.*)')
 
-    re_replace_amp = re.compile(r"&amp;", re.IGNORECASE)
+    # to match 'amp' in a case-insensitive manner
+    re_match_amp = re.compile(r"&amp;", re.IGNORECASE)
 
-    re_unstructured_title_journal = re.compile(r"([:,]+\s*(?P<title>[^.(,]*)[.(,]+)([^<]*)(<italic.*>(?P<journal>.*)</italic>)", re.MULTILINE)
+    # to match unstructured title and journal information with possible HTML tags
+    re_unstructured_title_journal = re.compile(r"([:,]*\s*(?P<title>[^.(,]*)[.(,]+)([^<]*)(<italic.*>(?P<journal>.*)</italic>)", re.MULTILINE)
+    # to match unstructured title information with possible punctuation
     re_unstructured_title = re.compile(r"(:\s*(?P<title>[^.(<_/][A-Za-z.\s]+)[.,(<_/]+)([^<_/]*)", re.MULTILINE)
+    # to match unstructured journal information with optional italic HTML tag
     re_unstructured_journal = re.compile(r"[Ii]?[Nn]?[:,]?\s+(<italic.*>(?P<journal>.*)</italic>)", re.MULTILINE)
 
     def parse(self):
         """
-        
+        parse the JATS reference and extract citation information such as authors, year, title, and DOI
+
         :return:
         """
         self.parsed = 0
@@ -43,11 +58,10 @@ class JATSreference(XMLreference):
             year = self.match_year(refstr)
         issn = self.xmlnode_nodecontents('issn').strip()
 
-        try:
-            # 5/4/2021 types I found in JATs xmls are as follows
-            # journal, book, confproc, other, patent, thesis, eprint, report, website, and supplementary-material
-            type = self.xmlnode_attribute('mixed-citation', 'publication-type')
-        except:
+        # 5/4/2021 types I found in JATs xmls are as follows
+        # journal, book, confproc, other, patent, thesis, eprint, report, website, and supplementary-material
+        type = self.xmlnode_attribute('mixed-citation', 'publication-type')
+        if not type:
             # 5/14/2021 can have something like <mixed-citation publication-type=''>2 ...
             type = "other"
 
@@ -92,8 +106,11 @@ class JATSreference(XMLreference):
             journal = self.xmlnode_nodecontents('source')
 
         if not journal and not title:
+            # need this to identify journal with italic tag
+            unstructured_refstr = self.xmlnode_nodecontents('comment', keepxml=1).strip()
+
             # outlier: some references have title in between colon and dot, and the journal inside italic tag
-            match = self.re_unstructured_title_journal.search(refstr)
+            match = self.re_unstructured_title_journal.search(unstructured_refstr)
             if match:
                 journal = match.group('journal')
                 title = match.group('title')
@@ -103,7 +120,7 @@ class JATSreference(XMLreference):
                 if match:
                     title = match.group('title')
                 # outlier: do we have only journal inside italic tag
-                match = self.re_unstructured_journal.search(refstr)
+                match = self.re_unstructured_journal.search(unstructured_refstr)
                 if match:
                     journal = match.group('journal')
 
@@ -113,7 +130,6 @@ class JATSreference(XMLreference):
             pages = self.xmlnode_nodecontents('page-range')
 
         ext_links = [urllib.parse.unquote(link) for link in self.xmlnode_attributes('ext-link', attrname='href').keys()]
-
 
         doi = self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'doi'}).strip()
         if len(doi) > 0:
@@ -132,21 +148,21 @@ class JATSreference(XMLreference):
                         if doi:
                             self['doi'] = doi
         eprint = self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'arxiv'}).strip()
-        if len(eprint) > 0:
+        if eprint:
             self['eprint'] = eprint.strip()
         else:
             # attempt to extract arxiv id from refstr
             eprint = self.match_arxiv_id(refstr)
             if eprint:
-                self['eprint'] = eprint
-            # see if there is a inspire link for eprint
+                self['eprint'] = f"arXiv:{eprint}"
+            # see if there is an inspire link for eprint
             elif ext_links:
                 for link in ext_links:
                     match = self.re_ext_link_inspire_EPRINT.match(link)
                     if match:
                         eprint = self.match_arxiv_id(match.group('ARXIV_ID'))
                         if eprint:
-                            self['eprint'] = eprint
+                            self['eprint'] = f"arXiv:{eprint}"
 
         if not title:
             match = self.re_title_in_quote.search(refstr)
@@ -180,8 +196,10 @@ class JATSreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
+
         xml_reference = "<mixed-citation publication-type='journal'> <string-name> <given-names>F.</given-names> <surname>Mesa</surname> </string-name>, <string-name> <given-names>G.</given-names> <surname>Valerio</surname> </string-name>, <string-name> <given-names>R.</given-names> <surname>Rodriguez-Berral</surname> </string-name>, and <string-name> <given-names>O.</given-names> <surname>Quevedo-Teruel</surname> </string-name>, &ldquo;Simulation-assisted efficient computation of the dispersion diagram of periodic structures: A comprehensive overview with applications to filters, leaky-wave antennas and metasurfaces,&rdquo; <source>IEEE Antennas Propag. Mag.</source> (published online, 2021).<pub-id pub-id-type='doi' specific-use='metadata'>10.1109/MAP.2020.3003210</pub-id></mixed-citation>"
         xml_reference = "<mixed-citation publication-type='journal'><person-group person-group-type='author'><name><surname>Aminu</surname><given-names>Mohammed D.</given-names></name><name><surname>Nabavi</surname><given-names>Seyed Ali</given-names></name><name><surname>Rochelle</surname><given-names>Christopher A.</given-names></name><name><surname>Manovic</surname><given-names>Vasilije</given-names></name></person-group><article-title xml:lang='en'>A review of developments in carbon dioxide storage</article-title><source>Applied Energy</source><year>2017</year><volume>208</volume><fpage>1389</fpage><lpage>1419</lpage></mixed-citation>"
 
@@ -190,7 +208,7 @@ class JATSreference(XMLreference):
         2- <person-group person-group-type='author'><name><surname> surname-here </surname><given-names> given-name-here </given-names></name></person-group>
         plus tag collab
 
-        :return:
+        :return: a formatted string of authors
         """
         try:
             authors = []
@@ -218,7 +236,7 @@ class JATSreference(XMLreference):
                                 # there is firstname with out the last name or the other way around
                                 # if it is the first author and we have the lastname return that only
                                 if len(authors) == 0 and lastname:
-                                    authors.append(self.to_ascii(lastname.strip()))
+                                    authors = [self.to_ascii(lastname.strip())]
                                     break
                 else:
                     # <person-group person-group-type='author'>
@@ -275,20 +293,14 @@ class JATSreference(XMLreference):
         except:
             return None
 
-    def parse_external_links(self, refstr):
-        """
-
-        :param refstr:
-        :return:
-        """
-        match = self.re_ext_link.findall(refstr)
-        if match:
-            return match
-        return None
-
 
 class JATStoREFs(XMLtoREFs):
+    """
+    This class converts JATS XML references to a standardized reference format. It processes raw JATS references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         # (re.compile(r'</?ext-link.*?>'), ''),
         (re.compile(r'<object-id>.*?</object-id>'), ''),
@@ -298,40 +310,41 @@ class JATStoREFs(XMLtoREFs):
         (re.compile(r'ext-link.*href='), 'ext-link href='),
         (re.compile(r'\s+xlink:href='), ' href=')
     ]
-
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'</?uri.*?>'), ''),
+        (re.compile(r'\s+xlink:href='), ' href='),
         (re.compile(r'\(<comment>.*?</comment>\)'), ''),
         (re.compile(r'<inline-formula[\w\s="\']*>.*?</inline-formula>', re.DOTALL), ''),
         (re.compile(r'<label>.*?</label>'), ''),
         (re.compile(r'<name><surname>(.*)</surname></name><name><surname>(.*)</surname>'), r'<name><surname>\1 \2</surname>')
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the JATStoREFs object to process JATS references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=JATStoREFs, tag='mixed-citation', cleanup=self.block_cleanup)
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -356,6 +369,10 @@ class JATStoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of JATSxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse JATS references')

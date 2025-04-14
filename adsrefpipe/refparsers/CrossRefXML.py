@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
@@ -13,25 +14,35 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 class CrossRefreference(XMLreference):
+    """
+    This class handles parsing CrossRef references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
+    # to match journal names with variations of "A & A" or "AA" (case-insensitive)
     re_journal_a_and_a = re.compile(r'(AA|A& A|A &A)', re.IGNORECASE)
+    # to match author initials and format them correctly (e.g., "A B" -> "A. B.")
     re_author = (re.compile(r'([A-Z]{1,3})(\ .*)'), r'\1.\2')
+    # to remove <i> and <b> HTML tags from unstructured text
     re_unstructured = [
         (re.compile(r'</?i>'), ''),
         (re.compile(r'</?b>'), ''),
     ]
+    # to match first initials
     re_first_initial = re.compile(r'\b\w\.')
+    # to match "et al." or "et al" (case-sensitive)
     re_etal = re.compile(r'\bet\s+al\.?')
 
-    def parse(self, prev_ref=None):
+    def parse(self):
         """
+        parse the WILEY reference and extract citation information such as authors, year, title, and DOI
+
         tags that CrossRef supprts (source per Edwin: https://www.crossref.org/education/metadata-stewardship/maintaining-your-metadata/adding-metadata-to-an-existing-record/#00177)
         ['article_title', 'doi', 'isbn', 'unstructured_citation', 'author', 'series_title', 'journal_title',
          'edition_number', 'cYear', 'volume', 'first_page', 'volume_title', 'issue', 'issn', 'isbn', 'edition_number',
          'std_designator', 'standards_body_name', 'standards_body_acronym', 'component_number']
 
-        :param prev_ref: 
-        :return: 
+        :return:
         """
         self.parsed = 0
 
@@ -96,22 +107,21 @@ class CrossRefreference(XMLreference):
 
         self.parsed = 1
 
-
-    def format_authors(self, ref_str, input_separator=[], input_space=[]):
+    def format_authors(self, ref_str: str, input_separator: List[str] = [], input_space: List[str] = []) -> str:
         """
-        A utility function to format author names commonly found in
-        references.  Reformats string of the kind "F. Last,..."
+        format the authors from a given reference string by processing the input separators and spaces
+
+        a utility function to format author names commonly found in references. reformats strings like "F. Last, ..."
         into "Last, F."; for example:
             I. Affleck, A. W. W. Ludwig, H.-B. Pang and D. L. Cox
         is formatted into:
             Affleck I., Ludwig A. W. W., Pang H.-B., Cox D. L.
-        Also deals properly with "et al." and leaves untouched
-        author strings already in the "Last F." format
+        also handles "et al." properly and leaves author strings already in "Last F." format untouched
 
-        :param ref_str:
-        :param input_separator:
-        :param input_space:
-        :return:
+        :param ref_str: the reference string containing author information to be formatted
+        :param input_separator: a list of separators used to split author names (default is an empty list)
+        :param input_space: a list of space characters that may be used for splitting author names (default is an empty list)
+        :return: a formatted string of authors with appropriate separators and spaces
         """
         separator = input_separator if input_separator != [] else [',', r'\band\b', '&']
         space = input_space if input_space != [] else [' ']
@@ -143,11 +153,11 @@ class CrossRefreference(XMLreference):
 
         return ', '.join(formatted)
 
-
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         authors = self.xmlnode_nodescontents('author')
         new_authors = []
@@ -171,11 +181,13 @@ class CrossRefreference(XMLreference):
             return ', '.join(map(self.format_authors, authors))
         return ''
 
-    def parse_journal(self):
+    def parse_journal(self) -> str:
         """
+        parse journal from the reference string
+
         both journal_title and series_title tags are assigned to journal variable
 
-        :return:
+        :return: the journal if found, otherwise None
         """
         journal = self.xmlnode_nodecontents('journal_title')
         if journal:
@@ -189,11 +201,13 @@ class CrossRefreference(XMLreference):
             return journal
         return None
 
-    def parse_title(self):
+    def parse_title(self) -> str:
         """
+        parse the title from the reference string
+
         both article_title and volume_title tags are assigned to title variable
 
-        :return:
+        :return: the title if found, otherwise None
         """
         for title in ['article_title', 'volume_title']:
             title_str = self.xmlnode_nodecontents(title)
@@ -203,36 +217,46 @@ class CrossRefreference(XMLreference):
 
 
 class CrossRefToREFs(XMLtoREFs):
+    """
+    This class converts CrossRef XML references to a standardized reference format. It processes raw CrossRef references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'<ref_issue>.*?</ref_issue>'), ''),
     ]
 
+    # to match and skip citation tags with a specific key followed by closing citation list tag
     re_skip = re.compile(r'<citation\ key=".*?"\ />\s*</citation_list>', re.DOTALL | re.VERBOSE)
+    # to match line feed characters
     re_linefeed = re.compile(r'\n')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the CrossReftoREFs object to process CrossRef references
 
-        :param filename:
-        :param buffer:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=CrossRefToREFs, tag='citation')
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -259,6 +283,10 @@ class CrossRefToREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of CrossRefXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse CrossRef references')

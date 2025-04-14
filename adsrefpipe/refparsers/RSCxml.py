@@ -2,6 +2,7 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
@@ -14,20 +15,27 @@ from adsrefpipe.refparsers.unicode import tostr
 
 
 class RSCreference(XMLreference):
+    """
+    This class handles parsing RSC references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_remove_spaces = re.compile(r'\s\s+')
+    # to match multiple consecutive spaces
+    re_match_spaces = re.compile(r'\s\s+')
+    # to match various forms of "thesis" or "dissertation" (case-insensitive)
     re_match_thesis = re.compile(r'(MS thesis|PhD Thesis|PhD|Ph.D.|Thesis|Dissertation|Doctoral)', re.IGNORECASE)
-    re_first = re.compile(r'\b\w\.')
+    # to match first initials
+    re_first_initial = re.compile(r'\b\w\.')
 
-    def parse(self, prevref=None):
+    def parse(self):
         """
+        parse the RSC reference and extract citation information such as authors, year, title, and DOI
 
-        :param prevref:
         :return:
         """
         self.parsed = 0
 
-        refstr = self.re_remove_spaces.sub(' ', self.xmlnode_nodecontents('citgroup'))
+        refstr = self.re_match_spaces.sub(' ', self.xmlnode_nodecontents('citgroup'))
 
         authors = self.parse_authors()
         year = self.xmlnode_nodecontents('year')
@@ -73,7 +81,7 @@ class RSCreference(XMLreference):
         if doi:
             self['doi'] = doi
         if eprint:
-            self['eprint'] = eprint
+            self['eprint'] = f"arXiv:{eprint}"
 
         self['refstr'] = self.get_reference_str()
         if not self['refstr']:
@@ -81,10 +89,11 @@ class RSCreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         author_list = []
         authors = self.xmlnode_nodescontents('citauth', keepxml=1)
@@ -99,9 +108,9 @@ class RSCreference(XMLreference):
             authors = self.xmlnode_nodescontents('editor')
             for author in authors:
                 # reverse author's first/last names in the form "F. Last1, O. Last2..."
-                if self.re_first.match(author):
-                    givennames = ' '.join(self.re_first.findall(author))
-                    an_author = self.re_remove_spaces.sub('', self.re_first.sub('', author)).strip('-').strip()
+                if self.re_first_initial.match(author):
+                    givennames = ' '.join(self.re_first_initial.findall(author))
+                    an_author = self.re_match_spaces.sub('', self.re_first_initial.sub('', author)).strip('-').strip()
                     if an_author and givennames: an_author += ', ' + givennames
                     if an_author: author_list.append(an_author)
 
@@ -109,7 +118,12 @@ class RSCreference(XMLreference):
 
 
 class RSCtoREFs(XMLtoREFs):
+    """
+    This class converts RSC XML references to a standardized reference format. It processes raw RSC references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'</?uri.*?>'), ' href='),
         (re.compile(r'</?SU[BP]>', flags=re.IGNORECASE), ''),   # remove SUB/SUP tags
@@ -117,21 +131,20 @@ class RSCtoREFs(XMLtoREFs):
         (re.compile(r'</?bo>', flags=re.IGNORECASE), r''),      # remove bold tag
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the RSCtoREFs object to process RSC references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=RSCtoREFs, tag='citgroup', cleanup=self.block_cleanup)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -154,6 +167,10 @@ class RSCtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of RSCxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse RSC references')

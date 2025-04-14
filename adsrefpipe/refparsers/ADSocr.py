@@ -2,34 +2,41 @@
 import sys, os
 import argparse
 import re
-
-from adsrefpipe.refparsers.toREFs import OCRtoREFs
-from adsrefpipe.refparsers.reference import unicode_handler
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.toREFs import OCRtoREFs
+from adsrefpipe.refparsers.reference import unicode_handler
+
 
 class ADSocrToREFs(OCRtoREFs):
+    """
+    Class for handling OCR to references conversion for ADS documents.
+    """
 
-    def __init__(self, filename, buffer, parsername=None):
+    def __init__(self, filename: str, buffer: str, parsername: str = None):
         """
+        initialize the ADSocrToREFs parser
 
-        :param filename:
-        :param buffer:
+        :param filename: path to the source file
+        :param buffer: the latex references in buffer form
+        :param parsername: the name of the parser (optional)
         """
         if not parsername:
             parsername = ADSocrToREFs
         OCRtoREFs.__init__(self, filename, buffer, parsername)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
+        # method implementation
         references = []
         for raw_block_references in self.raw_references:
             bibcode = raw_block_references['bibcode']
@@ -48,27 +55,37 @@ class ADSocrToREFs(OCRtoREFs):
         return references
 
 class ObsOCRtoREFs(ADSocrToREFs):
+    """
+    Class for handling OCR to references conversion for OBS documents.
+    """
 
+    # all punctuation characters used in reference parsing
     punctuations = r'!\"#\$%&\'\(\)\*\+,-\./:;<=>\?@\[\]\^_`{\|}~\\'
+    # to match enumerations in references
     enumeration = r'^\s*[%s]*[\dOoIiSsta]{1,3}[a-z]{0,1}[%s\s]+' % (punctuations, punctuations)
+    # to look ahead for patterns in enumerations
     enumeration_lookahead = r'(?=.*[A-Z]{1}[\.\s]+)(?=.*[12]\d\d\d[a-z]*)?'
+    # to match the start of a reference based on enumeration
     re_reference_start = re.compile(r'(%s)%s' % (enumeration, enumeration_lookahead))
+    # to match enumeration from reference lines
     re_remove_enumeration = re.compile(r'%s%s' % (enumeration, enumeration_lookahead))
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the ObsOCRtoREFs parser
 
-        :param filename:
-        :param buffer:
+        :param filename: path to the source file
+        :param buffer: the latex references in buffer form
         """
         ADSocrToREFs.__init__(self  , filename, buffer, parsername=ObsOCRtoREFs)
 
-    def get_references(self, filename, encoding="ISO-8859-1"):
+    def get_references(self, filename: str, encoding: str = "ISO-8859-1") -> List[Dict[str, List[str]]]:
         """
-        read reference file for this text format
+        read and extract references from the specified file
 
-        :param filename:
-        :return:
+        :param filename: path to the reference file
+        :param encoding: encoding used for reading the file (default is ISO-8859-1)
+        :return: list of references found in the file
         """
         try:
             references = []
@@ -118,9 +135,10 @@ class ObsOCRtoREFs(ADSocrToREFs):
             logger.error('Exception: %s' % (str(e)))
             return []
 
-def toREFs(filename, buffer):      # pragma: no cover
+
+def toREFs(filename: str, buffer: str):      # pragma: no cover
     """
-    this is a local function, called from main, for testing purposes.
+    this is a local function, called from main, for testing purposes
 
     :param filename:
     :param buffer:
@@ -136,6 +154,12 @@ def toREFs(filename, buffer):      # pragma: no cover
         for i, reference in enumerate(result['references']):
             print(i + 1, reference['refstr'])
 
+
+
+# This is the main program used for manual testing and verification of OCR references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse latex references')
     parser.add_argument('-f', '--filename', help='the path to source file')

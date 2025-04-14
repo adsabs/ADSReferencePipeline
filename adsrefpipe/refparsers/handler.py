@@ -45,6 +45,7 @@ from adsrefpipe.refparsers.ADStex import ADStexToREFs
 from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
 from adsrefpipe.refparsers.ADStxt import ADStxtToREFs, PThPhTXTtoREFs, ThreeBibstemsTXTtoREFs, PairsTXTtoREFs
 
+# dictionary that maps parser names to their corresponding parser classes
 name_to_parser_dict = {
     'AAS': AAStoREFs,
     'ADSocr': ADSocrToREFs,
@@ -101,6 +102,7 @@ name_to_parser_dict = {
     'PairsTXTE3': PairsTXTtoREFs,
     'PairsTXTE4': PairsTXTtoREFs,
     'PairsTXTE5': PairsTXTtoREFs,
+    'PairsTXTE6': PairsTXTtoREFs,
     'PASA': PASAtoREFs,
     'PASJhtml': PASJHTMLtoREFs,
     'PASPhtml': PASPHTMLtoREFs,
@@ -116,11 +118,11 @@ name_to_parser_dict = {
     'WILEY': WILEYtoREFs,
 }
 
-def verify(parser_name):
+def verify(parser_name: str):
     """
+    based on parser name, return the corresponding parser class from the dictionary
 
     :param parser_name: parser name from db
-    :return:
+    :return: the parser class associated with the name, or None if not found
     """
-    # based on parser name return the parser class
     return name_to_parser_dict.get(parser_name, None)

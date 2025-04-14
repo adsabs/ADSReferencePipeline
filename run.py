@@ -3,6 +3,7 @@ import os, fnmatch
 
 from adsputils import setup_logging, load_config, get_date
 from datetime import timedelta
+import time
 
 import argparse
 
@@ -17,12 +18,13 @@ app = tasks.app
 logger = setup_logging('run.py')
 
 
-def run_diagnostics(bibcodes, source_filenames):
+def run_diagnostics(bibcodes: list, source_filenames: list) -> None:
     """
-    Show information about what we have in our storage.
+    show diagnostic information based on the provided bibcodes and source filenames
 
-    :param: bibcodes - list of bibcodes
-    :param: source_filenames - list of source filenames
+    :param bibcodes: list of bibcodes to retrieve diagnostic data for
+    :param source_filenames: list of source filenames to retrieve diagnostic data for
+    :return: None
     """
     max_entries_diagnostics = config['MAX_ENTRIES_DIAGNOSTICS']
     # make sure we only send max number of entires per bibcode/source_file to be queried
@@ -36,10 +38,13 @@ def run_diagnostics(bibcodes, source_filenames):
     return
 
 
-def get_source_filenames(source_file_path, file_extension, date_cutoff):
+def get_source_filenames(source_file_path: str, file_extension: str, date_cutoff: time.struct_time) -> list:
     """
-    :param source_file_path:
-    :param date_cutoff: if modified date is after this date
+    retrieves a list of files from the given directory with the specified file extension and modified date after the cutoff
+
+    :param source_file_path: the path of the directory to search for files
+    :param file_extension: the file extension pattern to match
+    :param date_cutoff: the modified date cutoff, files modified after this date will be included only
     :return: list of files in the directory with modified date after the cutoff, if any
     """
     list_files = []
@@ -52,14 +57,15 @@ def get_source_filenames(source_file_path, file_extension, date_cutoff):
     return list_files
 
 
-def queue_references(references, source_filename, source_bibcode, parsername):
+def queue_references(references: list, source_filename: str, source_bibcode: str, parsername: str) -> None:
     """
+    queues references for processing by preparing a task and sending it to the queue
 
-    :param reference:
-    :param source_filename:
-    :param source_bibcode:
-    :param parsername:
-    :return:
+    :param references: a list of reference objects to be queued for processing
+    :param source_filename: the name of the source file from which references are being queued
+    :param source_bibcode: the bibcode associated with the source of the references
+    :param parsername: the name of the parser used to extract the references
+    :return: None
     """
     resolver_service_url = config['REFERENCE_PIPELINE_SERVICE_URL'] + app.get_reference_service_endpoint(parsername)
     for reference in references:
@@ -67,16 +73,20 @@ def queue_references(references, source_filename, source_bibcode, parsername):
                           'source_bibcode': source_bibcode,
                           'source_filename': source_filename,
                           'resolver_service_url': resolver_service_url}
-        tasks.task_process_reference.delay(reference_task)
+        # tasks.task_process_reference.delay(reference_task)
+        print('---here')
+        tasks.task_process_reference(reference_task)
 
 
-def process_files(filenames):
+def process_files(filenames: list) -> None:
     """
-    two ways to queue references: one is to read source files, the other is to query database
-    this is to read the source reference file and queue each reference for processing
+    processes the given list of filenames by reading source reference files and sending each reference for processing
 
-    :param files:
-    :return:
+    note that there are two ways to queue references: one is to read source files, the other is to query database
+    this function handles the former
+
+    :param filenames: list of filenames to be processed
+    :return: None
     """
     for filename in filenames:
         # from filename get the parser info
@@ -128,15 +138,18 @@ def process_files(filenames):
             logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
 
-def reprocess_references(reprocess_type, score_cutoff=0, match_bibcode='', date_cutoff=None):
+def reprocess_references(reprocess_type: str, score_cutoff: float = 0, match_bibcode: str = '', date_cutoff: time.struct_time = None) -> None:
     """
-    two ways to queue references: one is to read source files, the other is to query database
-    this is to query the db and queue each reference for processing
+    reprocesses references by querying the database and sending each reference for processing
 
-    :param reprocess_type:
-    :param param:
-    :param date_cutoff:
-    :return:
+    two ways to queue references: one is to read source files, the other is to query database
+    this function handles the latter
+
+    :param reprocess_type: the type of query to be performed to get references (e.g., by score, bibstem, year, etc.)
+    :param score_cutoff: confidence score below which references will be reprocessed (default is 0)
+    :param match_bibcode: bibcode wildcard to match for reprocessing (optional)
+    :param date_cutoff: only references after this date will be considered (optional)
+    :return: None
     """
     records = app.get_reprocess_records(reprocess_type, score_cutoff, match_bibcode, date_cutoff)
     for record in records:
@@ -289,15 +302,28 @@ if __name__ == '__main__':
                        action='store_true',
                        help='Print out the count of records in the four main tables')
 
+    query = subparsers.add_parser('QUERY', help='Print out statistics of the reference source file')
+    query.add_argument('-b',
+                        '--bibcode',
+                        dest='bibcode',
+                        action='store',
+                        default=None,
+                        help='Query database by source bibcode, return resolved bibcodes')
+    query.add_argument('-a',
+                       '--all',
+                       dest='all',
+                       action='store_true',
+                       help='Return all resolved bibcode')
+
     args = parser.parse_args()
 
     if args.action == 'DIAGNOSTICS':
         if args.parse_filename:
             name = app.get_parser(args.parse_filename)
             if name:
-                print('Source file `%s` shall be parsed using `%s` parser.' % (args.parse_filename, name))
+                logger.info('Source file `%s` shall be parsed using `%s` parser.' % (args.parse_filename, name))
             else:
-                print('No parser yet to parse source file `%s`.' % args.parse_filename)
+                logger.error('No parser yet to parse source file `%s`.' % args.parse_filename)
         # either pass in the list of bibcodes, or list of filenames to query db on
         # if neither bibcode nor filenames are supplied, number of records for the tables are displayed
         else:
@@ -308,9 +334,9 @@ if __name__ == '__main__':
             process_files(args.source_filenames)
         elif args.path or args.extension:
             if not args.extension:
-                print('Both path and extension are required params. Provide extention by -e <extension of files to locate in the path directory>.')
+                logger.error('Both path and extension are required params. Provide extention by -e <extension of files to locate in the path directory>.')
             elif not args.path:
-                print('Both path and extension are required params. Provide path by -p <path of source files for resolving>.')
+                logger.error('Both path and extension are required params. Provide path by -p <path of source files for resolving>.')
             else:
                 # if days has been specified, read it and only consider files with date from today-days,
                 # otherwise we are going with everything
@@ -334,9 +360,9 @@ if __name__ == '__main__':
             date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
             reprocess_references(ReprocessQueryType.failed, date_cutoff=date_cutoff)
 
-
     # TODO: do we need more command for querying db
 
+    # keeping prints for stats commands, since the user possibly wants to see the replies, instead of seeing them in logs
     elif args.action == 'STATS':
         if args.bibcode or args.source_filename:
             table, num_references, num_resolved = app.get_service_classic_compare_stats_grid(args.bibcode, args.source_filename)
@@ -357,5 +383,12 @@ if __name__ == '__main__':
             for result in results:
                 print('Currently there are %d records in `%s` table, which holds %s.'%(result['count'], result['name'], result['description']))
             print('\n')
+
+    elif args.action == 'QUERY':
+        results = app.get_resolved_references('0000PThPS...0.....U')
+        for r in results:
+            print(r)
+        # if args.all:
+        # else:
 
     sys.exit(0)

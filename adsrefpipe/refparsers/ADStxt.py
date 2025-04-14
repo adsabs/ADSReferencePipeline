@@ -2,37 +2,42 @@
 import sys, os
 import regex as re
 import argparse
-
-from adsrefpipe.refparsers.toREFs import TXTtoREFs
-from adsrefpipe.refparsers.reference import unicode_handler, LatexReference
+from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.toREFs import TXTtoREFs
+from adsrefpipe.refparsers.reference import unicode_handler, LatexReference
+
 
 class ADStxtToREFs(TXTtoREFs):
+    """
+    This class is responsible for parsing and processing text references in ADS format.
+    """
 
     # some text references have latex code, remove them
     latex_reference = LatexReference("")
 
-    def __init__(self, filename, buffer, parsername=None):
+    def __init__(self, filename: str, buffer: str, parsername: str = None):
         """
+        initialize the ADStxtToREFs object
 
-        :param filename:
-        :param buffer:
+        :param filename: the reference file to parse
+        :param buffer: the content of the reference file
+        :param parsername: optional name for the parser
         """
         if not parsername:
             parsername = ADStxtToREFs
         TXTtoREFs.__init__(self, filename, buffer, parsername)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -52,22 +57,27 @@ class ADStxtToREFs(TXTtoREFs):
         return references
 
 class ARAnATXTtoREFs(ADStxtToREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes references from ARAnA format text files.
+    """
 
-        :param filename:
-        :param reader:
+    def __init__(self, filename: str, buffer: str):
+        """
+        initialize the ARAnATXTtoREFs object
+
+        :param filename: the reference file to parse
+        :param buffer: the content of the reference file
         """
         ADStxtToREFs.__init__(self, filename, buffer, parsername=ARAnATXTtoREFs)
 
-    def get_references(self, filename, encoding="ISO-8859-1"):
+    def get_references(self, filename: str, encoding: str = "ISO-8859-1") -> List[Dict]:
         """
-        read reference file for this text format
+        read reference file for ARAnA text format
 
-        :param filename:
-        :return:
+        :param filename: the reference file to parse
+        :param encoding: the file encoding to use
+        :return: list of parsed references
         """
-
         try:
             references = []
 
@@ -85,7 +95,10 @@ class ARAnATXTtoREFs(ADStxtToREFs):
                 if bibcode:
                     is_enumerated = False
                     if len(reader) > 1:
-                        if self.re_enumeration.search(reader[0]) or self.re_enumeration.search(reader[1]):
+                        for i, line in enumerate(reader):
+                            if line.startswith('%'):
+                                continue
+                        if self.re_enumeration.search(reader[i]):
                             is_enumerated = True
 
                     block_references = []
@@ -103,6 +116,7 @@ class ARAnATXTtoREFs(ADStxtToREFs):
                         references.append([bibcode, block_references])
                 else:
                     logger.error("Error in getting the bibcode from the reference file name %s. Skipping!" % (filename))
+                    return []
 
             if len(references) > 0:
                 logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
@@ -113,28 +127,36 @@ class ARAnATXTtoREFs(ADStxtToREFs):
             logger.error('Exception: %s' % (str(e)))
             return []
 
-class PThPhTXTtoREFs(ADStxtToREFs):
 
+class PThPhTXTtoREFs(ADStxtToREFs):
+    """
+    This class processes references from PThPh text files, handling author inheritance and other formatting.
+    """
+
+    # to match "ibid." with optional preceding punctuation or whitespace
     re_author_list_placeholder = re.compile(r'(?:^|[;,.\s]+)ibid.')
+    # to match the author list placeholder pattern "; ibid."
     author_list_placeholder_pattern = '; ibid.'
+    # to match prior volume and year information in references
     re_prior_volume_year = re.compile(r'(.*)(?=[\s\.,]+\d+[\s\(]+[12]+\d\d\d[a-z]*)')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the PThPhTXTtoREFs object
 
-        :param filename:
-        :param reader:
+        :param filename: the reference file to parse
+        :param buffer: the content of the reference file
         """
         ADStxtToREFs.__init__(self, filename, buffer, parsername=PThPhTXTtoREFs)
 
-    def verify_accept(self, block_references, cur_reference, prev_reference):
+    def verify_accept(self, block_references: List[str], cur_reference: str, prev_reference: str) -> Tuple[List[str], str]:
         """
-        verify that this is a complete reference, fix author inheritance if need to, and append it to the structure
+        verify and process a reference, fixing author inheritance if necessary
 
-        :param block_references:
-        :param cur_reference:
-        :param prev_reference:
-        :return:
+        :param block_references: the current block of references
+        :param cur_reference: the current reference string
+        :param prev_reference: the previous reference string
+        :return: updated block references and previous reference
         """
         multi_reference = self.re_author_list_placeholder.split(self.cleanup(cur_reference))
         multi_reference = [multi_reference[0]] + [self.author_list_placeholder_pattern + single_reference for single_reference in multi_reference[1:]]
@@ -145,12 +167,13 @@ class PThPhTXTtoREFs(ADStxtToREFs):
                 prev_reference = reference
         return block_references, prev_reference
 
-    def get_references(self, filename, encoding="ISO-8859-1"):
+    def get_references(self, filename: str, encoding: str = "ISO-8859-1") -> List[Dict]:
         """
-        read reference file for this text format
+        read reference file for PThPh text format
 
-        :param filename:
-        :return:
+        :param filename: the reference file to parse
+        :param encoding: the file encoding to use
+        :return: list of parsed references
         """
         try:
             references = []
@@ -188,61 +211,50 @@ class PThPhTXTtoREFs(ADStxtToREFs):
             logger.error('Exception: %s' % (str(e)))
             return []
 
-    def fix_inheritance(self, cur_refstr, prev_refstr):
-        """
-        if author list is the same as the reference above it, for this publication the place holder
-        is ibid followed by volume and then year, hence
-        get the list of authors from the previous reference and add it to the current one
-
-        :param cur_refstr:
-        :param prev_refstr:
-        :return:
-        """
-        match = self.re_author_list_placeholder.match(cur_refstr)
-        if match and prev_refstr and len(prev_refstr) > 1:
-            try:
-                # find the volume/year and return everything that came before it
-                prev_authors = self.re_prior_volume_year.match(prev_refstr)
-                if prev_authors:
-                    cur_refstr = prev_authors.group().strip() + " " + cur_refstr[match.end():].strip()
-            except TypeError:
-                pass
-        return cur_refstr
 
 class FlatTXTtoREFs(ADStxtToREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes references from a flat text format without block indicators.
+    """
 
-        :param filename:
-        :param reader:
+    def __init__(self, filename: str, buffer: str):
+        """
+        initialize the FlatTXTtoREFs object
+
+        :param filename: the reference file to parse
+        :param buffer: the content of the reference file
         """
         ADStxtToREFs.__init__(self, filename, buffer, parsername=FlatTXTtoREFs)
 
-    def get_references(self, filename, encoding="ISO-8859-1"):
+    def get_references(self, filename: str, encoding: str = "ISO-8859-1") -> List[Dict]:
         """
-        read reference file for this text format
+        read reference file for flat text format
 
-        :param filename:
-        :return:
+        :param filename: the reference file to parse
+        :param encoding: the file encoding to use
+        :return: list of parsed references
         """
         try:
             references = []
+            with open(filename, 'r', encoding=encoding, errors='ignore') as f:
+                reader = f.readlines()
+                block_references = []
+                prev_reference = ''
 
-            match = self.re_bibcode.match(os.path.basename(filename))
-            if match:
-                bibcode = match.group(1)
+                bibcode = None
+                match = self.re_bibcode.match(os.path.basename(filename))
+                if match:
+                    bibcode = match.group(1)
 
-                with open(filename, 'r', encoding=encoding, errors='ignore') as f:
-                    reader = f.readlines()
-                    block_references = []
-                    prev_reference = ''
-                    for line in reader:
-                        if not line.strip():
-                            continue
-                        if self.is_reference(line):
-                            reference = self.fix_inheritance(line, prev_reference)
-                            block_references.append(reference.strip())
-                            prev_reference = reference
+                for line in reader:
+                    if not line.strip():
+                        continue
+                    if self.is_reference(line):
+                        reference = self.fix_inheritance(line, prev_reference)
+                        block_references.append(reference.strip())
+                        prev_reference = reference
+
+                if bibcode and block_references:
                     references.append([bibcode, block_references])
             if len(references) > 0:
                 logger.debug("Read source file %s, and got %d references to resolve for bibcode %s." % (filename, len(references), bibcode))
@@ -253,18 +265,22 @@ class FlatTXTtoREFs(ADStxtToREFs):
             logger.error('Exception: %s' % (str(e)))
             return []
 
+
 class ThreeBibstemsTXTtoREFs(TXTtoREFs):
     """
-    This is to process multiple flavors of the three bibstems: ARA+A, ARNPS, AnRFM
-    some of the references for these bibstems have normal formats, with %R and %Z flags in the file
-    some they do not, for those bibstem is extracted from the filename and the entire file is one record
+    This class processes multiple flavors of the three bibstems: ARA+A, ARNPS, and AnRFM.
+    Some references have flags like %R and %Z, while others do not, relying on the bibstem extracted from the filename.
     """
-    re_block_indicator = re.compile(r'(%R|%Z)')
-    def __init__(self, filename, buffer):
-        """
 
-        :param filename:
-        :param reader:
+    # to match block indicators like %R and %Z
+    re_block_indicator = re.compile(r'(%R|%Z)')
+
+    def __init__(self, filename: str, buffer: str):
+        """
+        initialize the ThreeBibstemsTXTtoREFs object
+
+        :param filename: the reference file to parse
+        :param buffer: the content of the reference file
         """
         # see which flavor of the reference file to process, are there flag indicators in the file
         with open(filename, 'r', encoding="ISO-8859-1", errors='ignore') as f:
@@ -283,28 +299,37 @@ class ThreeBibstemsTXTtoREFs(TXTtoREFs):
         else:
             self.parser = FlatTXTtoREFs(filename=filename, buffer=buffer)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         return self.parser.process_and_dispatch()
 
-class PairsTXTtoREFs(ADStxtToREFs):
-    def __init__(self, filename, buffer):
-        """
 
-        :param filename:
-        :param reader:
+class PairsTXTtoREFs(ADStxtToREFs):
+    """
+    This class processes references from a pairs text format, which can be separated by semicolons or tabs.
+    """
+
+    def __init__(self, filename: str, buffer: str):
+        """
+        initialize the PairsTXTtoREFs object
+
+        :param filename: the reference file to parse
+        :param buffer: the content of the reference file
         """
         ADStxtToREFs.__init__(self, filename, buffer, parsername=PairsTXTtoREFs)
 
-    def get_references(self, filename, encoding="ISO-8859-1"):
-        """
-        read reference file for this text format
 
-        :param filename:
-        :return:
+    def get_references(self, filename: str, encoding: str = "ISO-8859-1") -> List[Dict]:
+        """
+        read reference file for pairs text format
+
+        :param filename: the reference file to parse
+        :param encoding: the file encoding to use
+        :return: list of parsed references
         """
         try:
             references = []
@@ -324,7 +349,10 @@ class PairsTXTtoREFs(ADStxtToREFs):
                         # for this flavor, the order is: manuscript bibcode, citation bibcode, and possible refstr
                         if not accumulator.get(fields[0], None):
                             accumulator[fields[0]] = []
-                        accumulator[fields[0]].append((fields[1], fields[2]))
+                        if len(fields) == 3:
+                            accumulator[fields[0]].append((fields[1], fields[2]))
+                        elif len(fields) == 2:
+                            accumulator[fields[0]].append((fields[1]))
                     else:
                         fields = line.split('\t')
                         # for this flavor, the order is: citation bibcode, and manuscript bibcode
@@ -333,7 +361,8 @@ class PairsTXTtoREFs(ADStxtToREFs):
                         accumulator[fields[1]].append((fields[0]))
 
             for bibcode,block_references in accumulator.items():
-                references.append([bibcode, block_references])
+                if bibcode and block_references[0]:
+                    references.append([bibcode, block_references])
 
             if len(references) > 0:
                 logger.debug("Read source file %s, and got %d records." % (filename, len(references)))
@@ -344,11 +373,11 @@ class PairsTXTtoREFs(ADStxtToREFs):
             logger.error('Exception: %s' % (str(e)))
             return []
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -370,9 +399,10 @@ class PairsTXTtoREFs(ADStxtToREFs):
 
         return references
 
-def toREFs(filename, buffer):      # pragma: no cover
+
+def toREFs(filename: str, buffer: str):      # pragma: no cover
     """
-    this is a local function, called from main, for testing purposes.
+    this is a local function, called from main, for testing purposes
 
     :param filename:
     :param buffer:
@@ -393,6 +423,11 @@ def toREFs(filename, buffer):      # pragma: no cover
         for i, reference in enumerate(result['references']):
             print(i + 1, reference['refstr'])
 
+
+# This is the main program used for manual testing and verification of text references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AcASn Text references')
     parser.add_argument('-f', '--filename', help='the path to source file')
@@ -407,6 +442,7 @@ if __name__ == '__main__':  # pragma: no cover
         txt_testing = [
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARA+A/0/0001ARA+A...0.....Z.ref.refs'),
+            (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARA+A/0/0002ARA+A...0.....Z.ref.refs'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARNPS/0/0000ADSTEST.0.....Z.ref.raw'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/ARNPS/0/0001ARNPS...0.....Z.ref.txt'),
             (ThreeBibstemsTXTtoREFs, '/../tests/unittests/stubdata/txt/AnRFM/0/0000ADSTEST.0.....Z.ref.raw'),

@@ -2,9 +2,9 @@ import sys, os
 import regex as re
 import argparse
 import html
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -14,45 +14,46 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 class ICARUSreference(XMLreference):
+    """
+    This class handles parsing ICARUS references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_xml_to_text = re.compile(r'<([A-Za-z_]*)\b[^>]*>(?P<ref_str>.*?)</\1>')
-
-    re_article = re.compile(r'<ADSBIBCODE>(?P<bibcode>.*?)</ADSBIBCODE>', flags=re.VERBOSE | re.DOTALL)
-    re_citation = re.compile(r'<CITATION[^\>]*\>(?P<citation>.*?)</CITATION>', flags=re.VERBOSE | re.DOTALL)
-
-    re_replace_amp = re.compile(r'__amp__')
+    # to match 'amp'
+    re_match_amp = re.compile(r'__amp__')
 
     def parse(self):
         """
+        parse the ICARUS reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
         self.parsed = 0
 
-        theref = self.reference_str.toxml()
+        the_ref = self.reference_str.toxml()
 
-        authors = self.parse_authors(theref)
-        theref, year = self.extract_tag(theref, 'DATE', foldcase=1)
+        authors = self.parse_authors(the_ref)
+        the_ref, year = self.extract_tag(the_ref, 'DATE', foldcase=1)
         # see if year is in plaintext
         if not year:
-            year = self.match_year(theref)
-        theref, title = self.extract_tag(theref, 'TITLE', foldcase=1)
+            year = self.match_year(the_ref)
+        the_ref, title = self.extract_tag(the_ref, 'TITLE', foldcase=1)
         if not title:
-            theref, title = self.extract_tag(theref, 'BKTITLE', foldcase=1)
-        theref, edition = self.extract_tag(theref, 'EDITION', foldcase=1)
+            the_ref, title = self.extract_tag(the_ref, 'BKTITLE', foldcase=1)
+        the_ref, edition = self.extract_tag(the_ref, 'EDITION', foldcase=1)
         if edition and title:
             title += ('%s Ed.'%edition)
         if title:
-            title = html.unescape(self.unicode.cleanall(self.re_replace_amp.sub('&', title)))
-        theref, journal = self.extract_tag(theref, 'SERTITLE', foldcase=1)
+            title = html.unescape(self.unicode.cleanall(self.re_match_amp.sub('&', title)))
+        the_ref, journal = self.extract_tag(the_ref, 'SERTITLE', foldcase=1)
         if not journal:
-            theref, journal = self.extract_tag(theref, 'SERIESTITLE', foldcase=1)
-        theref, volume = self.extract_tag(theref, 'VID', foldcase=1)
+            the_ref, journal = self.extract_tag(the_ref, 'SERIESTITLE', foldcase=1)
+        the_ref, volume = self.extract_tag(the_ref, 'VID', foldcase=1)
         if not volume:
-            theref, volume = self.extract_tag(theref, 'CHAPTERNO', foldcase=1)
-        theref, pages = self.extract_tag(theref, 'FPAGE', foldcase=1)
+            the_ref, volume = self.extract_tag(the_ref, 'CHAPTERNO', foldcase=1)
+        the_ref, pages = self.extract_tag(the_ref, 'FPAGE', foldcase=1)
         if not pages:
-            theref, pages = self.extract_tag(theref, 'PAGES', foldcase=1)
+            the_ref, pages = self.extract_tag(the_ref, 'PAGES', foldcase=1)
 
         # these fields are already formatted the way we expect them
         self['authors'] = authors
@@ -70,63 +71,72 @@ class ICARUSreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self, theref):
+    def parse_authors(self, the_ref: str) -> str:
         """
-
-        :param theref:
-        :return:
+        parses and formats author names
+        
+        :param the_ref: reference string to parse
+        :return: formatted author string
         """
-        authors, author = self.extract_tag(theref, 'AUTHOR')
+        authors, author = self.extract_tag(the_ref, 'AUTHOR')
         author_list = []
         while author:
             an_author = ''
             author, lname = self.extract_tag(author, 'SURNAME')
             author, fname = self.extract_tag(author, 'FNAME')
-            if lname: an_author = html.unescape(self.unicode.cleanall(self.re_replace_amp.sub('&', lname)))
-            if an_author and fname: an_author += ', ' + html.unescape(self.unicode.u2asc(self.re_replace_amp.sub('&', fname)))
+            if lname: an_author = html.unescape(self.unicode.cleanall(self.re_match_amp.sub('&', lname)))
+            if an_author and fname: an_author += ', ' + html.unescape(self.unicode.u2asc(self.re_match_amp.sub('&', fname)))
             if an_author: author_list.append(an_author)
             authors, author = self.extract_tag(authors, 'AUTHOR')
 
-        if not author_list:
-            _, collabration = self.extract_tag(theref, 'CORPAUTH')
-            if collabration:
-                _, oname = self.extract_tag(collabration, 'ORGNAME')
-                return oname
-
         # these fields are already formatted the way we expect them
-        return ', '.join(author_list)
+        authors = ', '.join(author_list)
+
+        _, collabration = self.extract_tag(the_ref, 'CORPAUTH')
+        if collabration:
+            _, organization = self.extract_tag(collabration, 'ORGNAME')
+            if organization:
+                return f"{organization}, {authors}"
+
+        return authors
 
 
 class ICARUStoREFs(XMLtoREFs):
+    """
+    This class converts ICARUS XML references to a standardized reference format. It processes raw ICARUS references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'<AUTHOR TYPE="\w+">'), '<AUTHOR>'),
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the ICARUStoREFs object to process ICARUS references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=ICARUStoREFs, tag='CITATION')
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -143,7 +153,7 @@ class ICARUStoREFs(XMLtoREFs):
                     icarus_reference = ICARUSreference(reference)
                     parsed_references.append(self.merge({**icarus_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
-                    logger.error("IcarusXML: error parsing reference: %s" % error_desc)
+                    logger.error("ICARUSxml: error parsing reference: %s" % error_desc)
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
@@ -151,6 +161,10 @@ class ICARUStoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of IcarusXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Icarus references')

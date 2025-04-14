@@ -3,20 +3,25 @@ import sys, os
 import regex as re
 import argparse
 import urllib.parse
+from typing import List, Dict
+
+from adsputils import setup_logging, load_config
+logger = setup_logging('refparsers')
+config = {}
+config.update(load_config())
 
 from adsrefpipe.refparsers.toREFs import HTMLtoREFs
 from adsrefpipe.refparsers.reference import unicode_handler
 from adsrefpipe.utils import get_bibcode as get_bibcode_from_doi, verify_bibcode
 
-from adsputils import setup_logging, load_config
-
-logger = setup_logging('refparsers')
-config = {}
-config.update(load_config())
-
 
 class ADSHTMLtoREFs(HTMLtoREFs):
+    """
+    This class processes ADS HTML references and converts them into a standardized reference format.
+    It handles reference cleanup and parsing of citation information like authors, title, year, journal, volume, pages, DOI, and eprint.
+    """
 
+    # list of regex patterns to clean the HTML references
     reference_cleanup = [
         (re.compile(r'(<!--[^>]*-->)'), ''),
         (re.compile(r'(<FONT)(.*?)(</FONT>)', re.I), ''),
@@ -38,23 +43,23 @@ class ADSHTMLtoREFs(HTMLtoREFs):
         (re.compile(r'(<!--.*?-->)'), ''),      # if there was a nested tag (ie, href inside comment
     ]
 
-    def __init__(self, filename, buffer, parsername, tag, file_type, cleanup=None, encoding='UTF-8'):
+    def __init__(self, filename: str, buffer: str, parsername: str, tag: str, file_type: str, cleanup=None, encoding='UTF-8'):
         """
-
-        :param filename:
-        :param buffer:
-        :param parsername:
-        :param tag:
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
+        :param parsername: name of the parser
+        :param tag: regex tag for parsing
+        :param file_type: the file type (HTML, XML, etc.)
         """
         if not cleanup:
             cleanup = self.reference_cleanup
         HTMLtoREFs.__init__(self, filename, buffer, parsername=parsername, tag=tag, file_type=file_type, cleanup=cleanup, encoding=encoding)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -75,13 +80,15 @@ class ADSHTMLtoREFs(HTMLtoREFs):
 
 class AnnRevHTMLtoREFs(ADSHTMLtoREFs):
     """
-    This is to process Annual Review references. There are
+    This class processes Annual Review references.
+    They are
 
     AnRFM/*/annurev.fluid
     AREPS/*/annurev.earth
     ARA+A/*/annurev.astro
     """
 
+    # to clean up html references
     reference_cleanup = [
         (re.compile(r'(<!-- [^>]* -->)'), ''),
         (re.compile(r'(<nobr>|</nobr>)', re.I), ''),
@@ -101,6 +108,7 @@ class AnnRevHTMLtoREFs(ADSHTMLtoREFs):
         (re.compile(r'&#8211;'), '-'),
         (re.compile(r'(\<\d+:[A-Z]+\>)'), '')
     ]
+    # to clean up block of html references
     block_cleanup = [
         (re.compile(r'(<I>|</I>|<B>|</B>|<EM>|</EM>|<STRONG>|</STRONG>|<DT>|</DT>|<DD>|</DD>|<TT>|</TT>|<SUB>|</SUB>|<SUP>|</SUP>)', re.I), ''),
         (re.compile(r'&amp;'), '&'),
@@ -109,28 +117,33 @@ class AnnRevHTMLtoREFs(ADSHTMLtoREFs):
         (re.compile(r'(<table.*$)'), ''),
         (re.compile(r'<td class="refnumber">\s*</td>', re.DOTALL), '')
     ]
-    # re_tag = re.compile(r'((?:<nobr>|<tr><td[^>]*>)\s*([A-Z][a-z]+.*?)|(?:<td valign="top" class="fulltext">).*?)(?:</script>|$)', (re.IGNORECASE | re.DOTALL))
+    # to match tags in the reference block
     re_tag = re.compile(r'(?:(?:<nobr>|<tr><td[^>]*>)\s*([A-Z][a-z]+.*?)|(?:<td valign="top" class="fulltext.*?">)(.*?))(?:</script>|$)', (re.IGNORECASE | re.DOTALL))
+    # to match DOI in the format
     re_doi = re.compile(r'\(doi:(.*?)\)', re.IGNORECASE)
+    # to extract the bibcode
     re_bibcode = re.compile(r'<ADSBIBCODE>(.*)</ADSBIBCODE>')
 
+    # to match the reference text before a <script> tag
     re_reference = re.compile(r'^(.*?)<script')
+    # to match DOI embedded in a link format
     re_reference_doi = re.compile(r"genRefLink\s*.*?,\s+.*?('10[^']*')", re.IGNORECASE)
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the parser for AnnRevHTMLtoREFs
 
-        :param filename:
-        :param buffer:
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=AnnRevHTMLtoREFs, tag=self.re_tag, file_type=None)
 
-    def get_bibcode(self, filename):
+    def get_bibcode(self, filename: str) -> str:
         """
+        extract the bibcode from the file
 
-        :param filename:
-        :param encoding:
-        :return:
+        :param filename: path to the reference file
+        :return: bibcode if found, otherwise None
         """
         with open(filename, 'r', encoding='UTF-8', errors='ignore') as f:
             match = self.re_doi.search(''.join(f.readlines()))
@@ -138,25 +151,27 @@ class AnnRevHTMLtoREFs(ADSHTMLtoREFs):
                 return get_bibcode_from_doi(match.group(1))
         return None
 
-    def get_reference_doi(self, line):
+    def get_reference_doi(self, line: str) -> str:
         """
+        extract the DOI from the reference line
 
-        :param line:
-        :return:
+        :param line: the reference line to search for DOI
+        :return: DOI if found, otherwise an empty string
         """
         match = self.re_reference_doi.search(line)
         if match:
             return ' (doi:%s)'%urllib.parse.unquote(match.group(1))
         return ''
 
-    def get_references(self, filename, encoding, tag, file_type):
+    def get_references(self, filename: str, encoding: str, tag: str, file_type: str) -> List[Dict[str, List[str]]]:
         """
+        get references from the provided file
 
-        :param filename:
-        :param encoding:
-        :param tag:
-        :param file_type:
-        :return:
+        :param filename: path to the reference file
+        :param encoding: encoding used for reading the file
+        :param tag: regex tag used for parsing the file
+        :param file_type: type of file being processed (HTML, XML, etc.)
+        :return: list of parsed references with bibcode
         """
         bibcode = self.get_bibcode(filename)
 
@@ -196,27 +211,41 @@ class AnnRevHTMLtoREFs(ADSHTMLtoREFs):
             return []
 
 class AnAHTMLtoREFs(ADSHTMLtoREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes AnAHTML references and converts them into a standardized reference format.
+    """
 
-        :param filename:
-        :param buffer:
+    def __init__(self, filename: str, buffer: str):
+        """
+        Initialize the parser for AnAHTMLtoREFs
+
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         tag = re.compile(r'(?:<LI>\s*)(.*?)(?=<LI>|</UL>)', (re.IGNORECASE | re.DOTALL))
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=AnAHTMLtoREFs, tag=tag, file_type=self.single_bibcode)
 
 class AnASHTMLtoREFs(ADSHTMLtoREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes AnASHTML references and converts them into a standardized reference format.
+    """
 
-        :param filename:
-        :param buffer:
+    def __init__(self, filename: str, buffer: str):
+        """
+        Initialize the parser for AnASHTMLtoREFs
+
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         tag = re.compile(r'(?:<LI>\s*)(.*?)(?=<LI>)', (re.IGNORECASE | re.DOTALL))
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=AnASHTMLtoREFs, tag=tag, file_type=self.single_bibcode)
 
 class AEdRvHTMLtoREFs(ADSHTMLtoREFs):
+    """
+    This class processes AEdRvHTML references and converts them into a standardized reference format.
+    """
 
+    # patterns for cleaning unwanted HTML elements from Astronomy Education Review references
     reference_cleanup = [
         (re.compile(r'<span class="refauth">', re.I), ''),
         (re.compile(r'<a name="[^>]*">', re.I), ''),
@@ -227,27 +256,30 @@ class AEdRvHTMLtoREFs(ADSHTMLtoREFs):
         (re.compile(r'(</a>|</span>|<em>|</em>)', re.I), ''),
         (re.compile(r'\s+'), ' '),
     ]
-
+    # to match the reference block wrapped in <p class="reference">
     tag = re.compile(r'<p\ class="reference">(.*?)</p>', (re.IGNORECASE | re.DOTALL))
-
+    # list of qualifiers used for issue number
     qualifier = ['o', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
+    # to match the author
     re_author = re.compile(r'<p class="author">\s*by\s+<strong>(?P<author>.*?)</strong>', re.IGNORECASE)
+    # to match citation details
     re_citation = re.compile(r'<p id="biblio-cite">.*?The Astronomy Education Review,.*?\s+Issue\s+(?P<issue>\d+),\s+Volume\s+(?P<volume>\d+):(?P<page>\d+)-\d+,\s+(?P<year>[12]\d\d\d)', re.IGNORECASE)
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        Initialize the parser for AEdRvHTMLtoREFs
 
-        :param filename:
-        :param buffer:
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=AEdRvHTMLtoREFs, tag=self.tag, file_type=self.single_bibcode)
 
-    def get_bibcode(self, filename):
+    def get_bibcode(self, filename: str) -> str:
         """
+        Extract the bibcode from the file
 
-        :param filename:
-        :param encoding:
-        :return:
+        :param filename: path to the reference file
+        :return: bibcode if found, otherwise None
         """
         with open(filename, 'r', encoding='UTF-8', errors='ignore') as f:
             buffer = ''.join(f.readlines()).replace('\t', ' ').replace('\n', ' ')
@@ -269,14 +301,15 @@ class AEdRvHTMLtoREFs(ADSHTMLtoREFs):
                     return bibcode
         return None
 
-    def get_references(self, filename, encoding, tag, file_type):
+    def get_references(self, filename: str, encoding: str, tag: str, file_type: str) -> List[Dict[str, List[str]]]:
         """
+        Get references from the provided file
 
-        :param filename:
-        :param encoding:
-        :param tag:
-        :param file_type:
-        :return:
+        :param filename: path to the reference file
+        :param encoding: encoding used for reading the file
+        :param tag: regex tag used for parsing the file
+        :param file_type: type of file being processed (HTML, XML, etc.)
+        :return: list of parsed references with bibcode
         """
         bibcode = self.get_bibcode(filename)
 
@@ -287,29 +320,44 @@ class AEdRvHTMLtoREFs(ADSHTMLtoREFs):
         return self.get_references_single_record(filename, encoding='UTF-8', tag=self.tag, bibcode=bibcode)
 
 class AnRFMHTMLtoREFs(AnnRevHTMLtoREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes AnRFMHTML references and converts them into a standardized reference format.
+    """
 
-        :param filename:
-        :param buffer:
+    def __init__(self, filename: str, buffer: str):
+        """
+        Initialize the parser for AnRFMHTMLtoREFs
+
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         AnnRevHTMLtoREFs.__init__(self, filename, buffer)
 
 class ARAnAHTMLtoREFs(AnnRevHTMLtoREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes ARAnAHTML references and converts them into a standardized reference format.
+    """
 
-        :param filename:
-        :param buffer:
+    def __init__(self, filename: str, buffer: str):
+        """
+        Initialize the parser for ARAnAHTMLtoREFs
+
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         AnnRevHTMLtoREFs.__init__(self, filename, buffer)
 
 class AREPSHTMLtoREFs(HTMLtoREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes AREPSHTML references and converts them into a standardized reference format.
+    """
 
-        :param filename:
-        :param buffer:
+    def __init__(self, filename: str, buffer: str):
+        """
+        Initialize the parser for AREPSHTMLtoREFs
+
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         # see which flavor of AREPS to process, Annual Review or the rest
         if filename.split('/')[-1].startswith('annurev'):
@@ -322,25 +370,35 @@ class AREPSHTMLtoREFs(HTMLtoREFs):
                              r'<TD>\s*([A-Z&][^<]*)<', (re.IGNORECASE | re.DOTALL))
             self.parser = ADSHTMLtoREFs(filename, buffer, parsername=AREPSHTMLtoREFs, tag=tag, file_type=self.single_bibcode)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         return self.parser.process_and_dispatch()
 
 class JLVEnHTMLtoREFs(ADSHTMLtoREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes JLVEnHTML references and converts them into a standardized reference format.
+    """
 
-        :param filename:
-        :param buffer:
+    def __init__(self, filename: str, buffer: str):
+        """
+        Initialize the parser for JLVEnHTMLtoREFs
+
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         tag = re.compile(r'<TR><TD\ valign="top">(.*?)</TD>', (re.IGNORECASE | re.DOTALL))
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=JLVEnHTMLtoREFs, tag=tag, file_type=self.single_bibcode)
 
 class PASJHTMLtoREFs(ADSHTMLtoREFs):
+    """
+    This class processes PASJHTML references and converts them into a standardized reference format.
+    """
 
+    # patterns for cleaning unwanted HTML elements from references
     reference_cleanup = [
         (re.compile(r'(<!-- [^>]* -->)'), ''),
         (re.compile(r'(<FONT [^>]*>)'), ''),
@@ -354,14 +412,15 @@ class PASJHTMLtoREFs(ADSHTMLtoREFs):
         (re.compile(r'</?H1>|<BR>'), ''),
         (re.compile(r'\s+'), ' '),
     ]
-
+    # to match references with the format (RC\d)
     re_multiplies = re.compile(r'\(RC\d\)')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        Initialize the parser for PASJHTMLtoREFs
 
-        :param filename:
-        :param buffer:
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         tag = re.compile(r'(?:<A\s+[^>]*>)(.*?)(?=</A>|</FONT>)|'
                          r'(?:\s+\*\s+)(.*?)(?=\s+\*\s+|<HR>)|'
@@ -370,11 +429,11 @@ class PASJHTMLtoREFs(ADSHTMLtoREFs):
                          r'(?:</A>\s*)([A-Za-z][a-z]+[^<]*)(?=<A|<BR>)', (re.IGNORECASE | re.DOTALL))
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=PASJHTMLtoREFs, tag=tag, file_type=self.multi_bibcode, cleanup=self.reference_cleanup, encoding='latin-1')
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -398,21 +457,27 @@ class PASJHTMLtoREFs(ADSHTMLtoREFs):
         return references
 
 class PASPHTMLtoREFs(ADSHTMLtoREFs):
-    def __init__(self, filename, buffer):
-        """
+    """
+    This class processes PASPHTML references and converts them into a standardized reference format.
+    """
 
-        :param filename:
-        :param buffer:
+    def __init__(self, filename: str, buffer: str):
+        """
+        Initialize the parser for PASPHTMLtoREFs
+
+        :param filename: path to the reference file
+        :param buffer: buffer containing the references
         """
         tag = re.compile(r'(?:<CITATION ID=[^>]*>)(.*?)(?:</CITATION>)', (re.IGNORECASE | re.DOTALL))
         ADSHTMLtoREFs.__init__(self, filename, buffer, parsername=PASPHTMLtoREFs, tag=tag, file_type=self.multi_bibcode)
 
-def toREFs(filename, buffer):  # pragma: no cover
+
+def toREFs(filename: str, buffer: str):  # pragma: no cover
     """
     this is a local function, called from main, for testing purposes.
 
-    :param filename:
-    :param buffer:
+    :param filename: path to the reference file
+    :param buffer: buffer containing the references
     :return:
     """
     reference_type = filename.split('/')[-3]
@@ -442,6 +507,11 @@ def toREFs(filename, buffer):  # pragma: no cover
         for i, reference in enumerate(result['references']):
             print(i + 1, reference['refstr'])
 
+
+# This is the main program used for manual testing and verification of html references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse ADS Text references')
     parser.add_argument('-f', '--filename', help='the path to source file')

@@ -2,9 +2,9 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -15,40 +15,43 @@ from adsrefpipe.refparsers.unicode import tounicode
 
 
 class AIPreference(XMLreference):
+    """
+    This class handles parsing AIP references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_replace_amp = re.compile(r'__amp;?')
-    re_extra_whitespace = re.compile(r"\s+")
+    # to match 'amp'
+    re_match_amp = re.compile(r'__amp;?')
+    # to match URLs or links starting with 'http' or 'www'
     re_unstructured_url = re.compile(r'http\S+|www\S+')
-    re_valid_refstr = [
-        re.compile(r'\w{3,}'),
-        re.compile(r'\b[12][09]\d\d\w?\b|\d+(st|nd|rd|th)+')
-    ]
 
+    # to matches the <emph_1> tag to extract the title text
     re_title_outlier = [
         re.compile(r"<emph_1>(?P<TITLE>[^</]*)</emph_1>")
     ]
 
     def parse(self):
         """
+        parse the AIP reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
         self.parsed = 0
 
-        theref = self.reference_str.toxml()
-        theref = tounicode(self.re_replace_amp.sub('&', theref))
-        theref, authors = self.parse_authors(theref)
+        the_ref = self.reference_str.toxml()
+        the_ref = tounicode(self.re_match_amp.sub('&', the_ref))
+        the_ref, authors = self.parse_authors(the_ref)
 
-        theref, year = self.extract_tag(theref, 'year')
+        the_ref, year = self.extract_tag(the_ref, 'year')
         if not year:
             year = self.match_year(self.dexml(self.reference_str.toxml()))
-        theref, links = self.extract_tag(theref, 'plink')
-        theref, coden = self.extract_tag(theref, 'bicoden')
+        the_ref, links = self.extract_tag(the_ref, 'plink')
+        the_ref, coden = self.extract_tag(the_ref, 'bicoden')
 
         journal = self.xmlnode_nodecontents('journal')
         title = self.xmlnode_nodecontents('bititle')
         if not title:
-            title = self.parse_title(theref)
+            title = self.parse_title(the_ref)
 
         pages = self.xmlnode_nodecontents('pp')
         volume = self.xmlnode_nodecontents('vol')
@@ -88,18 +91,19 @@ class AIPreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self, theref):
+    def parse_authors(self, the_ref: str) -> str:
         """
-        
-        :param theref: 
-        :return: 
+        parse the authors from the reference string
+
+        :param the_ref: the reference string to extract authors from
+        :return: the updated reference string and a comma-separated list of authors
         """
         authors = []
 
-        theref, biaugrp = self.extract_tag(theref, 'biaugrp')
+        the_ref, biaugrp = self.extract_tag(the_ref, 'biaugrp')
         biaugrp, biauth = self.extract_tag(biaugrp, 'biauth')
         if not biauth:
-            theref, biaugrp = self.extract_tag(theref, 'editor')
+            the_ref, biaugrp = self.extract_tag(the_ref, 'editor')
             biaugrp, biauth = self.extract_tag(biaugrp, 'biauth')
 
         while biauth:
@@ -111,16 +115,17 @@ class AIPreference(XMLreference):
             if author: authors.append(author)
             biaugrp, biauth = self.extract_tag(biaugrp, 'biauth')
 
-        return theref, ', '.join(authors)
+        return the_ref, ', '.join(authors)
 
-    def parse_title(self, theref):
+    def parse_title(self, the_ref: str) -> str:
         """
+        parse the title from the reference string
 
-        :param theref:
-        :return:
+        :param the_ref: the reference string to extract title from
+        :return: the title if found, otherwise None
         """
         for one_set in self.re_title_outlier:
-            match = one_set.search(theref)
+            match = one_set.search(the_ref)
             if match:
                 title = match.group('TITLE')
                 # only accept multi word titles
@@ -130,32 +135,38 @@ class AIPreference(XMLreference):
 
 
 class AIPtoREFs(XMLtoREFs):
+    """
+    This class converts AIP references to a standardized reference format. It processes raw AIP references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'<(\w+)\s+loc="(\w+)"(.*?)</\1>'), r'<\1_\2\3</\1_\2>'),
         (re.compile(r'<(\w+)\s+type="(\w+)"(.*?)</\1>'), r'<\1_\2\3</\1_\2>'),
         (re.compile(r'<(\w+)\s+type="(\w+)"([^>]*)/>'), r'<\1_\2\3/>'),
-        (re.compile(r'<prevau>'), '---'), # prev author list
+        (re.compile(r'<prevau>'), '---'),  # prev author list
     ]
-    re_previous_tag = re.compile(r'<prevau>')
+
+    # to match the <ibid> tag, which refers to repeated references in XML
     re_previous_ref = re.compile(r'<ibid>')
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the AIPtoREFs object to process AIP references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=AIPtoREFs, tag='(ref|refitem)')
 
-    def cleanup(self, reference, prev_reference):
+    def cleanup(self, reference: str, prev_reference: str) -> str:
         """
+        clean up the input reference by simplifying the XML structure and handling previous author tags
 
-        :param reference:
-        :param prev_reference:
-        :return:
+        :param reference: the raw reference string to clean up
+        :param prev_reference: the previous reference to use in cleanup
+        :return: the cleaned-up reference string and the previous reference
         """
         # play a trick on the input XML to simplify the parsing of
         # fields of interest to us.  Many of the tags look like:
@@ -174,10 +185,11 @@ class AIPtoREFs(XMLtoREFs):
         reference, prev_reference = self.extract_tag(reference, 'journal', remove=0, keeptag=1)
         return reference, prev_reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -195,7 +207,7 @@ class AIPtoREFs(XMLtoREFs):
                     aip_reference = AIPreference(reference)
                     parsed_references.append(self.merge({**aip_reference.get_parsed_reference(), 'refraw': raw_reference}, self.any_item_num(item_nums, i)))
                 except ReferenceError as error_desc:
-                    logger.error("APSxml: error parsing reference: %s" %error_desc)
+                    logger.error("AIPxml: error parsing reference: %s" %error_desc)
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
             logger.debug("%s: parsed %d references" % (bibcode, len(references)))
@@ -203,6 +215,10 @@ class AIPtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of AIPxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AIP references')

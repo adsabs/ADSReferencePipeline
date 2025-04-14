@@ -2,9 +2,9 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -14,12 +14,19 @@ from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
 
 class APSreference(XMLreference):
+    """
+    This class handles parsing APS references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_first = re.compile(r'\w\.$')
-    re_series = re.compile(r'^([A-Za-z\-\s\.]+)(Vol|No)\.?')
+    # to match first initials
+    re_first_initial = re.compile(r'\w\.$')
+    # to match series information with volume/issue
+    re_series = re.compile(r'^(([A-Za-z\-\s\.]+)(Vol|No)\.?\s*\d+)')
 
     def parse(self):
         """
+        parse the APS reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -67,20 +74,16 @@ class APSreference(XMLreference):
             # attempt to extract it from refstr
             doi = self.match_doi(self.reference_str.toxml())
             if doi:
-                self['doi'] = doi
+                self['doi'] = f"doi:{doi}"
         if eprint:
             self['eprint'] = eprint
         else:
             # attempt to extract arxiv id from refstr
             eprint = self.match_arxiv_id(self.reference_str.toxml())
             if eprint:
-                self['eprint'] = eprint
+                self['eprint'] = f"arXiv:{eprint}"
         if issn:
             self['issn'] = issn
-
-        # try to come up with a decent plainstring if all
-        # the default fields were parsed ok
-        self['refstr'] = ' '.join([self['authors'], date, journal, volume, pages])
 
         self['refstr'] = self.get_reference_str()
         if not self['refstr']:
@@ -88,11 +91,12 @@ class APSreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self, authors):
+    def parse_authors(self, authors: str) -> str:
         """
+        parses and formats author names
 
-        :param authors:
-        :return:
+        :param authors: author string to parse
+        :return: formatted author string
         """
         authors = authors.strip()
         if not authors: return ''
@@ -111,49 +115,58 @@ class APSreference(XMLreference):
 
         # otherwise parse it and recompose it as "Last F."
         first = parts.pop(0)
-        while len(parts) > 1 and self.re_first.match(parts[0]):
+        while len(parts) > 1 and self.re_first_initial.match(parts[0]):
             first = first + ' ' + parts.pop(0)
         authors = ' '.join(parts) + ' ' + first
 
         return authors
 
-    def parse_series(self, series):
+    def parse_series(self, series: str) -> str:
         """
+        parses series information from a given string
 
-        :param series:
-        :return:
+        :param series: series string to parse
+        :return: parsed series or None if no match
         """
-        match = self.re_first.search(series)
+        match = self.re_series.search(series)
         if match:
             return match.group(0)
         return None
 
 
 class APStoREFs(XMLtoREFs):
+    """
+    This class converts APS XML references to a standardized reference format. It processes raw APS references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to match closing reference tag
     re_closing_tag = re.compile(r'</references>\s*$')
+    # to match ibid
     re_previous_ref = re.compile(r'<ibid>')
 
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'<formula.*?>.*?</formula>'), ''),
         (re.compile(r'<prevau>'), '---'),
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the APStoREFs object to process APS references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=APStoREFs, tag='(ref|refitem)')
 
-    def cleanup(self, reference, prev_reference):
+    def cleanup(self, reference: str, prev_reference: str) -> str:
         """
+        clean up the input reference by simplifying the XML structure and handling previous author tags
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean up
+        :param prev_reference: the previous reference to use in cleanup
+        :return: the cleaned-up reference string and the previous reference
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
@@ -164,10 +177,11 @@ class APStoREFs(XMLtoREFs):
         reference, prev_reference = self.extract_tag(reference, 'journal', remove=0, keeptag=1)
         return reference, prev_reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -197,6 +211,10 @@ class APStoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of APSxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse APS references')

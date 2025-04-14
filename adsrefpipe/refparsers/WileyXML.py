@@ -2,34 +2,45 @@
 import sys, os
 import regex as re
 import argparse
-
-from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
-from adsrefpipe.refparsers.toREFs import XMLtoREFs
-from adsrefpipe.refparsers.unicode import tostr
+from typing import List, Dict, Tuple
 
 from adsputils import setup_logging, load_config
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
 
+from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
+from adsrefpipe.refparsers.toREFs import XMLtoREFs
+from adsrefpipe.refparsers.unicode import tostr
+
 
 class WILEYreference(XMLreference):
-    
+    """
+    This class handles parsing WILEY references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
+
+    # list of reference types (journal, book, other)
     types = ['journal', 'book', 'other']
-    re_first = re.compile(r'\b\w\.')
-    re_replace_amp = re.compile(r'__amp;?')
+    # to match first initials
+    re_first_initial = re.compile(r'\b(\w\.\s*)')
+    # to match 'amp'
+    re_match_amp = re.compile(r'__amp;?')
+    # to match family name tag for editors
     re_add_familyname_tag_editor = re.compile(r'^([A-Z]+[A-Za-z\'\s]+)(,\s*<givenNames>.*</givenNames>)$')
+    # to match series titles
     re_series = re.compile(r'^[A-Za-z\.\s]+$')
 
     def parse(self):
         """
-        
+        parse the WILEY reference and extract citation information such as authors, year, title, and DOI
+
         :return:
         """
         self.parsed = 0
 
         authors = self.parse_authors()
-        year = self.xmlnode_nodecontents('pubYear')
+        year = self.nodecontents('pubYear')
         if not year:
             year = self.match_year(self.dexml(self.reference_str.toxml()))
 
@@ -46,28 +57,28 @@ class WILEYreference(XMLreference):
 
         if type == "journal":
             # parse journal article
-            journal = self.xmlnode_nodecontents('journalTitle').replace('__amp__amp;', '&').strip()
-            title = self.xmlnode_nodecontents('articleTitle').strip()
+            journal = self.nodecontents('journalTitle').replace('__amp__amp;', '&')
+            title = self.nodecontents('articleTitle')
             if not title:
-                title = self.xmlnode_nodecontents('otherTitle').strip()
-            volume = self.xmlnode_nodecontents('vol').strip()
-            pages = self.xmlnode_nodecontents('pageFirst').strip()
+                title = self.nodecontents('otherTitle')
+            volume = self.nodecontents('vol')
+            pages = self.nodecontents('pageFirst')
             series = ''
         elif type == "book":
             # parse book
             # get the title that can be in either or both articleTitle and chapterTitle
             unique_titles = set()
             for t in ['articleTitle', 'chapterTitle']:
-                unique_title = self.xmlnode_nodecontents(t).strip()
+                unique_title = self.nodecontents(t)
                 if unique_title:
                     unique_titles.add(unique_title)
             if len(unique_titles) > 0:
-                title = '; '.join(list(unique_titles)).strip()
+                title = '; '.join(list(unique_titles))
             else:
                 # if there is otherTitle assign it here
-                title = self.xmlnode_nodecontents('otherTitle').strip()
-            series = self.xmlnode_nodecontents('bookSeriesTitle').strip()
-            journal =  self.xmlnode_nodecontents('bookTitle').strip()
+                title = self.nodecontents('otherTitle')
+            series = self.nodecontents('bookSeriesTitle')
+            journal =  self.nodecontents('bookTitle')
             # if no bookTitle, assign bookSeriesTitle to journal
             if not journal and series:
                 journal = series
@@ -76,8 +87,8 @@ class WILEYreference(XMLreference):
             pages = ''
         else:
             title, journal, series = self.parse_pub_type_other()
-            volume = self.xmlnode_nodecontents('vol').strip()
-            pages = self.xmlnode_nodecontents('pageFirst').strip()
+            volume = self.nodecontents('vol')
+            pages = self.nodecontents('pageFirst')
 
         self['authors'] = authors
         self['year'] = year
@@ -86,14 +97,13 @@ class WILEYreference(XMLreference):
 
         if series and self.re_series.search(series):
             self['series'] = series
-        self['volume'] = self.parse_volume(volume)
-        self['page'], self['qualifier'] = self.parse_pages(pages, letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-        self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
+        if volume:
+            self['volume'] = self.parse_volume(volume)
+        if pages:
+            self['page'], self['qualifier'] = self.parse_pages(pages, letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+            self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
 
-        try:
-            refstr = self.xmlnode_nodecontents('citation')
-        except:
-            refstr = ''
+        refstr = self.nodecontents('citation')
 
         # attempt to extract doi from refstr
         doi = self.match_doi(refstr)
@@ -113,10 +123,25 @@ class WILEYreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def nodecontents(self, name: str) -> str:
         """
+        get the content of an XML node by its name, stripped of leading/trailing whitespace
 
-        :return:
+        :param name: the name of the XML node to retrieve content from
+        :return: the content of the node as a string, or an empty string if not found
+        """
+        try:
+            content = self.xmlnode_nodecontents(name)
+            if content:
+                return content.strip()
+        except:
+            return ''
+
+    def parse_authors(self) -> str:
+        """
+        parse the authors from the reference string and format them accordingly
+
+        :return: a formatted string of authors
         """
         authors = self.xmlnode_nodescontents('author', keepxml=1)
 
@@ -144,24 +169,25 @@ class WILEYreference(XMLreference):
             author_list = group + author_list
 
         authors = ", ".join(author_list)
-        authors = self.re_replace_amp.sub('', authors)
+        authors = self.re_match_amp.sub('', authors)
         # we do some cleanup in author's strings that appear to
         # contain names in the form "F. Last1, O. Last2..."
-        if authors and self.re_first.match(authors):
-            authors = self.re_first.sub(' ', authors).strip()
+        if authors and self.re_first_initial.match(authors):
+            authors = self.re_first_initial.sub('', authors)
 
         return authors
 
-    def parse_pub_type_other(self):
+    def parse_pub_type_other(self) -> Tuple[str, str, str]:
         """
+        parse other types of publication references and determine which field corresponds to what information
 
-        :return:
+        :return: a tuple containing the title, journal, and series (if applicable)
         """
         # for other type read all the fields and decide what goes to what field
         fields = ['articleTitle', 'chapterTitle', 'journalTitle', 'bookTitle', 'bookSeriesTitle', 'otherTitle']
         titles = {}
         for field in fields:
-            titles[field] = self.xmlnode_nodecontents(field).strip()
+            titles[field] = self.nodecontents(field)
 
         num_titles = len(list(filter(None, titles.values())))
         if num_titles == 1:
@@ -207,7 +233,7 @@ class WILEYreference(XMLreference):
 
             # combinations we have not seen, so just return them and let service deal with it
             new_combinations = list(filter(None, titles.values()))
-            logger.error("WILEYxml: a new 2 title field combination, %s"%self.xmlnode_nodecontents('citation'))
+            logger.error("WILEYxml: a new 2 title field combination, %s"%self.nodecontents('citation'))
             return new_combinations[0], new_combinations[1], None
 
         if num_titles == 3:
@@ -223,37 +249,42 @@ class WILEYreference(XMLreference):
                 if titles.get('otherTitle', None):
                     return title, journal, titles['otherTitle']
 
-                # combinations we have not seen, ignore the third field for now, just log it
-                logger.error("WILEYxml: ignoring the third title field, %s"%self.xmlnode_nodecontents('citation'))
-                return title, journal, None
+            # combinations we have not seen, so just return them and let service deal with it
+            new_combinations = list(filter(None, titles.values()))
+            logger.error("WILEYxml: a new 3 title field combination, %s"%self.nodecontents('citation'))
+            return new_combinations[0], new_combinations[1], new_combinations[2]
 
-        logger.error("WILEYxml: ignoring all title fields, %s"%self.xmlnode_nodecontents('citation'))
+        logger.error("WILEYxml: ignoring all title fields, %s"%self.nodecontents('citation'))
         return None, None, None
 
 
 
 class WILEYtoREFs(XMLtoREFs):
+    """
+    This class converts WILEY XML references to a standardized reference format. It processes raw WILEY references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile(r'</?uri.*?>'), ''),
         (re.compile(r'xml:id'), r'xmlid'),
     ]
     
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the WILEYtoREFs object to process WILEY references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=WILEYtoREFs, tag='citation', cleanup=self.block_cleanup)
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -277,6 +308,10 @@ class WILEYtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of WileyXML references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse Wiley references')

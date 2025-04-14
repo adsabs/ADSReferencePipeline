@@ -2,9 +2,9 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
 
 from adsputils import setup_logging, load_config
-
 logger = setup_logging('refparsers')
 config = {}
 config.update(load_config())
@@ -12,17 +12,28 @@ config.update(load_config())
 from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.refparsers.toREFs import XMLtoREFs
 
-class AGUreference(XMLreference):
 
+class AGUreference(XMLreference):
+    """
+    This class handles parsing AGU references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
+
+    # to matche a single character from 'A' to 'E' followed by one or more digits at the start of the string
     re_issue = re.compile(r'^([ABCDE])\d+', re.DOTALL | re.VERBOSE)
+
+    # cleans up '__amp__lt;' and '__amp__gt;' by replacing them with '<' and '>'
     re_cleanup_doi = [
         (re.compile(r'__amp__lt;'), '<'),
         (re.compile(r'__amp__gt;'), '>'),
     ]
+
+    # to extract text between XML tags, allowing for optional attributes
     re_xml_to_text = re.compile(r'<([A-Za-z_]*)\b[^>]*>(.*?)</\1>')
 
     def parse(self):
         """
+        parse the AGU reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -73,10 +84,11 @@ class AGUreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_refplaintext(self):
+    def parse_refplaintext(self) -> str:
         """
+        parse the unstructured citation or citation text
 
-        :return:
+        :return: the plain text reference string
         """
         # 8/25/2020 searched all source files and was not able to find a
         # reference file with this tag put keeping it anyway
@@ -91,21 +103,25 @@ class AGUreference(XMLreference):
 
 
 class AGUtoREFs(XMLtoREFs):
+    """
+    This class converts AGU XML references to a standardized reference format. It processes raw AGU references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the AGUtoREFs object to process AGU references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=AGUtoREFs, tag='citation')
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -128,6 +144,10 @@ class AGUtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of AGUxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':      # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse AGU references')

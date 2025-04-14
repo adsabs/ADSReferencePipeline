@@ -2,25 +2,32 @@
 import sys, os
 import regex as re
 import argparse
+from typing import List, Dict
+
+from adsputils import setup_logging, load_config
+logger = setup_logging('refparsers')
+config = {}
+config.update(load_config())
 
 from adsrefpipe.refparsers.reference import XMLreference, ReferenceError
 from adsrefpipe.refparsers.toREFs import XMLtoREFs
 from adsrefpipe.refparsers.unicode import tostr
 
-from adsputils import setup_logging, load_config
-
-logger = setup_logging('refparsers')
-config = {}
-config.update(load_config())
-
 
 class IOPFTreference(XMLreference):
+    """
+    This class handles parsing IOPFT references in XML format. It extracts citation information such as authors,
+    year, journal, title, volume, pages, DOI, and eprint, and stores the parsed details.
+    """
 
-    re_replace_amp = re.compile(r'__amp;?')
+    # to match 'amp'
+    re_match_amp = re.compile(r'__amp;?')
+    # to match the content following <source/> tag up to the first comma
     re_match_journal = re.compile(r'(?<=\<source/\>)([^,]*)')
 
     def parse(self):
         """
+        parse the IOPFT reference and extract citation information such as authors, year, title, and DOI
 
         :return:
         """
@@ -74,10 +81,11 @@ class IOPFTreference(XMLreference):
 
         self.parsed = 1
 
-    def parse_authors(self):
+    def parse_authors(self) -> str:
         """
+        parse the authors from the reference string and format them accordingly
 
-        :return:
+        :return: a formatted string of authors
         """
         authors = self.xmlnode_nodescontents('person-group', attrs={'person-group-type': 'author'}, keepxml=1) or \
                   self.xmlnode_nodescontents('name', keepxml=1) or \
@@ -104,16 +112,20 @@ class IOPFTreference(XMLreference):
             author_list = collab + author_list
 
         authors = ", ".join(author_list)
-        authors = self.re_replace_amp.sub('', authors)
+        authors = self.re_match_amp.sub('', authors)
 
         return authors
 
-    def parse_doi(self, refstr, href):
+    def parse_doi(self, refstr: str, href: str) -> str:
         """
+        parse the DOI from the reference string or URL, falling back to extracting it from the refstr
 
-        :param refstr:
-        :param href:
-        :return:
+        attempts to extract a DOI from different sources: first, from the XML node content; if not found,
+        it checks the href (URL); if neither of these contain the DOI, it tries to extract it from the reference string.
+
+        :param refstr: the reference string potentially containing the DOI
+        :param href: a URL that might contain the DOI
+        :return: the extracted DOI if found, or an empty string if not
         """
         doi = self.xmlnode_nodecontents('pub-id', attrs={'pub-id-type': 'doi'})
         if doi:
@@ -129,12 +141,16 @@ class IOPFTreference(XMLreference):
             return doi
         return ''
 
-    def parse_eprint(self, refstr, href):
+    def parse_eprint(self, refstr: str, href: str) -> str:
         """
+        parse the eprint from the reference string
 
-        :param refstr:
-        :param href:
-        :return:
+        attempts to extract the eprint first from the URL (href) and, if not found,
+        tries to extract it from the reference string
+
+        :param refstr: the reference string potentially containing the eprint
+        :param href: a URL that may contain the eprint
+        :return: the extracted eprint if found, or an empty string if not
         """
         # if there was a url, see if it is a match
         if href:
@@ -147,10 +163,15 @@ class IOPFTreference(XMLreference):
             return eprint
         return ''
 
-    def parse_bibcode(self):
+    def parse_bibcode(self) -> str:
         """
+        parse the bibcode from the reference string
 
-        :return:
+        attempts to extract the bibcode from the 'ext-link' XML node with 'bibcode' type or from the 'pub-id'
+        XML node with 'ads' as the specific-use. If neither is found or the bibcode is not the expected length,
+        returns an empty string.
+
+        :return: the bibcode as a string if found, or an empty string if not
         """
         # <ext-link ext-link-type='bibcode'>2013PASP..125..989A</ext-link>
         bibcode = self.xmlnode_textcontents('ext-link', attrs={'ext-link-type': 'bibcode'})
@@ -166,11 +187,17 @@ class IOPFTreference(XMLreference):
 
 
 class IOPFTtoREFs(XMLtoREFs):
+    """
+    This class converts IOPFT XML references to a standardized reference format. It processes raw IOPFT references from
+    either a file or a buffer and outputs parsed references, including bibcodes, authors, volume, pages, and DOI.
+    """
 
+    # to clean up XML blocks by removing certain tags
     block_cleanup = [
         (re.compile('\s*xlink:type=".*?"'), ''),
         (re.compile(r'\s+xlink:href='), ' href='),
     ]
+    # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'(?i)<img\s[^>]+\balt="([^"]+)".*?>'), r'\1'),  # kill <IMG> tags
         (re.compile(r'</ref>\s*</ref>\s*$'), '</reference>\n'),
@@ -181,31 +208,31 @@ class IOPFTtoREFs(XMLtoREFs):
         (re.compile(r'\[(\d+\.\d+)\]'), r' arXiv:\1'),
     ]
 
-    def __init__(self, filename, buffer):
+    def __init__(self, filename: str, buffer: str):
         """
+        initialize the IOPFTtoREFs object to process IOPFT references
 
-        :param filename:
-        :param buffer:
-        :param unicode:
-        :param tag:
+        :param filename: the path to the source file
+        :param buffer: the XML references as a buffer
         """
         XMLtoREFs.__init__(self, filename, buffer, parsername=IOPFTtoREFs, tag='ref', encoding='ISO-8859-1', cleanup=self.block_cleanup)
 
-    def cleanup(self, reference):
+    def cleanup(self, reference: str) -> str:
         """
+        clean up the reference string by replacing specific patterns
 
-        :param reference:
-        :return:
+        :param reference: the raw reference string to clean
+        :return: cleaned reference string
         """
         for (compiled_re, replace_str) in self.reference_cleanup:
             reference = compiled_re.sub(replace_str, reference)
         return reference
 
-    def process_and_dispatch(self):
+    def process_and_dispatch(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
-        this function does reference cleaning and then calls the parser
+        perform reference cleaning and parsing, then dispatch the parsed references
 
-        :return:
+        :return: a list of dictionaries containing bibcodes and parsed references
         """
         references = []
         for raw_block_references in self.raw_references:
@@ -230,6 +257,10 @@ class IOPFTtoREFs(XMLtoREFs):
         return references
 
 
+# This is the main program used for manual testing and verification of IOPFTxml references.
+# It allows parsing references from either a file or a buffer, and if no input is provided,
+# it runs a source test file to verify the functionality against expected parsed results.
+# The test results are printed to indicate whether the parsing is successful or not.
 from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(description='Parse IOPFT references')
