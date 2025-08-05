@@ -109,4 +109,4 @@ This pipeline is to process source reference files, if xml to parse them first a
 
 ## Maintainers
 
-Golnaz
+Thomas Allen; Edwin Henneken
