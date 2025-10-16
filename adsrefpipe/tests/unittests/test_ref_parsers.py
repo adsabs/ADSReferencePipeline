@@ -304,14 +304,11 @@ class TestUnicodeHandler(unittest.TestCase):
         handler.unicode = MagicMock()
         handler.unicode.__getitem__.side_effect = IndexError
 
-        # large invalid hex value to trigger the IndexError exception
+        # large invalid hex value to trigger returning and empty string ""
         match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x99999;")
         if match:
-            # check that the correct exception is raised
-            with self.assertRaises(UnicodeHandlerError) as context:
-                handler._UnicodeHandler__sub_hexnumasc_entity(match)
-            # ensure the exception message is correct
-            self.assertEqual(str(context.exception), "Unknown hexadecimal entity: &#x99999;")
+            result = handler._UnicodeHandler__sub_hexnumasc_entity(match)
+            self.assertEqual(result, "")
 
     def test_sub_hexnum_toent(self):
         """ test __sub_hexnum_toent method """
