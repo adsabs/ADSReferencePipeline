@@ -182,8 +182,11 @@ class UnicodeHandler(UserDict):
         :return: text with entities replaced by ASCII equivalents
         """
         text = self.re_replace_amp.sub('&', text)
+        # import pdb;pdb.set_trace()
         result = self.re_entity.sub(self.__sub_asc_entity, text)
+        # import pdb;pdb.set_trace()
         result = self.re_numentity.sub(self.__sub_numasc_entity, result)
+        # import pdb;pdb.set_trace()
         result = self.re_hexnumentity.sub(self.__sub_hexnumasc_entity, result)
         return result
 
@@ -244,7 +247,8 @@ class UnicodeHandler(UserDict):
             elif entno < 255:
                 return self.u2asc(chr(entno))
         except IndexError:
-            raise UnicodeHandlerError('Unknown hexadecimal entity: %s' % match.group(0))
+            logger.error(UnicodeHandlerError('Unknown hexadecimal entity: %s' % match.group(0)))
+            return ""
 
     def __sub_hexnum_toent(self, match: re.Match) -> str:
         """
