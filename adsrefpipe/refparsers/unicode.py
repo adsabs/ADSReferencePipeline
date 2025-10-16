@@ -244,7 +244,8 @@ class UnicodeHandler(UserDict):
             elif entno < 255:
                 return self.u2asc(chr(entno))
         except IndexError:
-            raise UnicodeHandlerError('Unknown hexadecimal entity: %s' % match.group(0))
+            logger.error(UnicodeHandlerError('Unknown hexadecimal entity: %s' % match.group(0)))
+            return ""
 
     def __sub_hexnum_toent(self, match: re.Match) -> str:
         """
