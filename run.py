@@ -1,5 +1,6 @@
 import sys
 import os, fnmatch
+from collections import defaultdict
 
 from adsputils import setup_logging, load_config, get_date
 from datetime import timedelta
@@ -16,6 +17,7 @@ config = load_config(proj_home=proj_home)
 
 app = tasks.app
 logger = setup_logging('run.py')
+processed_log = setup_logging('processed_subdirectories.py')
 
 
 def run_diagnostics(bibcodes: list, source_filenames: list) -> None:
@@ -38,23 +40,40 @@ def run_diagnostics(bibcodes: list, source_filenames: list) -> None:
     return
 
 
-def get_source_filenames(source_file_path: str, file_extension: str, date_cutoff: time.struct_time) -> list:
+def get_source_filenames(source_file_path, file_extension, date_cutoff):
     """
-    retrieves a list of files from the given directory with the specified file extension and modified date after the cutoff
+    Return a list of lists of matching files, grouped by the first-level
+    subdirectory under `source_file_path`. If files live directly in
+    `source_file_path`, they are grouped together as one inner list.
 
     :param source_file_path: the path of the directory to search for files
     :param file_extension: the file extension pattern to match
     :param date_cutoff: the modified date cutoff, files modified after this date will be included only
-    :return: list of files in the directory with modified date after the cutoff, if any
+    :return: list of lists of files in the directory with modified date after the cutoff, if any
     """
-    list_files = []
+    groups = defaultdict(list)
+    ROOT = "__ROOT__"
+
     for root, dirs, files in os.walk(source_file_path):
         for basename in files:
             if fnmatch.fnmatch(basename, file_extension):
                 filename = os.path.join(root, basename)
                 if get_date_modified_struct_time(filename) >= date_cutoff:
-                    list_files.append(filename)
-    return list_files
+                    rel_dir = os.path.relpath(root, source_file_path)
+                    key = ROOT if rel_dir in (".", "") else rel_dir.split(os.sep, 1)[0]
+                    groups[key].append(filename)
+
+    if not groups:
+        return []
+
+    # Build a stable list-of-lists: root group first (if present), then subdirs sorted
+    result = []
+    if ROOT in groups:
+        result.append(sorted(groups[ROOT]))
+    for key in sorted(k for k in groups.keys() if k != ROOT):
+        result.append(sorted(groups[key]))
+    return result
+
 
 
 def queue_references(references: list, source_filename: str, source_bibcode: str, parsername: str) -> None:
@@ -276,6 +295,19 @@ if __name__ == '__main__':
                         dest='fail',
                         action='store_true',
                         help='Reprocess records that failed to get resolved')
+    resolve.add_argument('-t',
+                        '--time_delay',
+                        dest='time_delay',
+                        action='store',
+                        default=10.,
+                        help='Add time delay between processing subdirectories for large batches. The delay time is batch size divided by input value in seconds.')
+    resolve.add_argument('-sp',
+                        '--skip_processed_directories',
+                        dest='skip_processed',
+                        action='store',
+                        default=None,
+                        help='Skip directories that have been previously processed')
+
 
     stats = subparsers.add_parser('STATS', help='Print out statistics of the reference source file')
     stats.add_argument('-b',
@@ -316,6 +348,7 @@ if __name__ == '__main__':
                        help='Return all resolved bibcode')
 
     args = parser.parse_args()
+    #import pdb;pdb.set_trace()
 
     if args.action == 'DIAGNOSTICS':
         if args.parse_filename:
@@ -345,8 +378,34 @@ if __name__ == '__main__':
                 else:
                     date_cutoff = get_date('1972')
                 source_filenames = get_source_filenames(args.path, args.extension, date_cutoff.timetuple())
+                if args.time_delay:
+                    delay_rate = args.time_delay
+                else:
+                    delay_rate = 1000.
                 if len(source_filenames) > 0:
-                    process_files(source_filenames)
+                    for subdir in source_filenames:
+                        subdir_name = subdir[0].split('/')
+                        subdir_name = "/".join(subdir_name[:-1])
+                        delay_time = float(len(subdir))/float(delay_rate)
+                        if args.skip_processed:
+                            skip_file = args.skip_processed
+                            try:
+                                with open(skip_file,'r') as file:
+                                    skip_files = file.read().splitlines()
+                                    print(f'Skipping {len(skip_files)} subdirectories')
+                            except:
+                                skip_files = []
+                                print('No files to skip')
+                        if subdir_name not in skip_files:
+                            process_files(subdir)
+                            processed_log.info(f"{subdir_name}")
+                            logger.info(f"Processed subdirectoy: {subdir_name}")
+                            print(f"Processed subdirectoy: {subdir_name}")
+                            logger.info(f"Pause for {delay_time} seconds to process")
+                            print(f"Pause for {delay_time} seconds to process")
+                            time.sleep(delay_time)
+                        else:
+                            print(f'Skipping {subdir_name}')
         elif args.confidence:
             date_cutoff = get_date() - timedelta(days=int(args.days)) if args.days else None
             reprocess_references(ReprocessQueryType.score, score_cutoff=float(args.confidence), date_cutoff=date_cutoff)
