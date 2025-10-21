@@ -40,7 +40,7 @@ def run_diagnostics(bibcodes: list, source_filenames: list) -> None:
     return
 
 
-def get_source_filenames(source_file_path: str, file_extension: str, date_cutoff: time.struct_time) -> list):
+def get_source_filenames(source_file_path: str, file_extension: str, date_cutoff: time.struct_time) -> list:
     """
     Return a list of lists of matching files, grouped by the first-level
     subdirectory under `source_file_path`. If files live directly in
