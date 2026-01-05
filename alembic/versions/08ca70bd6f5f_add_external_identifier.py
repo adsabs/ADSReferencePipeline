@@ -7,6 +7,7 @@ Create Date: 2026-01-05 11:16:27.454389
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -17,8 +18,12 @@ depends_on = None
 
 
 def upgrade():
-    pass
+    op.add_column('resolved_reference',
+                    sa.Column("external_identifier",
+                    postgresql.ARRAY(sa.String()))
+                    )
 
 
 def downgrade():
-    pass
+    op.drop_column('resolved_reference', 'external_identifier')
+
