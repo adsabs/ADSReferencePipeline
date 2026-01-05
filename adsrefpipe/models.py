@@ -2,7 +2,7 @@
 
 
 from sqlalchemy import Integer, String, Column, ForeignKey, DateTime, func, Numeric, ForeignKeyConstraint
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -213,6 +213,7 @@ class ResolvedReference(Base):
     bibcode = Column(String)
     score = Column(Numeric)
     reference_raw = Column(String)
+    external_identifier = Column(ARRAY(String))
 
     def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str):
         """
@@ -224,6 +225,7 @@ class ResolvedReference(Base):
         :param bibcode: resolved bibcode
         :param score: confidence score of the resolved reference
         :param reference_raw: raw reference string
+        :param external_identifier: list of external identifiers associated with the reference, e.g. ["doi:...", "arxiv:...", "ascl:..."]
         """
         self.history_id = history_id
         self.item_num = item_num
@@ -231,6 +233,7 @@ class ResolvedReference(Base):
         self.bibcode = bibcode
         self.score = score
         self.reference_raw = reference_raw
+        self.external_identifier = external_identifier
 
     def toJSON(self) -> dict:
         """
@@ -244,7 +247,8 @@ class ResolvedReference(Base):
             'bibcode': self.bibcode,
             'score': self.score,
             'item_num': self.item_num,
-            **({'reference_raw': self.reference_raw} if self.reference_raw else {})
+            **({'reference_raw': self.reference_raw} if self.reference_raw else {}),
+            'external_identifier': self.external_identifier
         }
 
 
