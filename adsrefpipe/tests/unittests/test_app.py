@@ -811,7 +811,8 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "bibcode": "2011LRR....14....2U",
                 "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
                 "refraw": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
-                "id": "H1I1"
+                "id": "H1I1",
+                "ext_id": "ExtID1"
             },
             {
                 "score": "1.0",
@@ -819,6 +820,7 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "refraw": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "id": "H1I2",
+                "ext_id": "ExtID2"
             }
         ]
         arXiv_stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata/txt/arXiv/0/')
