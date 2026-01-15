@@ -215,7 +215,7 @@ class ResolvedReference(Base):
     reference_raw = Column(String)
     external_identifier = Column(ARRAY(String))
 
-    def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str):
+    def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str, external_identifier: list = None):
         """
         initializes a resolved reference object
 
@@ -233,7 +233,7 @@ class ResolvedReference(Base):
         self.bibcode = bibcode
         self.score = score
         self.reference_raw = reference_raw
-        self.external_identifier = external_identifier
+        self.external_identifier = external_identifier or []
 
     def toJSON(self) -> dict:
         """

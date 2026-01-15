@@ -22,6 +22,15 @@ from sqlalchemy import desc
 
 from texttable import Texttable
 
+def _ensure_list(x):
+    if x is None:
+        return None
+    # treat strings as scalars, not iterables
+    if isinstance(x, (str, bytes)):
+        return [x]
+    # already list-like
+    return list(x)
+
 class ADSReferencePipelineCelery(ADSCelery):
     """
     celery-based pipeline for processing and resolving references
@@ -306,6 +315,7 @@ class ADSReferencePipelineCelery(ADSCelery):
 
         return results
 
+
     def diagnostic_query(self, bibcode_list: List = None, source_filename_list: List = None) -> List:
         """
         perform a diagnostic query to retrieve combined reference records
@@ -315,6 +325,8 @@ class ADSReferencePipelineCelery(ADSCelery):
         :return: List of combined records from multiple tables
         """
         results = []
+        bibcode_list = _ensure_list(bibcode_list)
+        source_filename_list = _ensure_list(source_filename_list)
 
         reference_source = self.query_reference_source_tbl(bibcode_list, source_filename_list)
         processed_history = self.query_processed_history_tbl(bibcode_list, source_filename_list)

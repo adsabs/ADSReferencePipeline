@@ -30,6 +30,8 @@ from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
 from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.tests.unittests.stubdata.dbdata import actions_records, parsers_records
 
+import testing.postgresql
+
 
 class TestDatabase(unittest.TestCase):
 
@@ -39,18 +41,26 @@ class TestDatabase(unittest.TestCase):
 
     maxDiff = None
 
-    postgresql_url_dict = {
-        'port': 5432,
-        'host': '127.0.0.1',
-        'user': 'postgres',
-        'database': 'postgres'
-    }
-    postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
-        .format(user=postgresql_url_dict['user'],
-                host=postgresql_url_dict['host'],
-                port=postgresql_url_dict['port'],
-                database=postgresql_url_dict['database']
-                )
+    # postgresql_url_dict = {
+    #     'port': 5432,
+    #     'host': '127.0.0.1',
+    #     'user': 'postgres',
+    #     'database': 'postgres'
+    # }
+    # postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
+    #     .format(user=postgresql_url_dict['user'],
+    #             host=postgresql_url_dict['host'],
+    #             port=postgresql_url_dict['port'],
+    #             database=postgresql_url_dict['database']
+    #             )
+
+    _postgresql = testing.postgresql.Postgresql()
+    postgresql_url = _postgresql.url()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._postgresql.stop()
 
     def setUp(self):
         self.test_dir = os.path.join(project_home, 'adsrefpipe/tests')
@@ -117,8 +127,13 @@ class TestDatabase(unittest.TestCase):
         ]
 
         with self.app.session_scope() as session:
-            session.bulk_save_objects(actions_records)
-            session.bulk_save_objects(parsers_records)
+            session.query(Action).delete()
+            session.query(Parser).delete()
+            session.commit()
+            if session.query(Action).count() == 0:
+                session.bulk_save_objects(actions_records)
+            if session.query(Parser).count() == 0:
+                session.bulk_save_objects(parsers_records)
             session.commit()
 
             for i, (a_reference,a_history) in enumerate(zip(reference_source,processed_history)):
@@ -745,18 +760,26 @@ class TestDatabaseNoStubdata(unittest.TestCase):
 
     maxDiff = None
 
-    postgresql_url_dict = {
-        'port': 5432,
-        'host': '127.0.0.1',
-        'user': 'postgres',
-        'database': 'postgres'
-    }
-    postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
-        .format(user=postgresql_url_dict['user'],
-                host=postgresql_url_dict['host'],
-                port=postgresql_url_dict['port'],
-                database=postgresql_url_dict['database']
-                )
+    # postgresql_url_dict = {
+    #     'port': 5432,
+    #     'host': '127.0.0.1',
+    #     'user': 'postgres',
+    #     'database': 'postgres'
+    # }
+    # postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
+    #     .format(user=postgresql_url_dict['user'],
+    #             host=postgresql_url_dict['host'],
+    #             port=postgresql_url_dict['port'],
+    #             database=postgresql_url_dict['database']
+    #             )
+
+    _postgresql = testing.postgresql.Postgresql()
+    postgresql_url = _postgresql.url()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._postgresql.stop()
 
     def setUp(self):
         self.test_dir = os.path.join(project_home, 'adsrefpipe/tests')
@@ -825,8 +848,13 @@ class TestDatabaseNoStubdata(unittest.TestCase):
         ]
         arXiv_stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata/txt/arXiv/0/')
         with self.app.session_scope() as session:
-            session.bulk_save_objects(actions_records)
-            session.bulk_save_objects(parsers_records)
+            session.query(Action).delete()
+            session.query(Parser).delete()
+            session.commit()
+            if session.query(Action).count() == 0:
+                session.bulk_save_objects(actions_records)
+            if session.query(Parser).count() == 0:
+                session.bulk_save_objects(parsers_records)
             session.commit()
 
             references = self.app.populate_tables_pre_resolved_initial_status(
