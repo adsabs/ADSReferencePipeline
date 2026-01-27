@@ -33,6 +33,11 @@ from adsrefpipe.tests.unittests.stubdata.dbdata import actions_records, parsers_
 import testing.postgresql
 
 
+def _get_external_identifier(rr_obj):
+    """Return external_identifier from a ResolvedReference ORM object."""
+    return getattr(rr_obj, "external_identifier", None)
+
+
 class TestDatabase(unittest.TestCase):
 
     """
@@ -40,19 +45,6 @@ class TestDatabase(unittest.TestCase):
     """
 
     maxDiff = None
-
-    # postgresql_url_dict = {
-    #     'port': 5432,
-    #     'host': '127.0.0.1',
-    #     'user': 'postgres',
-    #     'database': 'postgres'
-    # }
-    # postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
-    #     .format(user=postgresql_url_dict['user'],
-    #             host=postgresql_url_dict['host'],
-    #             port=postgresql_url_dict['port'],
-    #             database=postgresql_url_dict['database']
-    #             )
 
     _postgresql = testing.postgresql.Postgresql()
     postgresql_url = _postgresql.url()
@@ -85,9 +77,12 @@ class TestDatabase(unittest.TestCase):
         self.arXiv_stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata/txt/arXiv/0/')
 
         reference_source = [
-            ('0001arXiv.........Z',os.path.join(self.arXiv_stubdata_dir,'00001.raw'),os.path.join(self.arXiv_stubdata_dir,'00001.raw.result'),'arXiv'),
-            ('0002arXiv.........Z',os.path.join(self.arXiv_stubdata_dir,'00002.raw'),os.path.join(self.arXiv_stubdata_dir,'00002.raw.result'),'arXiv'),
-            ('0003arXiv.........Z',os.path.join(self.arXiv_stubdata_dir,'00003.raw'),os.path.join(self.arXiv_stubdata_dir,'00003.raw.result'),'arXiv')
+            ('0001arXiv.........Z', os.path.join(self.arXiv_stubdata_dir, '00001.raw'),
+             os.path.join(self.arXiv_stubdata_dir, '00001.raw.result'), 'arXiv'),
+            ('0002arXiv.........Z', os.path.join(self.arXiv_stubdata_dir, '00002.raw'),
+             os.path.join(self.arXiv_stubdata_dir, '00002.raw.result'), 'arXiv'),
+            ('0003arXiv.........Z', os.path.join(self.arXiv_stubdata_dir, '00003.raw'),
+             os.path.join(self.arXiv_stubdata_dir, '00003.raw.result'), 'arXiv')
         ]
 
         processed_history = [
@@ -96,33 +91,41 @@ class TestDatabase(unittest.TestCase):
             ('2020-04-03 18:08:32', '2020-05-11 11:14:28', '128', '109')
         ]
 
+        # Add external identifiers for each resolved reference to verify persistence in DB
+        # Each tuple: (reference_str, bibcode, score, external_identifier_list)
         resolved_reference = [
             [
-                ('J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ','2011LRR....14....2U',1.0),
-                ('C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.','2017RPPh...80l6902M',1.0)
+                ('J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ',
+                 '2011LRR....14....2U', 1.0, ['arxiv:1009.5514']),
+                ('C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.',
+                 '2017RPPh...80l6902M', 1.0, ['arxiv:1709.02923'])
             ],
             [
-                ('Alsubai, K. A., Parley, N. R., Bramich, D. M., et al. 2011, MNRAS, 417, 709.','2011MNRAS.417..709A',1.0),
-                ('Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ','2019A&A...625A.136A',1.0)
+                ('Alsubai, K. A., Parley, N. R., Bramich, D. M., et al. 2011, MNRAS, 417, 709.',
+                 '2011MNRAS.417..709A', 1.0, ['doi:10.0000/mnras.417.709']),
+                ('Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
+                 '2019A&A...625A.136A', 1.0, ['doi:10.0000/aa.625.A136'])
             ],
             [
-                ('Abellan, F. J., Indebetouw, R., Marcaide, J. M., et al. 2017, ApJL, 842, L24','2017ApJ...842L..24A',1.0),
-                ('Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 ','2016A&A...586A..71A',1.0)
+                ('Abellan, F. J., Indebetouw, R., Marcaide, J. M., et al. 2017, ApJL, 842, L24',
+                 '2017ApJ...842L..24A', 1.0, ['ascl:1701.001']),
+                ('Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 ',
+                 '2016A&A...586A..71A', 1.0, ['doi:10.0000/aa.586.A71'])
             ],
         ]
 
         compare_classic = [
             [
-                ('2010arXiv1009.5514U',1,'DIFF'),
-                ('2017arXiv170902923M',1,'DIFF')
+                ('2010arXiv1009.5514U', 1, 'DIFF'),
+                ('2017arXiv170902923M', 1, 'DIFF')
             ],
             [
-                ('2011MNRAS.417..709A',1,'MATCH'),
-                ('2019A&A...625A.136A',1,'MATCH')
+                ('2011MNRAS.417..709A', 1, 'MATCH'),
+                ('2019A&A...625A.136A', 1, 'MATCH')
             ],
             [
-                ('2017ApJ...842L..24A',1,'MATCH'),
-                ('2016A&A...586A..71A',1,'MATCH')
+                ('2017ApJ...842L..24A', 1, 'MATCH'),
+                ('2016A&A...586A..71A', 1, 'MATCH')
             ]
         ]
 
@@ -136,44 +139,56 @@ class TestDatabase(unittest.TestCase):
                 session.bulk_save_objects(parsers_records)
             session.commit()
 
-            for i, (a_reference,a_history) in enumerate(zip(reference_source,processed_history)):
-                reference_record = ReferenceSource(bibcode=a_reference[0],
-                                             source_filename=a_reference[1],
-                                             resolved_filename=a_reference[2],
-                                             parser_name=a_reference[3])
+            for i, (a_reference, a_history) in enumerate(zip(reference_source, processed_history)):
+                reference_record = ReferenceSource(
+                    bibcode=a_reference[0],
+                    source_filename=a_reference[1],
+                    resolved_filename=a_reference[2],
+                    parser_name=a_reference[3]
+                )
                 bibcode, source_filename = self.app.insert_reference_source_record(session, reference_record)
                 self.assertTrue(bibcode == a_reference[0])
                 self.assertTrue(source_filename == a_reference[1])
 
-                history_record = ProcessedHistory(bibcode=bibcode,
-                                         source_filename=source_filename,
-                                         source_modified=a_history[0],
-                                         status=Action().get_status_new(),
-                                         date=a_history[1],
-                                         total_ref=a_history[2])
+                history_record = ProcessedHistory(
+                    bibcode=bibcode,
+                    source_filename=source_filename,
+                    source_modified=a_history[0],
+                    status=Action().get_status_new(),
+                    date=a_history[1],
+                    total_ref=a_history[2]
+                )
                 history_id = self.app.insert_history_record(session, history_record)
                 self.assertTrue(history_id != -1)
 
                 resolved_records = []
                 compare_records = []
-                for j, (service,classic) in enumerate(zip(resolved_reference[i],compare_classic[i])):
-                    resolved_record = ResolvedReference(history_id=history_id,
-                                               item_num=j+1,
-                                               reference_str=service[0],
-                                               bibcode=service[1],
-                                               score=service[2],
-                                               reference_raw=service[0])
+                for j, (service, classic) in enumerate(zip(resolved_reference[i], compare_classic[i])):
+                    refstr, bib, sc, ext_ids = service
+                    resolved_record = ResolvedReference(
+                        history_id=history_id,
+                        item_num=j + 1,
+                        reference_str=refstr,
+                        bibcode=bib,
+                        score=sc,
+                        reference_raw=refstr,
+                        external_identifier=ext_ids
+                    )
                     resolved_records.append(resolved_record)
-                    compare_record = CompareClassic(history_id=history_id,
-                                             item_num=j+1,
-                                             bibcode=classic[0],
-                                             score=classic[1],
-                                             state=classic[2])
+
+                    compare_record = CompareClassic(
+                        history_id=history_id,
+                        item_num=j + 1,
+                        bibcode=classic[0],
+                        score=classic[1],
+                        state=classic[2]
+                    )
                     compare_records.append(compare_record)
+
                 success = self.app.insert_resolved_reference_records(session, resolved_records)
-                self.assertTrue(success == True)
+                self.assertTrue(success is True)
                 success = self.app.insert_compare_records(session, compare_records)
-                self.assertTrue(success == True)
+                self.assertTrue(success is True)
                 session.commit()
 
     def test_query_reference_tbl(self):
@@ -181,8 +196,8 @@ class TestDatabase(unittest.TestCase):
         result_expected = [
             {
                 'bibcode': '0001arXiv.........Z',
-                'source_filename': os.path.join(self.arXiv_stubdata_dir,'00001.raw'),
-                'resolved_filename': os.path.join(self.arXiv_stubdata_dir,'00001.raw.result'),
+                'source_filename': os.path.join(self.arXiv_stubdata_dir, '00001.raw'),
+                'resolved_filename': os.path.join(self.arXiv_stubdata_dir, '00001.raw.result'),
                 'parser_name': 'arXiv',
                 'num_runs': 1,
                 'last_run_date': '2020-05-11 11:13:36',
@@ -190,8 +205,8 @@ class TestDatabase(unittest.TestCase):
                 'last_run_num_resolved_references': 2
             }, {
                 'bibcode': '0002arXiv.........Z',
-                'source_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
-                'resolved_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw.result'),
+                'source_filename': os.path.join(self.arXiv_stubdata_dir, '00002.raw'),
+                'resolved_filename': os.path.join(self.arXiv_stubdata_dir, '00002.raw.result'),
                 'parser_name': 'arXiv',
                 'num_runs': 1,
                 'last_run_date': '2020-05-11 11:13:53',
@@ -199,8 +214,8 @@ class TestDatabase(unittest.TestCase):
                 'last_run_num_resolved_references': 2
             }, {
                 'bibcode': '0003arXiv.........Z',
-                'source_filename': os.path.join(self.arXiv_stubdata_dir,'00003.raw'),
-                'resolved_filename': os.path.join(self.arXiv_stubdata_dir,'00003.raw.result'),
+                'source_filename': os.path.join(self.arXiv_stubdata_dir, '00003.raw'),
+                'resolved_filename': os.path.join(self.arXiv_stubdata_dir, '00003.raw.result'),
                 'parser_name': 'arXiv',
                 'num_runs': 1,
                 'last_run_date': '2020-05-11 11:14:28',
@@ -215,9 +230,11 @@ class TestDatabase(unittest.TestCase):
         self.assertTrue(result_expected == result_got)
 
         # test querying filenames
-        filenames = [os.path.join(self.arXiv_stubdata_dir,'00001.raw'),
-                     os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
-                     os.path.join(self.arXiv_stubdata_dir,'00003.raw')]
+        filenames = [
+            os.path.join(self.arXiv_stubdata_dir, '00001.raw'),
+            os.path.join(self.arXiv_stubdata_dir, '00002.raw'),
+            os.path.join(self.arXiv_stubdata_dir, '00003.raw')
+        ]
         result_got = self.app.diagnostic_query(source_filename_list=filenames)
         self.assertTrue(result_expected == result_got)
 
@@ -236,11 +253,13 @@ class TestDatabase(unittest.TestCase):
         self.assertTrue(self.app.diagnostic_query(bibcode_list=['0004arXiv.........Z']) == [])
 
         # test when filename does not exist
-        self.assertTrue(self.app.diagnostic_query(source_filename_list=os.path.join(self.arXiv_stubdata_dir,'00004.raw')) == [])
+        self.assertTrue(self.app.diagnostic_query(source_filename_list=os.path.join(self.arXiv_stubdata_dir, '00004.raw')) == [])
 
         # test when both bibcode and filename are passed and nothing is returned
-        self.assertTrue(self.app.diagnostic_query(bibcode_list=['0004arXiv.........Z'],
-                                                     source_filename_list=os.path.join(self.arXiv_stubdata_dir,'00004.raw')) == [])
+        self.assertTrue(self.app.diagnostic_query(
+            bibcode_list=['0004arXiv.........Z'],
+            source_filename_list=os.path.join(self.arXiv_stubdata_dir, '00004.raw')
+        ) == [])
 
     def test_insert_reference_record(self):
         """ test inserting reference_source record """
@@ -249,13 +268,15 @@ class TestDatabase(unittest.TestCase):
         # see that it is returned without it being inserted
         with self.app.session_scope() as session:
             count = self.app.get_count_reference_source_records(session)
-            reference_record = ReferenceSource(bibcode='0001arXiv.........Z',
-                                         source_filename=os.path.join(self.arXiv_stubdata_dir,'00001.raw'),
-                                         resolved_filename=os.path.join(self.arXiv_stubdata_dir,'00001.raw.result'),
-                                         parser_name=self.app.get_parser(os.path.join(self.arXiv_stubdata_dir,'00001.raw')).get('name'))
+            reference_record = ReferenceSource(
+                bibcode='0001arXiv.........Z',
+                source_filename=os.path.join(self.arXiv_stubdata_dir, '00001.raw'),
+                resolved_filename=os.path.join(self.arXiv_stubdata_dir, '00001.raw.result'),
+                parser_name=self.app.get_parser(os.path.join(self.arXiv_stubdata_dir, '00001.raw')).get('name')
+            )
             bibcode, source_filename = self.app.insert_reference_source_record(session, reference_record)
             self.assertTrue(bibcode == '0001arXiv.........Z')
-            self.assertTrue(source_filename == os.path.join(self.arXiv_stubdata_dir,'00001.raw'))
+            self.assertTrue(source_filename == os.path.join(self.arXiv_stubdata_dir, '00001.raw'))
             self.assertTrue(self.app.get_count_reference_source_records(session) == count)
 
     def test_parser_name(self):
@@ -274,7 +295,7 @@ class TestDatabase(unittest.TestCase):
             'AGU': ['/JGR/0101/issD14.agu.xml', AGUtoREFs],
             'arXiv': ['/arXiv/2011/00324.raw', ARXIVtoREFs],
         }
-        for name,info in parser.items():
+        for name, info in parser.items():
             self.assertEqual(name, self.app.get_parser(info[0]).get('name'))
             self.assertEqual(info[1], verify(name))
         # now verify couple of errors
@@ -298,7 +319,7 @@ class TestDatabase(unittest.TestCase):
             'arXiv': '/text',
             'AEdRvHTML': '/text',
         }
-        for name,endpoint in parser.items():
+        for name, endpoint in parser.items():
             self.assertEqual(endpoint, self.app.get_reference_service_endpoint(name))
         # now verify an error
         self.assertEqual(self.app.get_reference_service_endpoint('errorname'), '')
@@ -316,8 +337,10 @@ class TestDatabase(unittest.TestCase):
             "| review of the physics, searches and implications,            |                     |                     |                 |                 |       |       |       |       |       |\n" \
             "| 1709.02923.                                                  |                     |                     |                 |                 |       |       |       |       |       |\n" \
             "+--------------------------------------------------------------+---------------------+---------------------+-----------------+-----------------+-------+-------+-------+-------+-------+"
-        result_got, num_references, num_resolved = self.app.get_service_classic_compare_stats_grid(source_bibcode='0001arXiv.........Z',
-                                                                                                   source_filename=os.path.join(self.arXiv_stubdata_dir,'00001.raw'))
+        result_got, num_references, num_resolved = self.app.get_service_classic_compare_stats_grid(
+            source_bibcode='0001arXiv.........Z',
+            source_filename=os.path.join(self.arXiv_stubdata_dir, '00001.raw')
+        )
         self.assertEqual(result_got, result_expected)
         self.assertEqual(num_references, 2)
         self.assertEqual(num_resolved, 2)
@@ -326,7 +349,7 @@ class TestDatabase(unittest.TestCase):
         """ test reprocessing references """
         result_expected_year = [
             {'source_bibcode': '0002arXiv.........Z',
-             'source_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
+             'source_filename': os.path.join(self.arXiv_stubdata_dir, '00002.raw'),
              'source_modified': datetime(2020, 4, 3, 18, 8, 42),
              'parser_name': 'arXiv',
              'references': [{'item_num': 2,
@@ -335,24 +358,30 @@ class TestDatabase(unittest.TestCase):
         ]
         result_expected_bibstem = [
             {'source_bibcode': '0002arXiv.........Z',
-             'source_filename': os.path.join(self.arXiv_stubdata_dir,'00002.raw'),
+             'source_filename': os.path.join(self.arXiv_stubdata_dir, '00002.raw'),
              'source_modified': datetime(2020, 4, 3, 18, 8, 42),
              'parser_name': 'arXiv',
              'references': [{'item_num': 2,
                              'refstr': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
                              'refraw': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}]
-            },
+             },
             {'source_bibcode': '0003arXiv.........Z',
-             'source_filename': os.path.join(self.arXiv_stubdata_dir,'00003.raw'),
+             'source_filename': os.path.join(self.arXiv_stubdata_dir, '00003.raw'),
              'source_modified': datetime(2020, 4, 3, 18, 8, 32),
              'parser_name': 'arXiv',
              'references': [{'item_num': 2,
                              'refstr': 'Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 ',
                              'refraw': 'Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 '}]
-            }
+             }
         ]
-        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.year, match_bibcode='2019', score_cutoff=None, date_cutoff=None), result_expected_year)
-        self.assertEqual(self.app.get_reprocess_records(ReprocessQueryType.bibstem, match_bibcode='A&A..', score_cutoff=None, date_cutoff=None), result_expected_bibstem)
+        self.assertEqual(
+            self.app.get_reprocess_records(ReprocessQueryType.year, match_bibcode='2019', score_cutoff=None, date_cutoff=None),
+            result_expected_year
+        )
+        self.assertEqual(
+            self.app.get_reprocess_records(ReprocessQueryType.bibstem, match_bibcode='A&A..', score_cutoff=None, date_cutoff=None),
+            result_expected_bibstem
+        )
 
         references_and_ids_year = [
             {'id': 'H4I2', 'reference': 'Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   '}
@@ -361,7 +390,8 @@ class TestDatabase(unittest.TestCase):
             source_bibcode=result_expected_year[0]['source_bibcode'],
             source_filename=result_expected_year[0]['source_filename'],
             source_modified=result_expected_year[0]['source_modified'],
-            retry_records=result_expected_year[0]['references'])
+            retry_records=result_expected_year[0]['references']
+        )
         self.assertTrue(reprocess_references)
         self.assertTrue(reprocess_references, references_and_ids_year)
         current_num_records = [
@@ -427,10 +457,12 @@ class TestDatabase(unittest.TestCase):
             mock_session.commit.side_effect = SQLAlchemyError("Mocked SQLAlchemyError")
 
             with patch.object(self.app.logger, 'error') as mock_error:
-                results = self.app.populate_tables_pre_resolved_initial_status('0001arXiv.........Z',
-                                                                               os.path.join(self.arXiv_stubdata_dir,'00001.raw'),
-                                                                               'arXiv',
-                                                                               references=[])
+                results = self.app.populate_tables_pre_resolved_initial_status(
+                    '0001arXiv.........Z',
+                    os.path.join(self.arXiv_stubdata_dir, '00001.raw'),
+                    'arXiv',
+                    references=[]
+                )
                 self.assertEqual(results, [])
                 mock_session.rollback.assert_called_once()
                 mock_error.assert_called()
@@ -442,10 +474,12 @@ class TestDatabase(unittest.TestCase):
             mock_session.commit.side_effect = SQLAlchemyError("Mocked SQLAlchemyError")
 
             with patch.object(self.app.logger, 'error') as mock_error:
-                results = self.app.populate_tables_pre_resolved_retry_status('0001arXiv.........Z',
-                                                                             os.path.join(self.arXiv_stubdata_dir,'00001.raw'),
-                                                                             source_modified='',
-                                                                             retry_records=[])
+                results = self.app.populate_tables_pre_resolved_retry_status(
+                    '0001arXiv.........Z',
+                    os.path.join(self.arXiv_stubdata_dir, '00001.raw'),
+                    source_modified='',
+                    retry_records=[]
+                )
                 self.assertEqual(results, [])
                 mock_session.rollback.assert_called_once()
                 mock_error.assert_called()
@@ -457,25 +491,39 @@ class TestDatabase(unittest.TestCase):
             mock_session.commit.side_effect = SQLAlchemyError("Mocked SQLAlchemyError")
 
             with patch.object(self.app.logger, 'error') as mock_error:
-                result = self.app.populate_tables_post_resolved(resolved_reference=[],
-                                                                source_bibcode='0001arXiv.........Z',
-                                                                classic_resolved_filename=os.path.join(self.arXiv_stubdata_dir,'00001.raw.results'))
+                result = self.app.populate_tables_post_resolved(
+                    resolved_reference=[],
+                    source_bibcode='0001arXiv.........Z',
+                    classic_resolved_filename=os.path.join(self.arXiv_stubdata_dir, '00001.raw.results')
+                )
                 self.assertEqual(result, False)
                 mock_session.rollback.assert_called_once()
                 mock_error.assert_called()
 
     def test_populate_tables_post_resolved_with_classic(self):
-        """ test populate_tables_post_resolved when resolved_classic is available """
+        """ test populate_tables_post_resolved when resolved_classic is available AND external_identifier is set """
 
         resolved_reference = [
-            {'id': 'H1I1', 'refstring': 'Reference 1', 'bibcode': '2023A&A...657A...1X', 'score': 1.0},
-            {'id': 'H1I2', 'refstring': 'Reference 2', 'bibcode': '2023A&A...657A...2X', 'score': 0.8}
+            {
+                'id': 'H1I1',
+                'refstring': 'Reference 1',
+                'bibcode': '2023A&A...657A...1X',
+                'score': 1.0,
+                'external_identifier': ['doi:10.1234/abc', 'arxiv:2301.00001'],
+            },
+            {
+                'id': 'H1I2',
+                'refstring': 'Reference 2',
+                'bibcode': '2023A&A...657A...2X',
+                'score': 0.8,
+                'external_identifier': ['ascl:2301.001', 'doi:10.9999/xyz'],
+            }
         ]
         source_bibcode = "2023A&A...657A...1X"
         classic_resolved_filename = "classic_results.txt"
         classic_resolved_reference = [
-            (1, "2023A&A...657A...1X", "1", "MATCH"),
-            (2, "2023A&A...657A...2X", "1", "MATCH")
+            (1, "2023A&A...657A...657A...1X", "1", "MATCH"),
+            (2, "2023A&A...657A...657A...2X", "1", "MATCH")
         ]
 
         with patch.object(self.app, "session_scope"), \
@@ -490,6 +538,12 @@ class TestDatabase(unittest.TestCase):
             mock_update.assert_called_once()
             mock_insert.assert_called_once()
             mock_logger.assert_called_with("Updated 2 resolved reference records successfully.")
+
+            # Check whether external_identifier is populated with correct data
+            _, resolved_records = mock_update.call_args[0]
+            self.assertEqual(len(resolved_records), 2)
+            self.assertEqual(_get_external_identifier(resolved_records[0]), ['doi:10.1234/abc', 'arxiv:2301.00001'])
+            self.assertEqual(_get_external_identifier(resolved_records[1]), ['ascl:2301.001', 'doi:10.9999/xyz'])
 
     @patch("adsrefpipe.app.ProcessedHistory")
     @patch("adsrefpipe.app.ResolvedReference")
@@ -514,16 +568,28 @@ class TestDatabase(unittest.TestCase):
         result1 = self.app.get_service_classic_compare_tags(mock_session, source_bibcode="2023A&A...657A...1X", source_filename="")
         self.assertEqual(result1, "mock_final_subquery")
 
-        expected_filter_bibcode = and_(mock_processed.id == mock_resolved.history_id, literal('"2023A&A...657A...1X').op('~')(mock_processed.bibcode))
-        found_bibcode_filter = any(call.args and expected_filter_bibcode.compare(call.args[0]) for call in mock_session.query().filter.call_args_list)
+        expected_filter_bibcode = and_(
+            mock_processed.id == mock_resolved.history_id,
+            literal('"2023A&A...657A...1X').op('~')(mock_processed.bibcode)
+        )
+        found_bibcode_filter = any(
+            call.args and expected_filter_bibcode.compare(call.args[0])
+            for call in mock_session.query().filter.call_args_list
+        )
         self.assertTrue(found_bibcode_filter)
 
         # test case 2: Only source_filename are provided
         result2 = self.app.get_service_classic_compare_tags(mock_session, source_bibcode="", source_filename="some_source_file.txt")
         self.assertEqual(result2, "mock_final_subquery")
 
-        expected_filter_filename = and_(mock_processed.id == mock_resolved.history_id, literal('2023A&A...657A...1X').op('~')(mock_processed.source_filename))
-        found_filename_filter = any(call.args and expected_filter_filename.compare(call.args[0]) for call in mock_session.query().filter.call_args_list)
+        expected_filter_filename = and_(
+            mock_processed.id == mock_resolved.history_id,
+            literal('2023A&A...657A...1X').op('~')(mock_processed.source_filename)
+        )
+        found_filename_filter = any(
+            call.args and expected_filter_filename.compare(call.args[0])
+            for call in mock_session.query().filter.call_args_list
+        )
         self.assertTrue(found_filename_filter)
 
     def test_get_service_classic_compare_stats_grid_error(self):
@@ -545,10 +611,15 @@ class TestDatabase(unittest.TestCase):
                 # mock `session.query(...).all()` to return an empty list
                 mock_session.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
 
-                result = self.app.get_service_classic_compare_stats_grid(source_bibcode='0001arXiv.........Z',
-                                                                         source_filename=os.path.join(self.arXiv_stubdata_dir,'00001.raw'))
+                result = self.app.get_service_classic_compare_stats_grid(
+                    source_bibcode='0001arXiv.........Z',
+                    source_filename=os.path.join(self.arXiv_stubdata_dir, '00001.raw')
+                )
 
-                self.assertEqual(result, ('Unable to fetch data for reference source file `%s` from database!'%os.path.join(self.arXiv_stubdata_dir,'00001.raw'), -1, -1))
+                self.assertEqual(
+                    result,
+                    ('Unable to fetch data for reference source file `%s` from database!' % os.path.join(self.arXiv_stubdata_dir, '00001.raw'), -1, -1)
+                )
 
     @patch("adsrefpipe.app.datetime")
     def test_filter_reprocess_query(self, mock_datetime):
@@ -598,12 +669,9 @@ class TestDatabase(unittest.TestCase):
         # Test case: date_cutoff is applied
         mock_query.reset_mock()
         self.app.filter_reprocess_query(mock_query, ReprocessQueryType.score, 0.8, "", 10)
-        expected_since = datetime(2025, 1, 1) - timedelta(days=10)
         mock_query.filter.assert_called()
         called_args, _ = mock_query.filter.call_args
         compiled_query = called_args[0].compile(dialect=postgresql.dialect())
-        print(str(called_args[0]))
-        print(compiled_query.params)
         self.assertTrue(str(called_args[0]), 'resolved_reference.score <= :score_1')
         self.assertTrue(compiled_query.params.get('score_1'), 0.8)
 
@@ -620,9 +688,11 @@ class TestDatabase(unittest.TestCase):
 
             # mock query results with same history_id to trigger the else block
             mock_session.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
-                MockRow(history_id=1, item_num=1, refstr="Reference 1", refraw="Raw 1", source_bibcode="2023A&A...657A...1X",
+                MockRow(history_id=1, item_num=1, refstr="Reference 1", refraw="Raw 1",
+                        source_bibcode="2023A&A...657A...1X",
                         source_filename="some_source_file.txt", source_modified="D1", parser_name="arXiv"),
-                MockRow(history_id=1, item_num=2, refstr="Reference 2", refraw="Raw 2", source_bibcode="2023A&A...657A...1X",
+                MockRow(history_id=1, item_num=2, refstr="Reference 2", refraw="Raw 2",
+                        source_bibcode="2023A&A...657A...1X",
                         source_filename="some_source_file.txt", source_modified="D1", parser_name="arXiv"),
             ]
 
@@ -643,8 +713,10 @@ class TestDatabase(unittest.TestCase):
 
             # mock query results with highest scores
             mock_session.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
-                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 1), id=1, resolved_bibcode="0001arXiv.........Z", score=0.95, parser_name="arXiv"),
-                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 2), id=2, resolved_bibcode="0002arXiv.........Z", score=0.85, parser_name="arXiv"),
+                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 1), id=1,
+                        resolved_bibcode="0001arXiv.........Z", score=0.95, parser_name="arXiv"),
+                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 2), id=2,
+                        resolved_bibcode="0002arXiv.........Z", score=0.85, parser_name="arXiv"),
             ]
 
             results = self.app.get_resolved_references_all("2023A&A...657A...1X")
@@ -667,12 +739,16 @@ class TestDatabase(unittest.TestCase):
             mock_session = mock_session_scope.return_value.__enter__.return_value
 
             # Define a mock SQLAlchemy row with namedtuple
-            MockRow = namedtuple("MockRow", ["source_bibcode", "date", "id", "resolved_bibcode", "score", "parser_name", "parser_priority"])
+            MockRow = namedtuple("MockRow",
+                                 ["source_bibcode", "date", "id", "resolved_bibcode", "score", "parser_name",
+                                  "parser_priority"])
 
             # Mock query results with highest-ranked records
             mock_session.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
-                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 1), id=1, resolved_bibcode="0001arXiv.........Z", score=0.95, parser_name="arXiv", parser_priority=1),
-                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 2), id=2, resolved_bibcode="0002arXiv.........Z", score=0.85, parser_name="arXiv", parser_priority=1),
+                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 1), id=1,
+                        resolved_bibcode="0001arXiv.........Z", score=0.95, parser_name="arXiv", parser_priority=1),
+                MockRow(source_bibcode="2023A&A...657A...1X", date=datetime(2025, 1, 2), id=2,
+                        resolved_bibcode="0002arXiv.........Z", score=0.85, parser_name="arXiv", parser_priority=1),
             ]
 
             results = self.app.get_resolved_references("2023A&A...657A...1X")
@@ -741,7 +817,8 @@ class TestDatabase(unittest.TestCase):
             item_num=2,
             bibcode="0001arXiv.........Z",
             score=1,
-            state="MATCH")
+            state="MATCH"
+        )
         expected_json = {
             "history_id": 1,
             "item_num": 2,
@@ -759,19 +836,6 @@ class TestDatabaseNoStubdata(unittest.TestCase):
     """
 
     maxDiff = None
-
-    # postgresql_url_dict = {
-    #     'port': 5432,
-    #     'host': '127.0.0.1',
-    #     'user': 'postgres',
-    #     'database': 'postgres'
-    # }
-    # postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
-    #     .format(user=postgresql_url_dict['user'],
-    #             host=postgresql_url_dict['host'],
-    #             port=postgresql_url_dict['port'],
-    #             database=postgresql_url_dict['database']
-    #             )
 
     _postgresql = testing.postgresql.Postgresql()
     postgresql_url = _postgresql.url()
@@ -811,7 +875,8 @@ class TestDatabaseNoStubdata(unittest.TestCase):
         references = [
             {
                 "refstr": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
-                "refraw": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. "},
+                "refraw": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. "
+            },
             {
                 "refstr": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "refraw": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923."
@@ -826,8 +891,11 @@ class TestDatabaseNoStubdata(unittest.TestCase):
             {
                 "refstr": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "refraw": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
-                "id": "H1I2"}
+                "id": "H1I2"
+            }
         ]
+
+        # IMPORTANT: use the real column name expected by app/models: external_identifier (list)
         resolved_references = [
             {
                 "score": "1.0",
@@ -835,7 +903,7 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
                 "refraw": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
                 "id": "H1I1",
-                "ext_id": "ExtID1"
+                "external_identifier": ["arxiv:1009.5514", "doi:10.1234/abc"]
             },
             {
                 "score": "1.0",
@@ -843,9 +911,10 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "refraw": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "id": "H1I2",
-                "ext_id": "ExtID2"
+                "external_identifier": ["arxiv:1709.02923", "ascl:2301.001"]
             }
         ]
+
         arXiv_stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata/txt/arXiv/0/')
         with self.app.session_scope() as session:
             session.query(Action).delete()
@@ -857,20 +926,36 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 session.bulk_save_objects(parsers_records)
             session.commit()
 
-            references = self.app.populate_tables_pre_resolved_initial_status(
+            references_out = self.app.populate_tables_pre_resolved_initial_status(
                 source_bibcode='0001arXiv.........Z',
-                source_filename=os.path.join(arXiv_stubdata_dir,'00001.raw'),
-                parsername=self.app.get_parser(os.path.join(arXiv_stubdata_dir,'00001.raw')).get('name'),
-                references=references)
+                source_filename=os.path.join(arXiv_stubdata_dir, '00001.raw'),
+                parsername=self.app.get_parser(os.path.join(arXiv_stubdata_dir, '00001.raw')).get('name'),
+                references=references
+            )
 
-            self.assertTrue(references)
-            self.assertTrue(references == references_and_ids)
+            self.assertTrue(references_out)
+            self.assertTrue(references_out == references_and_ids)
 
             status = self.app.populate_tables_post_resolved(
                 resolved_reference=resolved_references,
                 source_bibcode='0001arXiv.........Z',
-                classic_resolved_filename=os.path.join(arXiv_stubdata_dir, '00001.raw.result'))
-            self.assertTrue(status == True)
+                classic_resolved_filename=os.path.join(arXiv_stubdata_dir, '00001.raw.result')
+            )
+            self.assertTrue(status is True)
+
+            # NEW: Verify external_identifier was persisted for the two updated rows.
+            # We know history_id should be 1 for the first inserted ProcessedHistory in an empty DB.
+            rows = (
+                session.query(ResolvedReference)
+                .filter(ResolvedReference.history_id == 1)
+                .order_by(ResolvedReference.item_num.asc())
+                .all()
+            )
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0].item_num, 1)
+            self.assertEqual(rows[1].item_num, 2)
+            self.assertEqual(rows[0].external_identifier, ["arxiv:1009.5514", "doi:10.1234/abc"])
+            self.assertEqual(rows[1].external_identifier, ["arxiv:1709.02923", "ascl:2301.001"])
 
     def test_get_parser_error(self):
         """ test get_parser when it errors for unrecognized source filename """
@@ -881,3 +966,4 @@ class TestDatabaseNoStubdata(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
