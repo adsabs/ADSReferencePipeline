@@ -74,6 +74,8 @@ class TestTasks(unittest.TestCase):
         ]
 
         with self.app.session_scope() as session:
+            session.query(Action).delete()
+            session.query(Parser).delete()
             session.bulk_save_objects(actions_records)
             session.bulk_save_objects(parsers_records)
             session.commit()

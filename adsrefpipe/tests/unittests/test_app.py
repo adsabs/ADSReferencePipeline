@@ -30,6 +30,17 @@ from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
 from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.tests.unittests.stubdata.dbdata import actions_records, parsers_records
 
+import testing.postgresql
+
+def _get_external_identifier(rec):
+    """
+    Works whether rec is a dict (bulk mappings) or an ORM object.
+    """
+    if rec is None:
+        return []
+    if isinstance(rec, dict):
+        return rec.get("external_identifier") or []
+    return getattr(rec, "external_identifier", None) or []
 
 class TestDatabase(unittest.TestCase):
 
@@ -39,18 +50,13 @@ class TestDatabase(unittest.TestCase):
 
     maxDiff = None
 
-    postgresql_url_dict = {
-        'port': 5432,
-        'host': '127.0.0.1',
-        'user': 'postgres',
-        'database': 'postgres'
-    }
-    postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
-        .format(user=postgresql_url_dict['user'],
-                host=postgresql_url_dict['host'],
-                port=postgresql_url_dict['port'],
-                database=postgresql_url_dict['database']
-                )
+    _postgresql = testing.postgresql.Postgresql()
+    postgresql_url = _postgresql.url()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._postgresql.stop()
 
     def setUp(self):
         self.test_dir = os.path.join(project_home, 'adsrefpipe/tests')
@@ -88,16 +94,22 @@ class TestDatabase(unittest.TestCase):
 
         resolved_reference = [
             [
-                ('J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ','2011LRR....14....2U',1.0),
-                ('C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.','2017RPPh...80l6902M',1.0)
+                ('J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ',
+                 '2011LRR....14....2U', 1.0, ['arxiv:1009.5514']),
+                ('C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.',
+                 '2017RPPh...80l6902M', 1.0, ['arxiv:1709.02923'])
             ],
             [
-                ('Alsubai, K. A., Parley, N. R., Bramich, D. M., et al. 2011, MNRAS, 417, 709.','2011MNRAS.417..709A',1.0),
-                ('Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ','2019A&A...625A.136A',1.0)
+                ('Alsubai, K. A., Parley, N. R., Bramich, D. M., et al. 2011, MNRAS, 417, 709.',
+                 '2011MNRAS.417..709A', 1.0, ['doi:10.0000/mnras.417.709']),
+                ('Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
+                 '2019A&A...625A.136A', 1.0, ['doi:10.0000/aa.625.A136'])
             ],
             [
-                ('Abellan, F. J., Indebetouw, R., Marcaide, J. M., et al. 2017, ApJL, 842, L24','2017ApJ...842L..24A',1.0),
-                ('Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 ','2016A&A...586A..71A',1.0)
+                ('Abellan, F. J., Indebetouw, R., Marcaide, J. M., et al. 2017, ApJL, 842, L24',
+                 '2017ApJ...842L..24A', 1.0, ['ascl:1701.001']),
+                ('Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 ',
+                 '2016A&A...586A..71A', 1.0, ['doi:10.0000/aa.586.A71'])
             ],
         ]
 
@@ -117,8 +129,13 @@ class TestDatabase(unittest.TestCase):
         ]
 
         with self.app.session_scope() as session:
-            session.bulk_save_objects(actions_records)
-            session.bulk_save_objects(parsers_records)
+            session.query(Action).delete()
+            session.query(Parser).delete()
+            session.commit()
+            if session.query(Action).count() == 0:
+                session.bulk_save_objects(actions_records)
+            if session.query(Parser).count() == 0:
+                session.bulk_save_objects(parsers_records)
             session.commit()
 
             for i, (a_reference,a_history) in enumerate(zip(reference_source,processed_history)):
@@ -453,9 +470,22 @@ class TestDatabase(unittest.TestCase):
         """ test populate_tables_post_resolved when resolved_classic is available """
 
         resolved_reference = [
-            {'id': 'H1I1', 'refstring': 'Reference 1', 'bibcode': '2023A&A...657A...1X', 'score': 1.0},
-            {'id': 'H1I2', 'refstring': 'Reference 2', 'bibcode': '2023A&A...657A...2X', 'score': 0.8}
+            {
+                'id': 'H1I1',
+                'refstring': 'Reference 1',
+                'bibcode': '2023A&A...657A...1X',
+                'score': 1.0,
+                'external_identifier': ['doi:10.1234/abc', 'arxiv:2301.00001'],
+            },
+            {
+                'id': 'H1I2',
+                'refstring': 'Reference 2',
+                'bibcode': '2023A&A...657A...2X',
+                'score': 0.8,
+                'external_identifier': ['ascl:2301.001', 'doi:10.9999/xyz'],
+            }
         ]
+
         source_bibcode = "2023A&A...657A...1X"
         classic_resolved_filename = "classic_results.txt"
         classic_resolved_reference = [
@@ -475,6 +505,12 @@ class TestDatabase(unittest.TestCase):
             mock_update.assert_called_once()
             mock_insert.assert_called_once()
             mock_logger.assert_called_with("Updated 2 resolved reference records successfully.")
+
+            # Check whether external_identifier is populated with correct data
+            _, resolved_records = mock_update.call_args[0]
+            self.assertEqual(len(resolved_records), 2)
+            self.assertEqual(_get_external_identifier(resolved_records[0]), ['doi:10.1234/abc', 'arxiv:2301.00001'])
+            self.assertEqual(_get_external_identifier(resolved_records[1]), ['ascl:2301.001', 'doi:10.9999/xyz'])
 
     @patch("adsrefpipe.app.ProcessedHistory")
     @patch("adsrefpipe.app.ResolvedReference")
@@ -745,18 +781,13 @@ class TestDatabaseNoStubdata(unittest.TestCase):
 
     maxDiff = None
 
-    postgresql_url_dict = {
-        'port': 5432,
-        'host': '127.0.0.1',
-        'user': 'postgres',
-        'database': 'postgres'
-    }
-    postgresql_url = 'postgresql://{user}:{user}@{host}:{port}/{database}' \
-        .format(user=postgresql_url_dict['user'],
-                host=postgresql_url_dict['host'],
-                port=postgresql_url_dict['port'],
-                database=postgresql_url_dict['database']
-                )
+    _postgresql = testing.postgresql.Postgresql()
+    postgresql_url = _postgresql.url()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._postgresql.stop()
 
     def setUp(self):
         self.test_dir = os.path.join(project_home, 'adsrefpipe/tests')
@@ -805,13 +836,16 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "refraw": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "id": "H1I2"}
         ]
+
+        # IMPORTANT: use the real column name expected by app/models: external_identifier (list)
         resolved_references = [
             {
                 "score": "1.0",
                 "bibcode": "2011LRR....14....2U",
                 "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
                 "refraw": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
-                "id": "H1I1"
+                "id": "H1I1",
+                "external_identifier": ["arxiv:1009.5514", "doi:10.1234/abc"]
             },
             {
                 "score": "1.0",
@@ -819,12 +853,19 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "refraw": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "id": "H1I2",
+                "external_identifier": ["arxiv:1709.02923", "ascl:2301.001"]
             }
         ]
+
         arXiv_stubdata_dir = os.path.join(self.test_dir, 'unittests/stubdata/txt/arXiv/0/')
         with self.app.session_scope() as session:
-            session.bulk_save_objects(actions_records)
-            session.bulk_save_objects(parsers_records)
+            session.query(Action).delete()
+            session.query(Parser).delete()
+            session.commit()
+            if session.query(Action).count() == 0:
+                session.bulk_save_objects(actions_records)
+            if session.query(Parser).count() == 0:
+                session.bulk_save_objects(parsers_records)
             session.commit()
 
             references = self.app.populate_tables_pre_resolved_initial_status(
@@ -842,6 +883,20 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 classic_resolved_filename=os.path.join(arXiv_stubdata_dir, '00001.raw.result'))
             self.assertTrue(status == True)
 
+            # Verify external_identifier was persisted on ResolvedReference rows
+            # We know history_id should be 1 for the first inserted ProcessedHistory in an empty DB.
+            rows = (
+                session.query(ResolvedReference)
+                .filter(ResolvedReference.history_id == 1)
+                .order_by(ResolvedReference.item_num.asc())
+                .all()
+            )
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0].item_num, 1)
+            self.assertEqual(rows[1].item_num, 2)
+            self.assertEqual(rows[0].external_identifier, ["arxiv:1009.5514", "doi:10.1234/abc"])
+            self.assertEqual(rows[1].external_identifier, ["arxiv:1709.02923", "ascl:2301.001"])
+
     def test_get_parser_error(self):
         """ test get_parser when it errors for unrecognized source filename """
         with patch.object(self.app.logger, 'error') as mock_error:
@@ -851,3 +906,4 @@ class TestDatabaseNoStubdata(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
