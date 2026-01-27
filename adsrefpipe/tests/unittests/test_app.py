@@ -32,6 +32,15 @@ from adsrefpipe.tests.unittests.stubdata.dbdata import actions_records, parsers_
 
 import testing.postgresql
 
+def _get_external_identifier(rec):
+    """
+    Works whether rec is a dict (bulk mappings) or an ORM object.
+    """
+    if rec is None:
+        return []
+    if isinstance(rec, dict):
+        return rec.get("external_identifier") or []
+    return getattr(rec, "external_identifier", None) or []
 
 class TestDatabase(unittest.TestCase):
 
@@ -475,6 +484,7 @@ class TestDatabase(unittest.TestCase):
                 'score': 0.8,
                 'external_identifier': ['ascl:2301.001', 'doi:10.9999/xyz'],
             }
+        ]
 
         source_bibcode = "2023A&A...657A...1X"
         classic_resolved_filename = "classic_results.txt"

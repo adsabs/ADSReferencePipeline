@@ -416,6 +416,31 @@ class ADSReferencePipelineCelery(ADSCelery):
         self.logger.debug("Added `ResolvedReference` records successfully.")
         return True
 
+    def update_resolved_reference_records(self, session: object, resolved_list: List[ResolvedReference]) -> bool:
+        """
+        update resolved reference records in the database
+        """
+        mappings = []
+        for r in resolved_list:
+            mappings.append({
+                # must include PK columns for bulk_update_mappings
+                "history_id": r.history_id,
+                "item_num": r.item_num,
+                "reference_str": r.reference_str,
+
+                # fields to update
+                "bibcode": r.bibcode,
+                "score": r.score,
+                "reference_raw": r.reference_raw,
+                "external_identifier": _ensure_list(getattr(r, "external_identifier", None)) or [],
+            })
+
+        session.bulk_update_mappings(ResolvedReference, mappings)
+        session.flush()
+        self.logger.debug("Added `ResolvedReference` records successfully.")
+        return True
+
+
     def insert_compare_records(self, session: object, compared_list: List[CompareClassic]) -> bool:
         """
         insert records into the compare classic table
@@ -549,7 +574,8 @@ class ADSReferencePipelineCelery(ADSCelery):
                                                    reference_str=ref.get('refstring', None),
                                                    bibcode=ref.get('bibcode', None),
                                                    score=ref.get('score', None),
-                                                   reference_raw=ref.get('refstring', None))
+                                                   reference_raw=ref.get('refstring', None),
+                                                   external_identifier=_ensure_list(ref.get('external_identifier', None)) or [])
                         resolved_records.append(resolved_record)
                         if resolved_classic:
                             compare_record = CompareClassic(history_id=history_id,
