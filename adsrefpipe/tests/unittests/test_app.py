@@ -417,28 +417,6 @@ class TestDatabase(unittest.TestCase):
         # now verify an error
         self.assertEqual(self.app.get_reference_service_endpoint('errorname'), '')
 
-    # def test_reference_service_endpoint(self):
-    #     """ test getting reference service endpoint from parser name method """
-    #     parser = {
-    #         'CrossRef': '/xml',
-    #         'ELSEVIER': '/xml',
-    #         'JATS': '/xml',
-    #         'IOP': '/xml',
-    #         'SPRINGER': '/xml',
-    #         'APS': '/xml',
-    #         'NATURE': '/xml',
-    #         'AIP': '/xml',
-    #         'WILEY': '/xml',
-    #         'NLM': '/xml',
-    #         'AGU': '/xml',
-    #         'arXiv': '/text',
-    #         'AEdRvHTML': '/text',
-    #     }
-    #     for name, endpoint in parser.items():
-    #         self.assertEqual(endpoint, self.app.get_reference_service_endpoint(name))
-    #     # now verify an error
-    #     self.assertEqual(self.app.get_reference_service_endpoint('errorname'), '')
-
     def test_stats_compare(self):
         """ test the display of statistics comparing classic and new resolver """
         result_expected = "" \
@@ -574,8 +552,6 @@ class TestDatabase(unittest.TestCase):
             session = MagicMock(name="query_refsrc_session")
             mock_session_scope.return_value = _make_session_scope_cm(session)
 
-            # Build a "row" type compatible with typical SQLAlchemy row/tuple access patterns.
-            # Row = namedtuple("Row", ["parser_name", "bibcode", "source_filename"])
             # Build row objects that look like ORM instances (must have toJSON()).
             class FakeRefSrcRow:
                 def __init__(self, parser_name, bibcode, source_filename):
@@ -596,11 +572,6 @@ class TestDatabase(unittest.TestCase):
                 FakeRefSrcRow("arXiv", "0003arXiv.........Z", os.path.join(self.arXiv_stubdata_dir, "00003.raw")),
             ]
 
-            # rows_valid = [
-            #     Row("arXiv", "0001arXiv.........Z", os.path.join(self.arXiv_stubdata_dir, "00001.raw")),
-            #     Row("arXiv", "0002arXiv.........Z", os.path.join(self.arXiv_stubdata_dir, "00002.raw")),
-            #     Row("arXiv", "0003arXiv.........Z", os.path.join(self.arXiv_stubdata_dir, "00003.raw")),
-            # ]
 
             q_refsrc = MagicMock(name="q_refsrc")
             q_refsrc.filter.return_value = q_refsrc
@@ -1199,28 +1170,6 @@ class TestDatabaseNoStubdata(unittest.TestCase):
             self.assertEqual(len(got), 2)
             self.assertEqual(got[0]["external_identifier"], ["arxiv:1009.5514", "doi:10.1234/abc"])
             self.assertEqual(got[1]["external_identifier"], ["arxiv:1709.02923", "ascl:2301.001"])
-
-    # def test_get_parser_error(self):
-    #     """ test get_parser when it errors for unrecognized source filename """
-    #     if not hasattr(self.app, "get_parser"):
-    #         self.app.get_parser = MagicMock(return_value={})
-
-    #     with patch.object(self.app.logger, 'error') as mock_error:
-    #         self.assertEqual(self.app.get_parser("invalid/file/path/"), {})
-    #         mock_error.assert_called_with("Unrecognizable source file invalid/file/path/.")
-
-    # def test_get_parser_error(self):
-    #     """ test get_parser when it errors for unrecognized source filename """
-
-    #     # Ensure deterministic behavior for this unit test: unrecognized paths -> {}
-    #     def _fake_get_parser(path):
-    #         return {}
-
-    #     self.app.get_parser = MagicMock(side_effect=_fake_get_parser)
-
-    #     with patch.object(self.app.logger, 'error') as mock_error:
-    #         self.assertEqual(self.app.get_parser("invalid/file/path/"), {})
-    #         mock_error.assert_called_with("Unrecognizable source file invalid/file/path/.")
 
     def test_get_parser_error(self):
         """ test get_parser when it errors for unrecognized source filename """
