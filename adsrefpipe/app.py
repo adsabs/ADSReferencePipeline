@@ -471,8 +471,10 @@ class ADSReferencePipelineCelery(ADSCelery):
                                        item_num=item_num,
                                        reference_str=ref.get('refstr', None) or ref.get('refplaintext', None),
                                        bibcode='0000',
+                                       scix_id = '0000',
                                        score=-1,
-                                       reference_raw=ref.get('refraw', None))
+                                       reference_raw=ref.get('refraw', None),
+                                       external_identifier=_ensure_list(ref.get('external_identifier', None)) or [])
             resolved_records.append(resolved_record)
             # add the id and remove xml_reference that is now in database
             ref['id'] = 'H%dI%d' % (history_id, item_num)
@@ -573,6 +575,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                                                    item_num=item_num,
                                                    reference_str=ref.get('refstring', None),
                                                    bibcode=ref.get('bibcode', None),
+                                                   scix_id=ref.get('scix_id',None), 
                                                    score=ref.get('score', None),
                                                    reference_raw=ref.get('refstring', None),
                                                    external_identifier=_ensure_list(ref.get('external_identifier', None)) or [])
