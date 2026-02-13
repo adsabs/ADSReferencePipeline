@@ -4,7 +4,7 @@ if project_home not in sys.path:
     sys.path.insert(0, project_home)
 
 import unittest
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock, Mock, call
 from datetime import datetime, timedelta
 from collections import namedtuple
 
@@ -40,6 +40,17 @@ def _get_external_identifier(rec):
     if isinstance(rec, dict):
         return rec.get("external_identifier") or []
     return getattr(rec, "external_identifier", None) or []
+
+
+def _get_scix_id(rec):
+    """
+    Works whether rec is a dict (bulk mappings) or an ORM object.
+    """
+    if rec is None:
+        return None
+    if isinstance(rec, dict):
+        return rec.get("scix_id")
+    return getattr(rec, "scix_id", None)
 
 
 def _make_session_scope_cm(session):
@@ -125,24 +136,25 @@ class TestDatabase(unittest.TestCase):
             ('2020-04-03 18:08:32', '2020-05-11 11:14:28', '128', '109')
         ]
 
+        # Add scix_id values (4th element per tuple) to exercise new column.
         resolved_reference = [
             [
                 ('J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ',
-                 '2011LRR....14....2U', 1.0, ['arxiv:1009.5514']),
+                 '2011LRR....14....2U', 1.0, ['arxiv:1009.5514'], 'scix:1009.5514'),
                 ('C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.',
-                 '2017RPPh...80l6902M', 1.0, ['arxiv:1709.02923'])
+                 '2017RPPh...80l6902M', 1.0, ['arxiv:1709.02923'], 'scix:ABCD-1234-0001')
             ],
             [
                 ('Alsubai, K. A., Parley, N. R., Bramich, D. M., et al. 2011, MNRAS, 417, 709.',
-                 '2011MNRAS.417..709A', 1.0, ['doi:10.0000/mnras.417.709']),
+                 '2011MNRAS.417..709A', 1.0, ['doi:10.0000/mnras.417.709'], 'scix:mnras.417.709'),
                 ('Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
-                 '2019A&A...625A.136A', 1.0, ['doi:10.0000/aa.625.A136'])
+                 '2019A&A...625A.136A', 1.0, ['doi:10.0000/aa.625.A136'], 'scix:ABCD-1234-0002')
             ],
             [
                 ('Abellan, F. J., Indebetouw, R., Marcaide, J. M., et al. 2017, ApJL, 842, L24',
-                 '2017ApJ...842L..24A', 1.0, ['ascl:1701.001']),
+                 '2017ApJ...842L..24A', 1.0, ['ascl:1701.001'], 'scix:ascl:1701.001'),
                 ('Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 ',
-                 '2016A&A...586A..71A', 1.0, ['doi:10.0000/aa.586.A71'])
+                 '2016A&A...586A..71A', 1.0, ['doi:10.0000/aa.586.A71'], 'scix:ABCD-1234-0003')
             ],
         ]
 
@@ -217,11 +229,10 @@ class TestDatabase(unittest.TestCase):
                         reference_str=service[0],
                         bibcode=service[1],
                         score=service[2],
-                        reference_raw=service[0]
+                        reference_raw=service[0],
+                        external_identifier=service[3],
+                        scix_id=service[4],
                     )
-                    # Populate external_identifier if your model supports it; keep safe if not.
-                    if hasattr(resolved_record, "external_identifier"):
-                        resolved_record.external_identifier = service[3]
                     resolved_records.append(resolved_record)
 
                     compare_record = CompareClassic(
@@ -572,7 +583,6 @@ class TestDatabase(unittest.TestCase):
                 FakeRefSrcRow("arXiv", "0003arXiv.........Z", os.path.join(self.arXiv_stubdata_dir, "00003.raw")),
             ]
 
-
             q_refsrc = MagicMock(name="q_refsrc")
             q_refsrc.filter.return_value = q_refsrc
             q_refsrc.all.side_effect = [rows_valid, []]  # first call returns records, second is empty
@@ -706,6 +716,7 @@ class TestDatabase(unittest.TestCase):
                 'bibcode': '2023A&A...657A...1X',
                 'score': 1.0,
                 'external_identifier': ['doi:10.1234/abc', 'arxiv:2301.00001'],
+                'scix_id': 'scix:ABCD-1234-ref1',
             },
             {
                 'id': 'H1I2',
@@ -713,6 +724,7 @@ class TestDatabase(unittest.TestCase):
                 'bibcode': '2023A&A...657A...2X',
                 'score': 0.8,
                 'external_identifier': ['ascl:2301.001', 'doi:10.9999/xyz'],
+                'scix_id': 'scix:ABCD-1234-ref2',
             }
         ]
 
@@ -736,11 +748,14 @@ class TestDatabase(unittest.TestCase):
             mock_insert.assert_called_once()
             mock_logger.assert_called_with("Updated 2 resolved reference records successfully.")
 
-            # Check whether external_identifier is populated with correct data
+            # Check whether external_identifier + scix_id are populated with correct data
             _, resolved_records = mock_update.call_args[0]
             self.assertEqual(len(resolved_records), 2)
             self.assertEqual(_get_external_identifier(resolved_records[0]), ['doi:10.1234/abc', 'arxiv:2301.00001'])
             self.assertEqual(_get_external_identifier(resolved_records[1]), ['ascl:2301.001', 'doi:10.9999/xyz'])
+
+            self.assertEqual(_get_scix_id(resolved_records[0]), 'scix:ABCD-1234-ref1')
+            self.assertEqual(_get_scix_id(resolved_records[1]), 'scix:ABCD-1234-ref2')
 
     @patch("adsrefpipe.app.ProcessedHistory")
     @patch("adsrefpipe.app.ResolvedReference")
@@ -872,8 +887,6 @@ class TestDatabase(unittest.TestCase):
         mock_query.filter.assert_called()
         called_args, _ = mock_query.filter.call_args
         compiled_query = called_args[0].compile(dialect=postgresql.dialect())
-        print(str(called_args[0]))
-        print(compiled_query.params)
         self.assertTrue(str(called_args[0]), 'resolved_reference.score <= :score_1')
         self.assertTrue(compiled_query.params.get('score_1'), 0.8)
         # Note: expected_since is computed but filter clause details are app-specific.
@@ -1034,6 +1047,40 @@ class TestDatabase(unittest.TestCase):
         }
         self.assertEqual(compare.toJSON(), expected_json)
 
+    def test_resolved_reference_toJSON_includes_scix_id(self):
+        """Test ResolvedReference.toJSON includes scix_id when present"""
+        rr = ResolvedReference(
+            history_id=123,
+            item_num=1,
+            reference_str="Some ref",
+            bibcode="2020A&A...000A...1X",
+            score=0.9,
+            reference_raw="Some ref raw",
+            external_identifier=["doi:10.1234/xyz"],
+            scix_id="scix:ABCD-1234-0004",
+        )
+        got = rr.toJSON()
+        self.assertEqual(got["history_id"], 123)
+        self.assertEqual(got["item_num"], 1)
+        self.assertEqual(got["bibcode"], "2020A&A...000A...1X")
+        self.assertEqual(got["external_identifier"], ["doi:10.1234/xyz"])
+        self.assertEqual(got["scix_id"], "scix:ABCD-1234-0004")
+
+    def test_resolved_reference_toJSON_omits_scix_id_when_none(self):
+        """Test ResolvedReference.toJSON omits scix_id when not set"""
+        rr = ResolvedReference(
+            history_id=123,
+            item_num=1,
+            reference_str="Some ref",
+            bibcode="2020A&A...000A...1X",
+            score=0.9,
+            reference_raw="Some ref raw",
+            external_identifier=["doi:10.1234/xyz"],
+            scix_id=None,
+        )
+        got = rr.toJSON()
+        self.assertTrue("scix_id" not in got)
+
 
 class TestDatabaseNoStubdata(unittest.TestCase):
     """
@@ -1115,7 +1162,8 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "refstring": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
                 "refraw": "J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ",
                 "id": "H1I1",
-                "external_identifier": ["arxiv:1009.5514", "doi:10.1234/abc"]
+                "external_identifier": ["arxiv:1009.5514", "doi:10.1234/abc"],
+                "scix_id": "scix:ABCD-1234-0005",
             },
             {
                 "score": "1.0",
@@ -1123,7 +1171,8 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "refstring": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "refraw": "C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.",
                 "id": "H1I2",
-                "external_identifier": ["arxiv:1709.02923", "ascl:2301.001"]
+                "external_identifier": ["arxiv:1709.02923", "ascl:2301.001"],
+                "scix_id": "scix:ABCD-1234-0006",
             }
         ]
 
@@ -1170,6 +1219,8 @@ class TestDatabaseNoStubdata(unittest.TestCase):
             self.assertEqual(len(got), 2)
             self.assertEqual(got[0]["external_identifier"], ["arxiv:1009.5514", "doi:10.1234/abc"])
             self.assertEqual(got[1]["external_identifier"], ["arxiv:1709.02923", "ascl:2301.001"])
+            self.assertEqual(got[0]["scix_id"], "scix:ABCD-1234-0005")
+            self.assertEqual(got[1]["scix_id"], "scix:ABCD-1234-0006")
 
     def test_get_parser_error(self):
         """ test get_parser when it errors for unrecognized source filename """
