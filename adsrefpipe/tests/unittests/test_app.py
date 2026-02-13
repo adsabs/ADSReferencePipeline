@@ -140,21 +140,21 @@ class TestDatabase(unittest.TestCase):
         resolved_reference = [
             [
                 ('J.-P. Uzan, Varying constants, gravitation and cosmology, Living Rev. Rel. 14 (2011) 2, [1009.5514]. ',
-                 '2011LRR....14....2U', 1.0, ['arxiv:1009.5514'], 'scix:1009.5514'),
+                 '2011LRR....14....2U', 1.0, ['arxiv:1009.5514'], 'scix:ABCD-1234-001a'),
                 ('C. J. A. P. Martins, The status of varying constants: A review of the physics, searches and implications, 1709.02923.',
-                 '2017RPPh...80l6902M', 1.0, ['arxiv:1709.02923'], 'scix:ABCD-1234-0001')
+                 '2017RPPh...80l6902M', 1.0, ['arxiv:1709.02923'], 'scix:ABCD-1234-001b')
             ],
             [
                 ('Alsubai, K. A., Parley, N. R., Bramich, D. M., et al. 2011, MNRAS, 417, 709.',
-                 '2011MNRAS.417..709A', 1.0, ['doi:10.0000/mnras.417.709'], 'scix:mnras.417.709'),
+                 '2011MNRAS.417..709A', 1.0, ['doi:10.0000/mnras.417.709'], 'scix:ABCD-1234-002a'),
                 ('Arcangeli, J., Desert, J.-M., Parmentier, V., et al. 2019, A&A, 625, A136   ',
-                 '2019A&A...625A.136A', 1.0, ['doi:10.0000/aa.625.A136'], 'scix:ABCD-1234-0002')
+                 '2019A&A...625A.136A', 1.0, ['doi:10.0000/aa.625.A136'], 'scix:ABCD-1234-002b')
             ],
             [
                 ('Abellan, F. J., Indebetouw, R., Marcaide, J. M., et al. 2017, ApJL, 842, L24',
-                 '2017ApJ...842L..24A', 1.0, ['ascl:1701.001'], 'scix:ascl:1701.001'),
+                 '2017ApJ...842L..24A', 1.0, ['ascl:1701.001'], 'scix:ABCD-1234-003a'),
                 ('Ackermann, M., Albert, A., Atwood, W. B., et al. 2016, A&A, 586, A71 ',
-                 '2016A&A...586A..71A', 1.0, ['doi:10.0000/aa.586.A71'], 'scix:ABCD-1234-0003')
+                 '2016A&A...586A..71A', 1.0, ['doi:10.0000/aa.586.A71'], 'scix:ABCD-1234-003b')
             ],
         ]
 
