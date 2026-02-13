@@ -214,8 +214,9 @@ class ResolvedReference(Base):
     score = Column(Numeric)
     reference_raw = Column(String)
     external_identifier = Column(ARRAY(String))
+    scix_id = Column(String)
 
-    def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str, external_identifier: list = None):
+    def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str, external_identifier: list = None, scix_id: str = None):
         """
         initializes a resolved reference object
 
@@ -223,6 +224,7 @@ class ResolvedReference(Base):
         :param item_num: order of the reference within the source
         :param reference_str: reference string
         :param bibcode: resolved bibcode
+        :param scix_id: resolved scix_id
         :param score: confidence score of the resolved reference
         :param reference_raw: raw reference string
         :param external_identifier: list of external identifiers associated with the reference, e.g. ["doi:...", "arxiv:...", "ascl:..."]
@@ -234,6 +236,7 @@ class ResolvedReference(Base):
         self.score = score
         self.reference_raw = reference_raw
         self.external_identifier = external_identifier or []
+        self.scix_id = scix_id
 
     def toJSON(self) -> dict:
         """
@@ -248,7 +251,8 @@ class ResolvedReference(Base):
             'score': self.score,
             'item_num': self.item_num,
             **({'reference_raw': self.reference_raw} if self.reference_raw else {}),
-            'external_identifier': self.external_identifier
+            'external_identifier': self.external_identifier,
+            **({'scix_id': self.scix_id} if self.scix_id else {})
         }
 
 
