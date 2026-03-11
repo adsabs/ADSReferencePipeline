@@ -219,7 +219,7 @@ class ResolvedReference(Base):
     refereed_status = Column(Integer)
 
     def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str,
-                 external_identifier: list = None, scix_id: str = None, publication_year: int = None, refereed_status: int = 0):
+                 external_identifier: list = None, scix_id: str = None, publication_year: int = None, refereed_status: int = None):
         """
         initializes a resolved reference object
 

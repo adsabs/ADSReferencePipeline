@@ -435,7 +435,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                 "external_identifier": _ensure_list(getattr(r, "external_identifier", None)) or [],
                 "scix_id": getattr(r, "scix_id", None),
                 "publication_year": getattr(r, "publication_year", None),
-                "refereed_status": getattr(r, "refereed_status", 0),
+                "refereed_status": getattr(r, "refereed_status", None),
             })
 
         session.bulk_update_mappings(ResolvedReference, mappings)
@@ -479,7 +479,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                                        reference_raw=ref.get('refraw', None),
                                        external_identifier=_ensure_list(ref.get('external_identifier', None)) or [],
                                        publication_year=ref.get('publication_year', None),
-                                       refereed_status=int(ref.get('refereed_status', 0) or 0))
+                                       refereed_status=ref.get('refereed_status', None))
             resolved_records.append(resolved_record)
             # add the id and remove xml_reference that is now in database
             ref['id'] = 'H%dI%d' % (history_id, item_num)
@@ -585,7 +585,7 @@ class ADSReferencePipelineCelery(ADSCelery):
                                                    reference_raw=ref.get('refstring', None),
                                                    external_identifier=_ensure_list(ref.get('external_identifier', None)) or [],
                                                    publication_year=ref.get('publication_year', None),
-                                                   refereed_status=int(ref.get('refereed_status', 0) or 0))
+                                                   refereed_status=ref.get('refereed_status', None))
                         resolved_records.append(resolved_record)
                         if resolved_classic:
                             compare_record = CompareClassic(history_id=history_id,
