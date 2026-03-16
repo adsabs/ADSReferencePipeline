@@ -33,6 +33,7 @@ from adsrefpipe.refparsers.MDPIxml import MDPItoREFs, MDPIreference
 from adsrefpipe.refparsers.NLM3xml import NLMtoREFs
 from adsrefpipe.refparsers.NatureXML import NATUREtoREFs
 from adsrefpipe.refparsers.ONCPxml import ONCPtoREFs
+from adsrefpipe.refparsers.OUPFTxml import OUPFTtoREFs
 from adsrefpipe.refparsers.OUPxml import OUPtoREFs, OUPreference
 from adsrefpipe.refparsers.PASAxml import PASAtoREFs
 from adsrefpipe.refparsers.RSCxml import RSCtoREFs, RSCreference
@@ -1244,6 +1245,32 @@ class TestONCPtoREFs(unittest.TestCase):
 
             self.assertEqual(results, expected_results)
 
+class TestOUPFTtoREFs(unittest.TestCase):
+
+    def test_init(self):
+        """ test init """
+        reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.oupft.xml')
+        references = OUPFTtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
+        self.assertEqual(references, parsed_references.parsed_oupft)
+
+    def test_process_and_dispatch_exception(self):
+        """ test exception in process_and_dispatch """
+
+        # data for raw references
+        raw_references = [{
+            'bibcode': '0000TEST..........Z',
+            'block_references': ['invalid reference'],
+            'item_nums': []
+        }]
+
+        with patch('adsrefpipe.refparsers.OUPFTxml.OUPFTreference', side_effect=ReferenceError("ReferenceError")):
+            with patch('adsrefpipe.refparsers.OUPFTxml.logger') as mock_logger:
+                torefs = OUPFTtoREFs(filename='testfile.xml', buffer={})
+                torefs.raw_references = raw_references
+                result = torefs.process_and_dispatch()
+
+                mock_logger.error.assert_called_with("OUPFTxml: error parsing reference: ReferenceError")
+                self.assertEqual(result, [{'bibcode': '0000TEST..........Z', 'references': []}])
 
 class TestOUPreference(unittest.TestCase):
 
