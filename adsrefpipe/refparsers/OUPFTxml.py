@@ -70,7 +70,6 @@ class OUPFTreference(XMLreference):
 
         comment = self.xmlnode_nodecontents('comment')
 
-        volume = ''
         journal = self.xmlnode_nodecontents('source')
         if journal:
             journal = self.re_match_amp.sub('&', journal)
@@ -83,7 +82,7 @@ class OUPFTreference(XMLreference):
                 match = self.re_ASSL.search(refstr)
                 if match:
                     journal = 'ASSL'
-                    volume = match.group(1)
+                    volume = match.group(1) or match.group(2) or ''
         if not journal:
             journal = self.xmlnode_nodecontents('conf-name')
             if not journal:
@@ -91,14 +90,13 @@ class OUPFTreference(XMLreference):
                 if self.re_thesis.search(refstr):
                     journal = 'Thesis'
 
-        if not volume:
-            volume = self.xmlnode_nodecontents('volume').lower().replace('vol', '').strip()
 
+        volume = self.xmlnode_nodecontents('volume')
         pages = self.xmlnode_nodecontents('fpage')
         series = self.xmlnode_nodecontents('series')
 
-        type = self.xmlnode_attribute('nlm-citation', 'citation-type') or self.xmlnode_attribute('citation', 'citation-type')
-        if comment and type in ['journal', 'confproc'] and not volume and not pages:
+        cittype = self.xmlnode_attribute('nlm-citation', 'citation-type') or self.xmlnode_attribute('citation', 'citation-type') or self.xmlnode_attribute('mixed-citation', 'publication-type')
+        if comment and cittype in ['journal', 'confproc'] and not volume and not pages:
             try:
                 volume, pages = comment.split()
             except:
@@ -107,7 +105,7 @@ class OUPFTreference(XMLreference):
         # these fields are already formatted the way we expect them
         self['authors'] = authors
         self['year'] = year
-        self['jrlstr'] = journal.replace('amp', '&')
+        self['jrlstr'] = journal
         self['ttlstr'] = title
         self['volume'] = self.parse_volume(volume)
         self['page'], self['qualifier'] = self.parse_pages(pages, letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -116,15 +114,6 @@ class OUPFTreference(XMLreference):
 
         doi = self.parse_doi(refstr, comment)
         eprint = self.parse_eprint(refstr)
-
-        # these fields are already formatted the way we expect them
-        self['authors'] = authors
-        self['year'] = year
-        self['jrlstr'] = journal
-        self['ttlstr'] = title
-        self['volume'] = volume
-        self['page'], self['qualifier'] = self.parse_pages(pages)
-        self['pages'] = self.combine_page_qualifier(self['page'], self['qualifier'])
 
         if doi:
             self['doi'] = doi
@@ -310,7 +299,7 @@ class OUPFTtoREFs(XMLtoREFs):
                     logger.error("OUPFTxml: error parsing reference: %s" % error_desc)
 
             references.append({'bibcode': bibcode, 'references': parsed_references})
-            logger.debug("%s: parsed %d references" % (bibcode, len(references)))
+            logger.debug("%s: parsed %d references out of %d found references" % (bibcode, len(parsed_references), len(block_references)))
 
         return references
 
@@ -319,8 +308,8 @@ class OUPFTtoREFs(XMLtoREFs):
 # It allows parsing references from either a file or a buffer, and if no input is provided,
 # it runs a source test file to verify the functionality against expected parsed results.
 # The test results are printed to indicate whether the parsing is successful or not.
-from adsrefpipe.tests.unittests.stubdata import parsed_references
 if __name__ == '__main__':  # pragma: no cover
+    from adsrefpipe.tests.unittests.stubdata import parsed_references
     parser = argparse.ArgumentParser(description='Parse OUPFT references')
     parser.add_argument('-f', '--filename', help='the path to source file')
     parser.add_argument('-b', '--buffer', help='xml reference(s)')
