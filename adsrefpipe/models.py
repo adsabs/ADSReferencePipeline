@@ -215,8 +215,11 @@ class ResolvedReference(Base):
     reference_raw = Column(String)
     external_identifier = Column(ARRAY(String))
     scix_id = Column(String)
+    publication_year = Column(Integer)
+    refereed_status = Column(Integer)
 
-    def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str, external_identifier: list = None, scix_id: str = None):
+    def __init__(self, history_id: int, item_num: int, reference_str: str, bibcode: str, score: float, reference_raw: str,
+                 external_identifier: list = None, scix_id: str = None, publication_year: int = None, refereed_status: int = None):
         """
         initializes a resolved reference object
 
@@ -228,6 +231,8 @@ class ResolvedReference(Base):
         :param score: confidence score of the resolved reference
         :param reference_raw: raw reference string
         :param external_identifier: list of external identifiers associated with the reference, e.g. ["doi:...", "arxiv:...", "ascl:..."]
+        :param publication_year: publication year
+        :param refereed_status: refereed status flag (0 or 1)
         """
         self.history_id = history_id
         self.item_num = item_num
@@ -237,6 +242,8 @@ class ResolvedReference(Base):
         self.reference_raw = reference_raw
         self.external_identifier = external_identifier or []
         self.scix_id = scix_id
+        self.publication_year = publication_year
+        self.refereed_status = refereed_status
 
     def toJSON(self) -> dict:
         """
@@ -252,7 +259,9 @@ class ResolvedReference(Base):
             'item_num': self.item_num,
             **({'reference_raw': self.reference_raw} if self.reference_raw else {}),
             'external_identifier': self.external_identifier,
-            **({'scix_id': self.scix_id} if self.scix_id else {})
+            **({'scix_id': self.scix_id} if self.scix_id else {}),
+            **({'publication_year': self.publication_year} if self.publication_year is not None else {}),
+            **({'refereed_status': self.refereed_status} if self.refereed_status is not None else {}),
         }
 
 
@@ -299,4 +308,3 @@ class CompareClassic(Base):
             'score': self.score,
             'state': self.state,
         }
-

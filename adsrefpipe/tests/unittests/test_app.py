@@ -53,6 +53,28 @@ def _get_scix_id(rec):
     return getattr(rec, "scix_id", None)
 
 
+def _get_publication_year(rec):
+    """
+    Works whether rec is a dict (bulk mappings) or an ORM object.
+    """
+    if rec is None:
+        return None
+    if isinstance(rec, dict):
+        return rec.get("publication_year")
+    return getattr(rec, "publication_year", None)
+
+
+def _get_refereed_status(rec):
+    """
+    Works whether rec is a dict (bulk mappings) or an ORM object.
+    """
+    if rec is None:
+        return None
+    if isinstance(rec, dict):
+        return rec.get("refereed_status")
+    return getattr(rec, "refereed_status", None)
+
+
 def _make_session_scope_cm(session):
     """
     Return a context manager mock that behaves like app.session_scope()
@@ -717,6 +739,8 @@ class TestDatabase(unittest.TestCase):
                 'score': 1.0,
                 'external_identifier': ['doi:10.1234/abc', 'arxiv:2301.00001'],
                 'scix_id': 'scix:ABCD-1234-ref1',
+                'publication_year': 2023,
+                'refereed_status': 1,
             },
             {
                 'id': 'H1I2',
@@ -725,6 +749,8 @@ class TestDatabase(unittest.TestCase):
                 'score': 0.8,
                 'external_identifier': ['ascl:2301.001', 'doi:10.9999/xyz'],
                 'scix_id': 'scix:ABCD-1234-ref2',
+                'publication_year': 2021,
+                'refereed_status': 0,
             }
         ]
 
@@ -756,6 +782,10 @@ class TestDatabase(unittest.TestCase):
 
             self.assertEqual(_get_scix_id(resolved_records[0]), 'scix:ABCD-1234-ref1')
             self.assertEqual(_get_scix_id(resolved_records[1]), 'scix:ABCD-1234-ref2')
+            self.assertEqual(_get_publication_year(resolved_records[0]), 2023)
+            self.assertEqual(_get_publication_year(resolved_records[1]), 2021)
+            self.assertEqual(_get_refereed_status(resolved_records[0]), 1)
+            self.assertEqual(_get_refereed_status(resolved_records[1]), 0)
 
     @patch("adsrefpipe.app.ProcessedHistory")
     @patch("adsrefpipe.app.ResolvedReference")
@@ -1058,6 +1088,8 @@ class TestDatabase(unittest.TestCase):
             reference_raw="Some ref raw",
             external_identifier=["doi:10.1234/xyz"],
             scix_id="scix:ABCD-1234-0004",
+            publication_year=2020,
+            refereed_status=1,
         )
         got = rr.toJSON()
         self.assertEqual(got["history_id"], 123)
@@ -1065,6 +1097,8 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(got["bibcode"], "2020A&A...000A...1X")
         self.assertEqual(got["external_identifier"], ["doi:10.1234/xyz"])
         self.assertEqual(got["scix_id"], "scix:ABCD-1234-0004")
+        self.assertEqual(got["publication_year"], 2020)
+        self.assertEqual(got["refereed_status"], 1)
 
     def test_resolved_reference_toJSON_omits_scix_id_when_none(self):
         """Test ResolvedReference.toJSON omits scix_id when not set"""
@@ -1077,9 +1111,13 @@ class TestDatabase(unittest.TestCase):
             reference_raw="Some ref raw",
             external_identifier=["doi:10.1234/xyz"],
             scix_id=None,
+            publication_year=None,
+            refereed_status=0,
         )
         got = rr.toJSON()
         self.assertTrue("scix_id" not in got)
+        self.assertTrue("publication_year" not in got)
+        self.assertEqual(got["refereed_status"], 0)
 
 
 class TestDatabaseNoStubdata(unittest.TestCase):
@@ -1126,6 +1164,31 @@ class TestDatabaseNoStubdata(unittest.TestCase):
         assert self.app._config.get('SQLALCHEMY_URL') == 'postgresql://mock/mock'
         assert self.app.conf.get('SQLALCHEMY_URL') == 'postgresql://mock/mock'
 
+    def test_update_resolved_reference_records_includes_new_columns(self):
+        """Verify bulk update payload includes publication_year and refereed_status."""
+        rr = ResolvedReference(
+            history_id=1,
+            item_num=2,
+            reference_str="Some reference",
+            bibcode="2023A&A...657A...1X",
+            score=1.0,
+            reference_raw="Some reference",
+            external_identifier=["doi:10.1234/example"],
+            scix_id="scix:ABCD-1234-9999",
+            publication_year=2023,
+            refereed_status=1,
+        )
+
+        result = self.app.update_resolved_reference_records(self.mock_session, [rr])
+        self.assertTrue(result)
+
+        self.mock_session.bulk_update_mappings.assert_called_once()
+        called_model, called_mappings = self.mock_session.bulk_update_mappings.call_args[0]
+        self.assertIs(called_model, ResolvedReference)
+        self.assertEqual(len(called_mappings), 1)
+        self.assertEqual(called_mappings[0]["publication_year"], 2023)
+        self.assertEqual(called_mappings[0]["refereed_status"], 1)
+
     def test_query_reference_tbl_when_empty(self):
         """ verify reference_source table being empty """
         self.app.diagnostic_query = MagicMock(return_value=[])
@@ -1164,6 +1227,8 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "id": "H1I1",
                 "external_identifier": ["arxiv:1009.5514", "doi:10.1234/abc"],
                 "scix_id": "scix:ABCD-1234-0005",
+                "publication_year": 2011,
+                "refereed_status": 1,
             },
             {
                 "score": "1.0",
@@ -1173,6 +1238,8 @@ class TestDatabaseNoStubdata(unittest.TestCase):
                 "id": "H1I2",
                 "external_identifier": ["arxiv:1709.02923", "ascl:2301.001"],
                 "scix_id": "scix:ABCD-1234-0006",
+                "publication_year": 2017,
+                "refereed_status": 0,
             }
         ]
 
@@ -1221,6 +1288,10 @@ class TestDatabaseNoStubdata(unittest.TestCase):
             self.assertEqual(got[1]["external_identifier"], ["arxiv:1709.02923", "ascl:2301.001"])
             self.assertEqual(got[0]["scix_id"], "scix:ABCD-1234-0005")
             self.assertEqual(got[1]["scix_id"], "scix:ABCD-1234-0006")
+            self.assertEqual(got[0]["publication_year"], 2011)
+            self.assertEqual(got[1]["publication_year"], 2017)
+            self.assertEqual(got[0]["refereed_status"], 1)
+            self.assertEqual(got[1]["refereed_status"], 0)
 
     def test_get_parser_error(self):
         """ test get_parser when it errors for unrecognized source filename """
@@ -1242,4 +1313,3 @@ class TestDatabaseNoStubdata(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
