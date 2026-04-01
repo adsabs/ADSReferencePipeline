@@ -29,6 +29,9 @@ TASK_PROCESS_TIME = 30
 # checking queues every this many seconds
 QUEUE_AUDIT_INTERVAL = 10
 
+# default delay rate divisor used for RESOLVE batch pauses
+REFERENCE_PIPELINE_DEFAULT_TIME_DELAY = 1000.0
+
 # true if to compare the resolved records with classic
 COMPARE_CLASSIC = True
 

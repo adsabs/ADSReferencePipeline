@@ -20,6 +20,19 @@ logger = setup_logging('run.py')
 processed_log = setup_logging('processed_subdirectories.py')
 
 
+def positive_float(value: str) -> float:
+    """
+    argparse type for positive floating point values.
+
+    :param value: CLI argument value to validate
+    :return: validated float value
+    """
+    parsed_value = float(value)
+    if parsed_value <= 0:
+        raise argparse.ArgumentTypeError('time_delay must be greater than 0.')
+    return parsed_value
+
+
 def run_diagnostics(bibcodes: list, source_filenames: list) -> None:
     """
     show diagnostic information based on the provided bibcodes and source filenames
@@ -218,7 +231,7 @@ def reprocess_references(reprocess_type: str, score_cutoff: float = 0, match_bib
             logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
 
-if __name__ == '__main__':
+def main(argv=None) -> int:
 
     parser = argparse.ArgumentParser(description='Process user input.')
 
@@ -299,8 +312,9 @@ if __name__ == '__main__':
                         '--time_delay',
                         dest='time_delay',
                         action='store',
-                        default=10.,
-                        help='Add time delay between processing subdirectories for large batches. The delay time is batch size divided by input value in seconds.')
+                        type=positive_float,
+                        default=config['REFERENCE_PIPELINE_DEFAULT_TIME_DELAY'],
+                        help='Add time delay between processing subdirectories for large batches. The delay time is batch size divided by input value in seconds. Defaults to REFERENCE_PIPELINE_DEFAULT_TIME_DELAY from config.')
     resolve.add_argument('-sp',
                         '--skip_processed_directories',
                         dest='skip_processed',
@@ -347,7 +361,7 @@ if __name__ == '__main__':
                        action='store_true',
                        help='Return all resolved bibcode')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     #import pdb;pdb.set_trace()
 
     if args.action == 'DIAGNOSTICS':
@@ -378,15 +392,13 @@ if __name__ == '__main__':
                 else:
                     date_cutoff = get_date('1972')
                 source_filenames = get_source_filenames(args.path, args.extension, date_cutoff.timetuple())
-                if args.time_delay:
-                    delay_rate = args.time_delay
-                else:
-                    delay_rate = 1000.
+                delay_rate = args.time_delay
+                skip_files = []
                 if len(source_filenames) > 0:
                     for subdir in source_filenames:
                         subdir_name = subdir[0].split('/')
                         subdir_name = "/".join(subdir_name[:-1])
-                        delay_time = float(len(subdir))/float(delay_rate)
+                        delay_time = float(len(subdir)) / delay_rate
                         if args.skip_processed:
                             skip_file = args.skip_processed
                             try:
@@ -450,4 +462,8 @@ if __name__ == '__main__':
         # if args.all:
         # else:
 
-    sys.exit(0)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
