@@ -3,6 +3,7 @@ from kombu import Queue
 
 import os
 
+import adsrefpipe.perf_metrics as perf_metrics
 import adsrefpipe.utils as utils
 
 from adsputils import load_config
@@ -35,20 +36,45 @@ def task_process_reference(reference_task: dict) -> bool:
     :param reference_task: dictionary containing reference details and service url
     :return: True if processing is successful, False otherwise
     """
+    reference = reference_task.get('reference', {}) or {}
+    event_extra = perf_metrics.build_event_extra(
+        source_filename=reference_task.get('source_filename'),
+        parser_name=reference_task.get('parser_name'),
+        source_bibcode=reference_task.get('source_bibcode'),
+        input_extension=reference_task.get('input_extension'),
+        source_type=reference_task.get('source_type'),
+        record_count=1,
+    )
+    record_id = reference.get('id')
     try:
-        resolved = utils.post_request_resolved_reference(reference_task['reference'], reference_task['resolver_service_url'])
-        # if failed to connect to reference service, raise a exception to requeue, for max_retries times
-        if not resolved:
-            raise FailedRequest
+        with perf_metrics.timed_stage(
+            stage='record_wall',
+            record_id=record_id,
+            extra=event_extra,
+        ):
+            with perf_metrics.timed_stage(
+                stage='resolver_http',
+                record_id=record_id,
+                extra=event_extra,
+            ):
+                resolved = utils.post_request_resolved_reference(reference_task['reference'], reference_task['resolver_service_url'])
+            # if failed to connect to reference service, raise a exception to requeue, for max_retries times
+            if not resolved:
+                raise FailedRequest
 
-        # TODO: remove comparing to classic before going to production
-        classic_resolved_filename = reference_task['source_filename'].replace('sources', 'resolved') + '.result' if config['COMPARE_CLASSIC'] else None
+            # TODO: remove comparing to classic before going to production
+            classic_resolved_filename = reference_task['source_filename'].replace('sources', 'resolved') + '.result' if config['COMPARE_CLASSIC'] else None
 
-        status = app.populate_tables_post_resolved(resolved, reference_task['source_bibcode'], classic_resolved_filename)
-        if not status:
-            return False
+            with perf_metrics.timed_stage(
+                stage='post_resolved_db',
+                record_id=record_id,
+                extra=event_extra,
+            ):
+                status = app.populate_tables_post_resolved(resolved, reference_task['source_bibcode'], classic_resolved_filename)
+            if not status:
+                return False
 
-        return True
+            return True
 
     except KeyError:
         return False

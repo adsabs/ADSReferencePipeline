@@ -9,6 +9,7 @@ import time
 import argparse
 
 from adsrefpipe import tasks
+from adsrefpipe import perf_metrics
 from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.utils import get_date_modified_struct_time, ReprocessQueryType
 
@@ -100,14 +101,29 @@ def queue_references(references: list, source_filename: str, source_bibcode: str
     :return: None
     """
     resolver_service_url = config['REFERENCE_PIPELINE_SERVICE_URL'] + app.get_reference_service_endpoint(parsername)
-    for reference in references:
-        reference_task = {'reference': reference,
-                          'source_bibcode': source_bibcode,
-                          'source_filename': source_filename,
-                          'resolver_service_url': resolver_service_url}
-        # tasks.task_process_reference.delay(reference_task)
-        print('---here')
-        tasks.task_process_reference(reference_task)
+    event_extra = perf_metrics.build_event_extra(
+        source_filename=source_filename,
+        parser_name=parsername,
+        source_bibcode=source_bibcode,
+        record_count=len(references),
+    )
+    perf_metrics.emit_event(
+        stage='ingest_enqueue',
+        extra=event_extra,
+    )
+    with perf_metrics.timed_stage(
+        stage='queue_references',
+        extra=event_extra,
+    ):
+        for reference in references:
+            reference_task = {'reference': reference,
+                              'source_bibcode': source_bibcode,
+                              'source_filename': source_filename,
+                              'resolver_service_url': resolver_service_url,
+                              'parser_name': parsername,
+                              'input_extension': event_extra.get('input_extension'),
+                              'source_type': event_extra.get('source_type')}
+            tasks.task_process_reference(reference_task)
 
 
 def process_files(filenames: list) -> None:
@@ -121,53 +137,67 @@ def process_files(filenames: list) -> None:
     :return: None
     """
     for filename in filenames:
-        # from filename get the parser info
-        # file extension, and bibstem and volume directories are used to query database and return the parser info
-        # ie for filename `adsrefpipe/tests/unittests/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw`
-        # extension ref.raw, bibstem directory ARA+A and volume directory 0 is used and the
-        # parser info is {'name': 'ThreeBibsTxt',
-        #                 'extension_pattern': '.ref.raw',
-        #                 'reference_service_endpoint': '/text',
-        #                 'matches': [[{'journal': 'AnRFM', 'volume_end': 37, 'volume_begin': 34},
-        #                              {'journal': 'ARA+A', 'volume_end': 43, 'volume_begin': 40},
-        #                              {'journal': 'ARNPS', 'volume_end': 56, 'volume_begin': 52}]]}
-        parser_dict = app.get_parser(filename)
-        # now map parser name to the class (see adsrefpipe/refparsers/handler.py)
-        # ie parser name ThreeBibsTxt is mapped to ThreeBibstemsTXTtoREFs
-        # 'ThreeBibsTxt': ThreeBibstemsTXTtoREFs,
-        # note that from the class name it is clear which type of parser this is
-        # (ie, this is a TXT parser implemented in module adsrefpipe/refparsers/ADStxt.py)
-        parser = verify(parser_dict.get('name'))
-        if not parser:
-            logger.error("Unable to detect which parser to use for the file %s." % filename)
-            continue
-
-        # now read the source file
-        toREFs = parser(filename=filename, buffer=None)
-        if toREFs:
-            # next parse the references
-            parsed_references = toREFs.process_and_dispatch()
-            if not parsed_references:
-                logger.error("Unable to parse %s." % toREFs.filename)
+        file_event_extra = perf_metrics.build_event_extra(source_filename=filename)
+        with perf_metrics.timed_stage(stage='file_wall', extra=file_event_extra):
+            # from filename get the parser info
+            # file extension, and bibstem and volume directories are used to query database and return the parser info
+            # ie for filename `adsrefpipe/tests/unittests/stubdata/txt/ARA+A/0/0000ADSTEST.0.....Z.ref.raw`
+            # extension ref.raw, bibstem directory ARA+A and volume directory 0 is used and the
+            # parser info is {'name': 'ThreeBibsTxt',
+            #                 'extension_pattern': '.ref.raw',
+            #                 'reference_service_endpoint': '/text',
+            #                 'matches': [[{'journal': 'AnRFM', 'volume_end': 37, 'volume_begin': 34},
+            #                              {'journal': 'ARA+A', 'volume_end': 43, 'volume_begin': 40},
+            #                              {'journal': 'ARNPS', 'volume_end': 56, 'volume_begin': 52}]]}
+            with perf_metrics.timed_stage(stage='parser_lookup', extra=file_event_extra):
+                parser_dict = app.get_parser(filename)
+            file_event_extra = perf_metrics.build_event_extra(
+                source_filename=filename,
+                parser_name=parser_dict.get('name'),
+                input_extension=parser_dict.get('extension_pattern'),
+            )
+            # now map parser name to the class (see adsrefpipe/refparsers/handler.py)
+            parser = verify(parser_dict.get('name'))
+            if not parser:
+                logger.error("Unable to detect which parser to use for the file %s." % filename)
                 continue
 
-            for block_references in parsed_references:
-                # save the initial records in the database,
-                # this is going to be useful since it allows us to be able to tell if
-                # anything went wrong with the service that we did not get back the
-                # resolved reference
-                references = app.populate_tables_pre_resolved_initial_status(source_bibcode=block_references['bibcode'],
-                                                                             source_filename=filename,
-                                                                             parsername=parser_dict.get('name'),
-                                                                             references=block_references['references'])
-                if not references:
-                    logger.error("Unable to insert records from %s to db." % toREFs.filename)
+            with perf_metrics.timed_stage(stage='parser_init', extra=file_event_extra):
+                toREFs = parser(filename=filename, buffer=None)
+            if toREFs:
+                with perf_metrics.timed_stage(stage='parse_dispatch', extra=file_event_extra):
+                    parsed_references = toREFs.process_and_dispatch()
+                if not parsed_references:
+                    logger.error("Unable to parse %s." % toREFs.filename)
                     continue
 
-                queue_references(references, filename, block_references['bibcode'], parser_dict.get('name'))
+                total_records = sum(len(block.get('references', [])) for block in parsed_references)
+                file_event_extra['record_count'] = total_records
+                for block_references in parsed_references:
+                    block_event_extra = perf_metrics.build_event_extra(
+                        source_filename=filename,
+                        parser_name=parser_dict.get('name'),
+                        source_bibcode=block_references['bibcode'],
+                        input_extension=parser_dict.get('extension_pattern'),
+                        record_count=len(block_references['references']),
+                    )
+                    # save the initial records in the database,
+                    # this is going to be useful since it allows us to be able to tell if
+                    # anything went wrong with the service that we did not get back the
+                    # resolved reference
+                    with perf_metrics.timed_stage(stage='pre_resolved_db', extra=block_event_extra):
+                        references = app.populate_tables_pre_resolved_initial_status(source_bibcode=block_references['bibcode'],
+                                                                                     source_filename=filename,
+                                                                                     parsername=parser_dict.get('name'),
+                                                                                     references=block_references['references'])
+                    if not references:
+                        logger.error("Unable to insert records from %s to db." % toREFs.filename)
+                        continue
 
-        else:
-            logger.error("Unable to process %s. Skipped!" % toREFs.filename)
+                    queue_references(references, filename, block_references['bibcode'], parser_dict.get('name'))
+
+            else:
+                logger.error("Unable to process %s. Skipped!" % toREFs.filename)
 
 
 def reprocess_references(reprocess_type: str, score_cutoff: float = 0, match_bibcode: str = '', date_cutoff: time.struct_time = None) -> None:
