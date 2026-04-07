@@ -137,6 +137,7 @@ def process_files(filenames: list) -> None:
     :return: None
     """
     for filename in filenames:
+        current_filename = filename
         file_event_extra = perf_metrics.build_event_extra(source_filename=filename)
         with perf_metrics.timed_stage(stage='file_wall', extra=file_event_extra):
             # from filename get the parser info
@@ -164,11 +165,12 @@ def process_files(filenames: list) -> None:
 
             with perf_metrics.timed_stage(stage='parser_init', extra=file_event_extra):
                 toREFs = parser(filename=filename, buffer=None)
+            current_filename = getattr(toREFs, 'filename', None) or filename
             if toREFs:
                 with perf_metrics.timed_stage(stage='parse_dispatch', extra=file_event_extra):
                     parsed_references = toREFs.process_and_dispatch()
                 if not parsed_references:
-                    logger.error("Unable to parse %s." % toREFs.filename)
+                    logger.error("Unable to parse %s." % current_filename)
                     continue
 
                 total_records = sum(len(block.get('references', [])) for block in parsed_references)
@@ -191,13 +193,13 @@ def process_files(filenames: list) -> None:
                                                                                      parsername=parser_dict.get('name'),
                                                                                      references=block_references['references'])
                     if not references:
-                        logger.error("Unable to insert records from %s to db." % toREFs.filename)
+                        logger.error("Unable to insert records from %s to db." % current_filename)
                         continue
 
                     queue_references(references, filename, block_references['bibcode'], parser_dict.get('name'))
 
             else:
-                logger.error("Unable to process %s. Skipped!" % toREFs.filename)
+                logger.error("Unable to process %s. Skipped!" % current_filename)
 
 
 def reprocess_references(reprocess_type: str, score_cutoff: float = 0, match_bibcode: str = '', date_cutoff: time.struct_time = None) -> None:
