@@ -19,7 +19,7 @@ depends_on = None
 def upgrade():
     bind = op.get_bind()
     inspector = sa.inspect(bind)
-    if not inspector.has_table("resolved_reference"):
+    if "resolved_reference" not in inspector.get_table_names():
         raise RuntimeError(
             "Migration 9a4b1e8b6c7d requires table `resolved_reference`, "
             "but it does not exist. Database schema and alembic_version are out of sync."
@@ -35,7 +35,7 @@ def upgrade():
 def downgrade():
     bind = op.get_bind()
     inspector = sa.inspect(bind)
-    if not inspector.has_table("resolved_reference"):
+    if "resolved_reference" not in inspector.get_table_names():
         return
 
     columns = {c["name"] for c in inspector.get_columns("resolved_reference")}
