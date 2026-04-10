@@ -167,9 +167,11 @@ def _write_run_artifacts(summary: Dict[str, object], output_dir: str) -> Dict[st
     stem = "ads_reference_benchmark_%s_run%s" % (_utc_timestamp(), run_id)
     json_path = os.path.join(output_dir, "%s.json" % stem)
     md_path = os.path.join(output_dir, "%s.md" % stem)
+    csv_path = os.path.join(output_dir, "%s.source_types.csv" % stem)
     perf_metrics.write_json(json_path, summary)
     perf_metrics.render_markdown(summary, md_path)
-    return {"json": json_path, "markdown": md_path}
+    perf_metrics.write_source_type_csv(summary, csv_path)
+    return {"json": json_path, "markdown": md_path, "source_type_csv": csv_path}
 
 
 def _run_warmup(files: List[str], mode: str) -> None:
@@ -286,6 +288,7 @@ def cmd_run(args) -> int:
         "load_adjusted_throughput": ((summary.get("throughput") or {}).get("load_adjusted_records_per_minute")),
         "json": artifacts["json"],
         "markdown": artifacts["markdown"],
+        "source_type_csv": artifacts["source_type_csv"],
     }, indent=2, sort_keys=True))
     return 0 if summary.get("status") == "complete" else 2
 

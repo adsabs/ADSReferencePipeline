@@ -137,6 +137,7 @@ class TestBenchmark(unittest.TestCase):
             rendered = "".join(call.args[0] for call in mock_write.call_args_list)
             self.assertIn('"status": "complete"', rendered)
             self.assertTrue(any(name.endswith(".json") for name in os.listdir(tmpdir)))
+            self.assertTrue(any(name.endswith(".source_types.csv") for name in os.listdir(tmpdir)))
 
 
 if __name__ == "__main__":

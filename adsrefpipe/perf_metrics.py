@@ -86,9 +86,72 @@ def source_type_from_filename(filename: Optional[str]) -> Optional[str]:
         return None
 
     parts = basename.split(".")
-    if len(parts) >= 3 and parts[-1].lower() in {"xml", "raw", "txt", "refs"}:
-        return ".%s.%s" % (parts[-2].lower(), parts[-1].lower())
-    return ".%s" % parts[-1].lower()
+    last = parts[-1].lower()
+    prev = parts[-2].lower() if len(parts) >= 2 else ""
+
+    if last == "xml":
+        if len(parts) >= 3 and len(prev) > 1:
+            return ".%s.xml" % prev
+        return ".xml"
+
+    if last == "raw":
+        return ".raw"
+
+    if last == "txt":
+        if prev == "ocr":
+            return ".ocr.txt"
+        return ".txt"
+
+    if last in {"html", "tex", "refs", "pairs"}:
+        return ".%s" % last
+
+    return ".%s" % last
+
+
+def journal_from_filename(filename: Optional[str]) -> Optional[str]:
+    if not filename:
+        return None
+    parts = str(filename).replace("\\", "/").split("/")
+    if len(parts) < 3:
+        return None
+    return parts[-3] or None
+
+
+def raw_subfamily_from_metadata(
+    filename: Optional[str] = None,
+    parser_name: Optional[str] = None,
+    input_extension: Optional[str] = None,
+    source_type: Optional[str] = None,
+) -> Optional[str]:
+    effective_source_type = source_type or input_extension or source_type_from_filename(filename)
+    if effective_source_type != ".raw":
+        return None
+
+    parser = str(parser_name or "").strip()
+    journal = str(journal_from_filename(filename) or "").strip()
+    basename = os.path.basename(str(filename or "")).lower()
+
+    if parser == "arXiv" or journal == "arXiv":
+        return "raw_arxiv"
+    if parser == "ThreeBibsTxt" or basename.endswith(".ref.raw"):
+        return "raw_ref_raw"
+    if parser == "JLVEnHTML" or journal == "JLVEn":
+        return "raw_jlven_html"
+    if parser == "PASJhtml" or journal == "PASJ":
+        return "raw_pasj_html"
+    if parser == "PASPhtml" or journal == "PASP":
+        return "raw_pasp_html"
+    if parser == "AAS" or basename.endswith(".aas.raw"):
+        return "raw_aas"
+    if parser == "ICARUS" or basename.endswith(".icarus.raw"):
+        return "raw_icarus"
+    if parser == "PThPhTXT" or journal == "PThPh":
+        return "raw_pthph"
+    if journal == "PThPS":
+        return "raw_pthps"
+    if parser == "ADStxt" or journal == "ADS":
+        return "raw_adstxt"
+    return "raw_other"
 
 
 def build_event_extra(
@@ -106,6 +169,15 @@ def build_event_extra(
     payload.setdefault("source_bibcode", source_bibcode)
     payload.setdefault("input_extension", input_extension or source_type_from_filename(source_filename))
     payload.setdefault("source_type", source_type or payload.get("input_extension") or source_type_from_filename(source_filename))
+    payload.setdefault(
+        "raw_subfamily",
+        raw_subfamily_from_metadata(
+            filename=source_filename,
+            parser_name=parser_name,
+            input_extension=payload.get("input_extension"),
+            source_type=payload.get("source_type"),
+        ),
+    )
     payload.setdefault("run_mode", current_run_mode())
     if record_count is not None:
         payload["record_count"] = int(record_count)
@@ -521,6 +593,15 @@ def collect_system_sample() -> Dict[str, Optional[float]]:
     sample = {"ts": time.time()}
     sample.update(_host_load_snapshot())
     sample.update(_host_memory_snapshot())
+    total_bytes = sample.get("memory_total_bytes")
+    available_bytes = sample.get("memory_available_bytes")
+    if total_bytes is not None and available_bytes is not None:
+        used_bytes = max(0.0, float(total_bytes) - float(available_bytes))
+        sample["memory_used_bytes"] = used_bytes
+        sample["memory_used_ratio"] = used_bytes / float(total_bytes) if float(total_bytes) > 0 else None
+    else:
+        sample["memory_used_bytes"] = None
+        sample["memory_used_ratio"] = None
     return sample
 
 
@@ -534,7 +615,19 @@ def aggregate_system_samples(samples: List[Dict[str, Any]], enabled: bool = True
         memory_probe = str(samples[0].get("memory_probe") or memory_probe)
 
     summary = {}
-    for key in ("normalized_load_1m", "normalized_load_5m", "normalized_load_15m", "memory_available_ratio"):
+    for key in (
+        "loadavg_1m",
+        "loadavg_5m",
+        "loadavg_15m",
+        "normalized_load_1m",
+        "normalized_load_5m",
+        "normalized_load_15m",
+        "memory_total_bytes",
+        "memory_available_bytes",
+        "memory_used_bytes",
+        "memory_available_ratio",
+        "memory_used_ratio",
+    ):
         values = [float(sample[key]) for sample in samples if sample.get(key) is not None]
         summary[key] = _numeric_stats(values, include_p99=False)
 
@@ -579,6 +672,7 @@ def aggregate_ads_events(
 
     source_type_groups = {}
     parser_groups = {}
+    raw_subfamily_groups = {}
     file_names = set()
     record_ids = set()
     records_submitted = 0
@@ -607,6 +701,12 @@ def aggregate_ads_events(
         source_filename = extra.get("source_filename")
         source_type = extra.get("source_type") or extra.get("input_extension") or source_type_from_filename(source_filename)
         parser_name = extra.get("parser_name")
+        raw_subfamily = extra.get("raw_subfamily") or raw_subfamily_from_metadata(
+            filename=source_filename,
+            parser_name=parser_name,
+            input_extension=extra.get("input_extension"),
+            source_type=source_type,
+        )
         record_id = event.get("record_id")
 
         if source_filename:
@@ -646,7 +746,8 @@ def aggregate_ads_events(
 
         type_group = _group_entry(source_type_groups, source_type)
         parser_group = _group_entry(parser_groups, parser_name)
-        for group in (type_group, parser_group):
+        raw_group = _group_entry(raw_subfamily_groups, raw_subfamily) if raw_subfamily else None
+        for group in tuple(group for group in (type_group, parser_group, raw_group) if group is not None):
             if source_filename:
                 group["file_names"].add(source_filename)
             if record_id:
@@ -723,6 +824,7 @@ def aggregate_ads_events(
         },
         "source_type_breakdown": _serialize_group(source_type_groups),
         "parser_breakdown": _serialize_group(parser_groups),
+        "raw_subfamily_breakdown": _serialize_group(raw_subfamily_groups),
         "errors": {
             "by_stage": errors_by_stage,
         },
@@ -747,6 +849,17 @@ def _fmt(value: Optional[float], places: int = 2) -> str:
     return ("%0." + str(places) + "f") % float(value)
 
 
+def _fmt_bytes(value: Optional[float]) -> str:
+    if value is None:
+        return "n/a"
+    units = ["B", "KiB", "MiB", "GiB", "TiB"]
+    current = float(value)
+    for unit in units:
+        if abs(current) < 1024.0 or unit == units[-1]:
+            return "%0.2f %s" % (current, unit)
+        current /= 1024.0
+
+
 def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
     counts = summary.get("counts", {}) or {}
     throughput = summary.get("throughput", {}) or {}
@@ -754,6 +867,7 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
     per_record = summary.get("per_record_metrics_ms", {}) or {}
     source_type_breakdown = summary.get("source_type_breakdown", {}) or {}
     parser_breakdown = summary.get("parser_breakdown", {}) or {}
+    raw_subfamily_breakdown = summary.get("raw_subfamily_breakdown", {}) or {}
     system_load = summary.get("system_load", {}) or {}
     run_metadata = summary.get("run_metadata", {}) or {}
 
@@ -779,7 +893,9 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
         "",
         "## Per-Record Metrics (ms)",
         "",
-        "| Metric | Count | p50 | p95 | p99 | Mean |",
+        "All values in this section are per processed record, in milliseconds.",
+        "",
+        "| Metric | Count | p50 / record | p95 / record | p99 / record | Mean / record |",
         "|---|---:|---:|---:|---:|---:|",
     ])
 
@@ -801,7 +917,9 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
             "",
             "## Stage Latency (ms)",
             "",
-            "| Stage | Count | p50 | p95 | Mean |",
+            "Unless noted otherwise, stage latency values are normalized to per-record milliseconds.",
+            "",
+            "| Stage | Count | p50 / record | p95 / record | Mean / record |",
             "|---|---:|---:|---:|---:|",
         ])
         for stage in sorted(latency.keys()):
@@ -817,15 +935,42 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
             )
 
     if source_type_breakdown:
+        ranked_source_types = sorted(
+            source_type_breakdown.items(),
+            key=lambda item: (((item[1].get("wall_time_ms") or {}).get("p95")) or 0.0),
+            reverse=True,
+        )
+        lines.extend([
+            "",
+            "## Slowest Source Types",
+            "",
+            "Wall values below are per-record milliseconds aggregated across all records in the source-type group.",
+            "",
+            "| Source Type | Files | Records | Wall p95 / record | Wall Mean / record | Throughput (records/min) |",
+            "|---|---:|---:|---:|---:|---:|",
+        ])
+        for source_type, stats in ranked_source_types[:10]:
+            lines.append(
+                "| {source_type} | {files} | {records} | {wall_p95} | {wall_mean} | {throughput} |".format(
+                    source_type=source_type,
+                    files=stats.get("file_count", 0),
+                    records=stats.get("record_count", 0),
+                    wall_p95=_fmt(((stats.get("wall_time_ms") or {}).get("p95"))),
+                    wall_mean=_fmt(((stats.get("wall_time_ms") or {}).get("mean"))),
+                    throughput=_fmt(stats.get("throughput_records_per_minute")),
+                )
+            )
+
         lines.extend([
             "",
             "## Source Types",
             "",
-            "| Source Type | Files | Records | Wall Mean | Parse Mean | Resolver Mean | DB Mean | Throughput |",
+            "`Files` counts source files in the group. `Records` counts extracted/processed references. All mean values below are per-record milliseconds.",
+            "",
+            "| Source Type | Files | Records | Wall Mean / record | Parse Mean / record | Resolver Mean / record | DB Mean / record | Throughput (records/min) |",
             "|---|---:|---:|---:|---:|---:|---:|---:|",
         ])
-        for source_type in sorted(source_type_breakdown.keys()):
-            stats = source_type_breakdown[source_type]
+        for source_type, stats in ranked_source_types:
             lines.append(
                 "| {source_type} | {files} | {records} | {wall} | {parse} | {resolver} | {db} | {throughput} |".format(
                     source_type=source_type,
@@ -844,7 +989,9 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
             "",
             "## Parsers",
             "",
-            "| Parser | Files | Records | Wall Mean |",
+            "Wall Mean below is per-record milliseconds for records handled by each parser group.",
+            "",
+            "| Parser | Files | Records | Wall Mean / record |",
             "|---|---:|---:|---:|",
         ])
         for parser_name in sorted(parser_breakdown.keys()):
@@ -858,21 +1005,149 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
                 )
             )
 
+    if raw_subfamily_breakdown:
+        lines.extend([
+            "",
+            "## Raw Subfamilies",
+            "",
+            "Wall values below are per-record milliseconds within each raw subfamily.",
+            "",
+            "| Raw Subfamily | Files | Records | Wall Mean / record | Wall p95 / record | Throughput (records/min) |",
+            "|---|---:|---:|---:|---:|---:|",
+        ])
+        for raw_subfamily, stats in sorted(
+            raw_subfamily_breakdown.items(),
+            key=lambda item: (((item[1].get("wall_time_ms") or {}).get("p95")) or 0.0),
+            reverse=True,
+        ):
+            lines.append(
+                "| {raw_subfamily} | {files} | {records} | {wall_mean} | {wall_p95} | {throughput} |".format(
+                    raw_subfamily=raw_subfamily,
+                    files=stats.get("file_count", 0),
+                    records=stats.get("record_count", 0),
+                    wall_mean=_fmt(((stats.get("wall_time_ms") or {}).get("mean"))),
+                    wall_p95=_fmt(((stats.get("wall_time_ms") or {}).get("p95"))),
+                    throughput=_fmt(stats.get("throughput_records_per_minute")),
+                )
+            )
+
     if system_load:
         collection = system_load.get("collection", {}) or {}
         load_summary = system_load.get("summary", {}) or {}
+        mean_load_1m = ((load_summary.get("loadavg_1m") or {}).get("mean"))
+        mean_load_5m = ((load_summary.get("loadavg_5m") or {}).get("mean"))
+        mean_load_15m = ((load_summary.get("loadavg_15m") or {}).get("mean"))
+        max_load_1m = ((load_summary.get("loadavg_1m") or {}).get("max"))
+        mean_norm_1m = ((load_summary.get("normalized_load_1m") or {}).get("mean"))
+        max_norm_1m = ((load_summary.get("normalized_load_1m") or {}).get("max"))
+        mean_mem_total = ((load_summary.get("memory_total_bytes") or {}).get("mean"))
+        mean_mem_available = ((load_summary.get("memory_available_bytes") or {}).get("mean"))
+        min_mem_available = ((load_summary.get("memory_available_bytes") or {}).get("min"))
+        mean_mem_used = ((load_summary.get("memory_used_bytes") or {}).get("mean"))
+        max_mem_used = ((load_summary.get("memory_used_bytes") or {}).get("max"))
+        mean_mem_available_ratio = ((load_summary.get("memory_available_ratio") or {}).get("mean"))
+        min_mem_available_ratio = ((load_summary.get("memory_available_ratio") or {}).get("min"))
+        mean_mem_used_ratio = ((load_summary.get("memory_used_ratio") or {}).get("mean"))
+        max_mem_used_ratio = ((load_summary.get("memory_used_ratio") or {}).get("max"))
         lines.extend([
             "",
             "## System Load",
             "",
             "- **Enabled**: `%s`" % collection.get("enabled"),
             "- **Sample Count**: `%s`" % collection.get("sample_count"),
-            "- **Mean Normalized Load (1m)**: `%s`" % _fmt(((load_summary.get("normalized_load_1m") or {}).get("mean"))),
-            "- **Mean Memory Available Ratio**: `%s`" % _fmt(((load_summary.get("memory_available_ratio") or {}).get("mean"))),
+            "- **Sample Interval**: `%s s`" % _fmt(collection.get("sample_interval_s")),
+            "- **Platform**: `%s`" % collection.get("platform"),
+            "- **CPU Count**: `%s`" % collection.get("cpu_count"),
+            "- **Memory Probe**: `%s`" % collection.get("memory_probe"),
+            "- **Mean Raw Load (1m / 5m / 15m)**: `%s / %s / %s`" % (_fmt(mean_load_1m), _fmt(mean_load_5m), _fmt(mean_load_15m)),
+            "- **Peak Raw Load (1m)**: `%s`" % _fmt(max_load_1m),
+            "- **Mean Normalized Load (1m)**: `%s`" % _fmt(mean_norm_1m),
+            "- **Peak Normalized Load (1m)**: `%s`" % _fmt(max_norm_1m),
+            "- **Mean Memory Total**: `%s`" % _fmt_bytes(mean_mem_total),
+            "- **Mean Memory Available**: `%s`" % _fmt_bytes(mean_mem_available),
+            "- **Minimum Memory Available**: `%s`" % _fmt_bytes(min_mem_available),
+            "- **Mean Memory Used**: `%s`" % _fmt_bytes(mean_mem_used),
+            "- **Peak Memory Used**: `%s`" % _fmt_bytes(max_mem_used),
+            "- **Mean Memory Available Ratio**: `%s`" % _fmt(mean_mem_available_ratio),
+            "- **Minimum Memory Available Ratio**: `%s`" % _fmt(min_mem_available_ratio),
+            "- **Mean Memory Used Ratio**: `%s`" % _fmt(mean_mem_used_ratio),
+            "- **Peak Memory Used Ratio**: `%s`" % _fmt(max_mem_used_ratio),
+            "",
+            "### System Load Samples",
+            "",
+            "| Metric | Mean | Min | Max | p50 | p95 |",
+            "|---|---:|---:|---:|---:|---:|",
         ])
+        metric_rows = [
+            ("Raw load 1m", "loadavg_1m", "number"),
+            ("Raw load 5m", "loadavg_5m", "number"),
+            ("Raw load 15m", "loadavg_15m", "number"),
+            ("Normalized load 1m", "normalized_load_1m", "number"),
+            ("Memory total", "memory_total_bytes", "bytes"),
+            ("Memory available", "memory_available_bytes", "bytes"),
+            ("Memory used", "memory_used_bytes", "bytes"),
+            ("Memory available ratio", "memory_available_ratio", "number"),
+            ("Memory used ratio", "memory_used_ratio", "number"),
+        ]
+        for label, key, value_type in metric_rows:
+            stats = load_summary.get(key) or {}
+            formatter = _fmt_bytes if value_type == "bytes" else _fmt
+            lines.append(
+                "| {label} | {mean} | {min_v} | {max_v} | {p50} | {p95} |".format(
+                    label=label,
+                    mean=formatter(stats.get("mean")),
+                    min_v=formatter(stats.get("min")),
+                    max_v=formatter(stats.get("max")),
+                    p50=formatter(stats.get("p50")),
+                    p95=formatter(stats.get("p95")),
+                )
+            )
 
     directory = os.path.dirname(output_path)
     if directory:
         os.makedirs(directory, exist_ok=True)
     with open(output_path, "w") as handle:
         handle.write("\n".join(lines) + "\n")
+
+
+def write_source_type_csv(summary: Dict[str, Any], output_path: str) -> None:
+    import csv
+
+    directory = os.path.dirname(output_path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+    rows = []
+    for source_type, stats in sorted(
+        (summary.get("source_type_breakdown", {}) or {}).items(),
+        key=lambda item: (((item[1].get("wall_time_ms") or {}).get("p95")) or 0.0),
+        reverse=True,
+    ):
+        rows.append({
+            "source_type": source_type,
+            "file_count": stats.get("file_count", 0),
+            "record_count": stats.get("record_count", 0),
+            "wall_mean_ms": ((stats.get("wall_time_ms") or {}).get("mean")),
+            "wall_p95_ms": ((stats.get("wall_time_ms") or {}).get("p95")),
+            "parse_mean_ms": ((stats.get("parse_stage_ms") or {}).get("mean")),
+            "resolver_mean_ms": ((stats.get("resolver_stage_ms") or {}).get("mean")),
+            "db_mean_ms": ((stats.get("db_stage_ms") or {}).get("mean")),
+            "throughput_records_per_minute": stats.get("throughput_records_per_minute"),
+        })
+
+    fieldnames = [
+        "source_type",
+        "file_count",
+        "record_count",
+        "wall_mean_ms",
+        "wall_p95_ms",
+        "parse_mean_ms",
+        "resolver_mean_ms",
+        "db_mean_ms",
+        "throughput_records_per_minute",
+    ]
+    with open(output_path, "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
