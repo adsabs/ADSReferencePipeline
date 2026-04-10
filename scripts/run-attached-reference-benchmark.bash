@@ -113,8 +113,12 @@ SUMMARY_PATH="${OUTPUT_DIR}/attached_benchmark_manifest.md"
 WRAPPER_LOG="${OUTPUT_DIR}/attached_benchmark.log"
 HOST_CONTEXT_PATH="${RUN_LOG_DIR}/host_context.json"
 CONTAINER_STDOUT_PATH="${RUN_LOG_DIR}/container_runner.stdout.log"
+PROGRESS_LOG_PATH="${RUN_LOG_DIR}/attached_${RUN_STAMP}.stdout.log"
+PROGRESS_STOP_PATH="${RUN_LOG_DIR}/progress_display.done"
+RESULT_PATH_HOST="${RUN_LOG_DIR}/attached_${RUN_STAMP}.result.json"
 mkdir -p "${OUTPUT_DIR}" "${RUN_LOG_DIR}"
 : > "${WRAPPER_LOG}"
+rm -f "${PROGRESS_STOP_PATH}"
 
 log() {
   local message="$1"
@@ -261,46 +265,89 @@ if [[ "${PROGRESS}" == "false" ]]; then
   CONTAINER_COMMAND+=" --no-progress"
 fi
 
-log "Running in-container benchmark via ${TARGET_CONTAINER}"
-set +e
-docker exec "${TARGET_CONTAINER}" bash -lc "${CONTAINER_COMMAND}" 2>> "${WRAPPER_LOG}" | tee "${CONTAINER_STDOUT_PATH}"
-PIPE_STATUS=("${PIPESTATUS[@]}")
-set -e
-CONTAINER_EXIT_CODE="${PIPE_STATUS[0]}"
+PROGRESS_PID=""
+if [[ "${PROGRESS}" == "true" && -n "${APP_HOST_DIR}" ]]; then
+  python3 - "${PROGRESS_LOG_PATH}" "${PROGRESS_STOP_PATH}" "${APP_HOST_DIR}" <<'PY' &
+import os
+import sys
+import time
 
-python3 - "${CONTAINER_STDOUT_PATH}" "${MANIFEST_PATH}" "${SUMMARY_PATH}" "${HOST_CONTEXT_PATH}" "${TARGET_CONTAINER}" "${APP_HOST_DIR}" "${LOGS_HOST_DIR}" "${CONTAINER_EXIT_CODE}" <<'PY'
+log_path = sys.argv[1]
+stop_path = sys.argv[2]
+app_host_dir = sys.argv[3]
+offset = 0
+seen_log_lines = set()
+
+if app_host_dir:
+    sys.path.insert(0, app_host_dir)
+
+from adsrefpipe import perf_metrics
+
+
+def process_available_lines():
+    global offset
+    if not os.path.exists(log_path):
+        return False
+    with open(log_path, "r", errors="replace") as handle:
+        handle.seek(offset)
+        lines = handle.readlines()
+        offset = handle.tell()
+    for line in lines:
+        progress = perf_metrics.format_benchmark_progress_line_from_log_line(line)
+        if progress and line not in seen_log_lines:
+            seen_log_lines.add(line)
+            print(progress, flush=True)
+    return bool(lines)
+
+
+while True:
+    saw_lines = process_available_lines()
+    if os.path.exists(stop_path):
+        process_available_lines()
+        break
+    if not saw_lines:
+        time.sleep(0.5)
+PY
+  PROGRESS_PID=$!
+fi
+
+log "Running in-container benchmark via ${TARGET_CONTAINER}"
+if docker exec "${TARGET_CONTAINER}" bash -lc "${CONTAINER_COMMAND}" > "${CONTAINER_STDOUT_PATH}" 2>> "${WRAPPER_LOG}"; then
+  CONTAINER_EXIT_CODE=0
+else
+  CONTAINER_EXIT_CODE=$?
+fi
+
+if [[ -n "${PROGRESS_PID}" ]]; then
+  : > "${PROGRESS_STOP_PATH}"
+  wait "${PROGRESS_PID}" || true
+  rm -f "${PROGRESS_STOP_PATH}"
+fi
+
+python3 - "${RESULT_PATH_HOST}" "${CONTAINER_STDOUT_PATH}" "${MANIFEST_PATH}" "${SUMMARY_PATH}" "${HOST_CONTEXT_PATH}" "${TARGET_CONTAINER}" "${APP_HOST_DIR}" "${LOGS_HOST_DIR}" "${CONTAINER_EXIT_CODE}" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-stdout_path = Path(sys.argv[1])
-manifest_path = Path(sys.argv[2])
-summary_path = Path(sys.argv[3])
-host_context_path = Path(sys.argv[4])
-target_container = sys.argv[5]
-app_host_dir = sys.argv[6]
-logs_host_dir = sys.argv[7]
-container_exit_code = int(sys.argv[8])
+result_path = Path(sys.argv[1])
+stdout_path = Path(sys.argv[2])
+manifest_path = Path(sys.argv[3])
+summary_path = Path(sys.argv[4])
+host_context_path = Path(sys.argv[5])
+target_container = sys.argv[6]
+app_host_dir = sys.argv[7]
+logs_host_dir = sys.argv[8]
+container_exit_code = int(sys.argv[9])
 
-stdout = stdout_path.read_text() if stdout_path.exists() else ""
 result = None
-if stdout.strip():
+if result_path.exists():
     try:
-        candidate = json.loads(stdout.strip())
+        candidate = json.loads(result_path.read_text())
         if isinstance(candidate, dict):
             result = candidate
     except json.JSONDecodeError:
-        decoder = json.JSONDecoder()
-        for index, char in enumerate(stdout):
-            if char != "{":
-                continue
-            try:
-                candidate, _ = decoder.raw_decode(stdout[index:])
-            except json.JSONDecodeError:
-                continue
-            if isinstance(candidate, dict):
-                result = candidate
+        result = None
 
 host_context = None
 if host_context_path.exists():
@@ -351,8 +398,6 @@ lines = [
     ),
 ]
 summary_path.write_text("\n".join(lines) + "\n")
-
-print(json.dumps(payload))
 PY
 
 log "Attached benchmark manifest: ${MANIFEST_PATH}"

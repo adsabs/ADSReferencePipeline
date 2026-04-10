@@ -127,7 +127,7 @@ if [[ ! -e "${INPUT_PATH}" ]]; then
   cat > "${RESULT_PATH}" <<EOF
 {"status":"failed","error":"input path not found: ${INPUT_PATH}"}
 EOF
-  cat "${RESULT_PATH}"
+  echo "Container benchmark result: ${RESULT_PATH}"
   exit 1
 fi
 
@@ -181,7 +181,7 @@ def process_available_lines():
     with open(log_path, "r", errors="replace") as handle:
         handle.seek(offset)
         lines = handle.readlines()
-    offset = handle.tell()
+        offset = handle.tell()
     for line in lines:
         progress = perf_metrics.format_benchmark_progress_line_from_log_line(line)
         if progress and line not in seen_log_lines:
@@ -286,5 +286,10 @@ else:
             payload["artifact_source_type_csv"] = str(stable_csv)
 
 result_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
-print(json.dumps(payload))
+print("Container benchmark result: %s" % result_path)
+if payload.get("artifact_markdown"):
+    print("Container benchmark summary: %s" % payload["artifact_markdown"])
+if payload.get("artifact_source_type_csv"):
+    print("Container benchmark source-type CSV: %s" % payload["artifact_source_type_csv"])
+print("Container benchmark stdout log: %s" % stdout_path)
 PY
