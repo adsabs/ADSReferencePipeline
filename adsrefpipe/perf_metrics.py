@@ -17,6 +17,44 @@ from functools import wraps
 from typing import Any, Dict, Iterable, List, Optional
 
 
+_PROGRESS_MESSAGE_RE = re.compile(
+    r"^Source file (?P<source_filename>.+?) for bibcode .+? with "
+    r"(?P<record_count>\d+) references, processed successfully\.$"
+)
+
+
+def format_benchmark_progress_line_from_log_line(line: str) -> Optional[str]:
+    """Return a compact benchmark progress line for one structured log line."""
+    try:
+        payload = json.loads(line)
+    except (TypeError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+
+    message = payload.get("message")
+    if not isinstance(message, str):
+        return None
+    match = _PROGRESS_MESSAGE_RE.match(message)
+    if not match:
+        return None
+
+    timestamp = payload.get("timestamp") or payload.get("asctime")
+    if not isinstance(timestamp, str):
+        return None
+    if "T" in timestamp:
+        time_part = timestamp.split("T", 1)[1]
+    else:
+        time_part = timestamp
+    time_part = time_part.split(".", 1)[0].replace("Z", "")
+
+    return "%s %s with %d references" % (
+        time_part,
+        os.path.basename(match.group("source_filename")),
+        int(match.group("record_count")),
+    )
+
+
 def _as_bool(value: Any) -> bool:
     if isinstance(value, bool):
         return value

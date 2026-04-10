@@ -21,6 +21,10 @@ logger = setup_logging('run.py')
 processed_log = setup_logging('processed_subdirectories.py')
 
 
+def _benchmark_continue_on_error() -> bool:
+    return os.getenv("PERF_BENCHMARK_CONTINUE_ON_ERROR", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def positive_float(value: str) -> float:
     """
     argparse type for positive floating point values.
@@ -123,7 +127,26 @@ def queue_references(references: list, source_filename: str, source_bibcode: str
                               'parser_name': parsername,
                               'input_extension': event_extra.get('input_extension'),
                               'source_type': event_extra.get('source_type')}
-            tasks.task_process_reference(reference_task)
+            try:
+                tasks.task_process_reference(reference_task)
+            except Exception as exc:
+                if not _benchmark_continue_on_error():
+                    raise
+                perf_metrics.emit_event(
+                    stage='record_error',
+                    record_id=reference.get('id'),
+                    status='error',
+                    extra=perf_metrics.build_event_extra(
+                        source_filename=source_filename,
+                        parser_name=parsername,
+                        source_bibcode=source_bibcode,
+                        input_extension=event_extra.get('input_extension'),
+                        source_type=event_extra.get('source_type'),
+                        record_count=1,
+                        extra={'error': str(exc), 'error_type': exc.__class__.__name__},
+                    ),
+                )
+                logger.error("Benchmark continuing after record failure for %s: %s" % (source_filename, str(exc)))
 
 
 def process_files(filenames: list) -> None:

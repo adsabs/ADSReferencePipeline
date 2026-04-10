@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+export PYTHONPATH="${APP_DIR}:${PYTHONPATH:-}"
 
 INPUT_PATH="/app/adsrefpipe/tests/unittests/stubdata"
 EXTENSIONS="*.raw,*.xml,*.txt,*.html,*.tex,*.refs,*.pairs"
@@ -17,6 +18,7 @@ SYSTEM_SAMPLE_INTERVAL="1.0"
 DISABLE_SYSTEM_LOAD="false"
 GROUP_BY="source_type"
 WARMUP="true"
+PROGRESS="true"
 
 usage() {
   cat <<'EOF'
@@ -36,6 +38,7 @@ Options:
   --disable-system-load              Disable system load sampling
   --group-by source_type|parser|none Preferred grouping mode
   --no-warmup                        Disable warmup pass
+  --no-progress                      Disable live compact progress lines
   --help                             Show this help
 EOF
 }
@@ -94,6 +97,10 @@ while [[ $# -gt 0 ]]; do
       WARMUP="false"
       shift
       ;;
+    --no-progress)
+      PROGRESS="false"
+      shift
+      ;;
     --help)
       usage
       exit 0
@@ -112,7 +119,9 @@ RUN_DIR="${OUTPUT_DIR}/run_${RUN_STAMP}"
 RUN_LOG_DIR="${RUN_DIR}/run_logs"
 STDOUT_PATH="${RUN_LOG_DIR}/${RUN_LABEL}.stdout.log"
 RESULT_PATH="${RUN_LOG_DIR}/${RUN_LABEL}.result.json"
+PROGRESS_STOP_PATH="${RUN_LOG_DIR}/${RUN_LABEL}.progress.done"
 mkdir -p "${RUN_DIR}" "${RUN_LOG_DIR}"
+rm -f "${PROGRESS_STOP_PATH}"
 
 if [[ ! -e "${INPUT_PATH}" ]]; then
   cat > "${RESULT_PATH}" <<EOF
@@ -147,7 +156,61 @@ fi
 (
   cd "${APP_DIR}"
   "${BENCHMARK_CMD[@]}"
-) > "${STDOUT_PATH}" 2>&1 || BENCHMARK_EXIT_CODE=$?
+) > "${STDOUT_PATH}" 2>&1 &
+BENCHMARK_PID=$!
+
+PROGRESS_PID=""
+if [[ "${PROGRESS}" == "true" ]]; then
+  python3 - "${STDOUT_PATH}" "${PROGRESS_STOP_PATH}" <<'PY' &
+import os
+import sys
+import time
+
+from adsrefpipe import perf_metrics
+
+log_path = sys.argv[1]
+stop_path = sys.argv[2]
+offset = 0
+seen_log_lines = set()
+
+
+def process_available_lines():
+    global offset
+    if not os.path.exists(log_path):
+        return False
+    with open(log_path, "r", errors="replace") as handle:
+        handle.seek(offset)
+        lines = handle.readlines()
+    offset = handle.tell()
+    for line in lines:
+        progress = perf_metrics.format_benchmark_progress_line_from_log_line(line)
+        if progress and line not in seen_log_lines:
+            seen_log_lines.add(line)
+            print(progress, flush=True)
+    return bool(lines)
+
+
+while True:
+    saw_lines = process_available_lines()
+    if os.path.exists(stop_path):
+        process_available_lines()
+        break
+    if not saw_lines:
+        time.sleep(0.5)
+PY
+  PROGRESS_PID=$!
+fi
+
+if wait "${BENCHMARK_PID}"; then
+  BENCHMARK_EXIT_CODE=0
+else
+  BENCHMARK_EXIT_CODE=$?
+fi
+if [[ -n "${PROGRESS_PID}" ]]; then
+  : > "${PROGRESS_STOP_PATH}"
+  wait "${PROGRESS_PID}" || true
+  rm -f "${PROGRESS_STOP_PATH}"
+fi
 
 BENCHMARK_EXIT_CODE="${BENCHMARK_EXIT_CODE:-0}"
 
@@ -156,6 +219,8 @@ import json
 import shutil
 import sys
 from pathlib import Path
+
+from adsrefpipe import perf_metrics
 
 stdout_path = Path(sys.argv[1])
 result_path = Path(sys.argv[2])
@@ -188,9 +253,13 @@ if benchmark_result is None:
     payload["error"] = "failed to find final benchmark JSON object in stdout"
 else:
     payload["status"] = benchmark_result.get("status", payload["status"])
-    raw_json = Path(benchmark_result.get("json", ""))
-    raw_md = Path(benchmark_result.get("markdown", ""))
-    if raw_json.exists():
+    raw_json_value = benchmark_result.get("json")
+    raw_md_value = benchmark_result.get("markdown")
+    raw_csv_value = benchmark_result.get("source_type_csv")
+    raw_json = Path(raw_json_value) if raw_json_value else None
+    raw_md = Path(raw_md_value) if raw_md_value else None
+    raw_csv = Path(raw_csv_value) if raw_csv_value else None
+    if raw_json is not None and raw_json.is_file():
         summary = json.loads(raw_json.read_text())
         stable_json = run_dir / f"{run_label}.json"
         stable_md = run_dir / f"{run_label}.md"
@@ -205,11 +274,14 @@ else:
         payload["per_record_wall_mean_ms"] = ((((summary.get("per_record_metrics_ms") or {}).get("wall_time") or {}).get("mean")))
         payload["source_type_breakdown"] = summary.get("source_type_breakdown")
         payload["raw_subfamily_breakdown"] = summary.get("raw_subfamily_breakdown")
-        if raw_md.exists():
+        if raw_md is not None and raw_md.is_file():
             shutil.copy2(raw_md, stable_md)
             payload["artifact_markdown"] = str(stable_md)
-        raw_csv = Path(benchmark_result.get("source_type_csv", ""))
-        if raw_csv.exists():
+        else:
+            perf_metrics.render_markdown(summary, str(stable_md))
+            payload["artifact_markdown"] = str(stable_md)
+            payload["artifact_markdown_generated_from_json"] = True
+        if raw_csv is not None and raw_csv.is_file():
             shutil.copy2(raw_csv, stable_csv)
             payload["artifact_source_type_csv"] = str(stable_csv)
 

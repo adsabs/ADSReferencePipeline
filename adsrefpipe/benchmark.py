@@ -35,6 +35,11 @@ def _utc_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
+def format_progress_line_from_log_line(line: str) -> Optional[str]:
+    """Return a compact benchmark progress line for one structured log line."""
+    return perf_metrics.format_benchmark_progress_line_from_log_line(line)
+
+
 def _parse_csv_list(value: str) -> List[str]:
     if not value:
         return []
@@ -134,6 +139,7 @@ def benchmark_environment(
         "PERF_METRICS_CONTEXT_ID": str(context_id),
         "PERF_METRICS_PATH": str(events_path),
         "PERF_BENCHMARK_MODE": str(mode),
+        "PERF_BENCHMARK_CONTINUE_ON_ERROR": "true",
     }
     context_dir = perf_metrics.metrics_context_dir(config=config)
     if context_dir:
@@ -177,8 +183,13 @@ def _write_run_artifacts(summary: Dict[str, object], output_dir: str) -> Dict[st
 def _run_warmup(files: List[str], mode: str) -> None:
     if not files:
         return
-    with mock_resolver(mode == "mock"):
-        _pipeline_run_module().process_files(files[:1])
+    try:
+        with mock_resolver(mode == "mock"):
+            _pipeline_run_module().process_files(files[:1])
+    except Exception:
+        # Warmup is best-effort and should not prevent the measured run from
+        # executing, especially in real mode where a resolver can rate-limit.
+        return
 
 
 def _run_case(

@@ -49,6 +49,26 @@ class TestPerfMetrics(unittest.TestCase):
             "raw_aas",
         )
 
+    def test_format_benchmark_progress_line_from_log_line(self):
+        line = json.dumps({
+            "timestamp": "2026-04-10T18:29:31.196Z",
+            "message": (
+                "Source file /app/adsrefpipe/tests/unittests/stubdata/test.jats.xml "
+                "for bibcode 0000HiA.....Z with 16 references, processed successfully."
+            ),
+        })
+
+        rendered = perf_metrics.format_benchmark_progress_line_from_log_line(line)
+
+        self.assertEqual(rendered, "18:29:31 test.jats.xml with 16 references")
+
+    def test_format_benchmark_progress_line_from_log_line_ignores_non_matches(self):
+        self.assertIsNone(perf_metrics.format_benchmark_progress_line_from_log_line("not-json"))
+        self.assertIsNone(perf_metrics.format_benchmark_progress_line_from_log_line(json.dumps({
+            "timestamp": "2026-04-10T18:29:31.196Z",
+            "message": "Updated 1 resolved reference records successfully.",
+        })))
+
     def test_emit_event_uses_registered_context(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             events_path = os.path.join(tmpdir, "events.jsonl")

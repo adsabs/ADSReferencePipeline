@@ -14,6 +14,7 @@ TARGET_CONTAINER="reference_pipeline"
 SYSTEM_SAMPLE_INTERVAL="1.0"
 GROUP_BY="source_type"
 DISABLE_SYSTEM_LOAD="false"
+PROGRESS="true"
 
 usage() {
   cat <<'USAGE'
@@ -32,6 +33,7 @@ Options:
   --system-sample-interval FLOAT Sampling interval in seconds
   --group-by source_type|parser|none
   --disable-system-load          Disable in-container system sampling
+  --no-progress                  Disable live compact progress lines
   --help                         Show this help
 USAGE
 }
@@ -84,6 +86,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --disable-system-load)
       DISABLE_SYSTEM_LOAD="true"
+      shift
+      ;;
+    --no-progress)
+      PROGRESS="false"
       shift
       ;;
     --help)
@@ -251,13 +257,16 @@ fi
 if [[ "${DISABLE_SYSTEM_LOAD}" == "true" ]]; then
   CONTAINER_COMMAND+=" --disable-system-load"
 fi
+if [[ "${PROGRESS}" == "false" ]]; then
+  CONTAINER_COMMAND+=" --no-progress"
+fi
 
 log "Running in-container benchmark via ${TARGET_CONTAINER}"
-if docker exec "${TARGET_CONTAINER}" bash -lc "${CONTAINER_COMMAND}" > "${CONTAINER_STDOUT_PATH}" 2>> "${WRAPPER_LOG}"; then
-  CONTAINER_EXIT_CODE=0
-else
-  CONTAINER_EXIT_CODE=$?
-fi
+set +e
+docker exec "${TARGET_CONTAINER}" bash -lc "${CONTAINER_COMMAND}" 2>> "${WRAPPER_LOG}" | tee "${CONTAINER_STDOUT_PATH}"
+PIPE_STATUS=("${PIPESTATUS[@]}")
+set -e
+CONTAINER_EXIT_CODE="${PIPE_STATUS[0]}"
 
 python3 - "${CONTAINER_STDOUT_PATH}" "${MANIFEST_PATH}" "${SUMMARY_PATH}" "${HOST_CONTEXT_PATH}" "${TARGET_CONTAINER}" "${APP_HOST_DIR}" "${LOGS_HOST_DIR}" "${CONTAINER_EXIT_CODE}" <<'PY'
 import json
