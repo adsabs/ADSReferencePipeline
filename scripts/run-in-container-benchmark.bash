@@ -23,7 +23,7 @@ WARMUP="true"
 PROGRESS="true"
 
 usage() {
-  cat <<'EOF'
+  cat <<EOF
 Usage: ${CONTAINER_APP_ROOT:-/app}/scripts/run-in-container-benchmark.bash [options]
 
 Options:

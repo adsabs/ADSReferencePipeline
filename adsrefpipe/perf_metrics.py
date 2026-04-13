@@ -15,10 +15,27 @@ import threading
 import time
 from contextlib import contextmanager
 from functools import wraps
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, TypedDict
 
 LOGGER = logging.getLogger(__name__)
 _EVENT_WRITE_LOCK = threading.Lock()
+
+
+class AdsBenchmarkSummary(TypedDict):
+    counts: Dict[str, Any]
+    throughput: Dict[str, Any]
+    latency_ms: Dict[str, Any]
+    task_timing_ms: Dict[str, Any]
+    app_timing_ms: Dict[str, Any]
+    duration_s: Dict[str, Any]
+    per_record_metrics_ms: Dict[str, Any]
+    source_type_breakdown: Dict[str, Any]
+    parser_breakdown: Dict[str, Any]
+    raw_subfamily_breakdown: Dict[str, Any]
+    errors: Dict[str, Any]
+    status: str
+    selected_files: List[str]
+    file_wall_ms: Dict[str, Any]
 
 
 _PROGRESS_MESSAGE_RE = re.compile(
@@ -790,7 +807,7 @@ def aggregate_ads_events(
     started_at: Optional[float] = None,
     ended_at: Optional[float] = None,
     expected_files: Optional[int] = None,
-) -> Dict[str, Any]:
+) -> AdsBenchmarkSummary:
     stage_timings = {}
     task_timings = {}
     app_timings = {}

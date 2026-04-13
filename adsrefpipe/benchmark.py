@@ -11,7 +11,7 @@ import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, TypedDict
 
 try:
     from adsputils import load_config
@@ -25,6 +25,13 @@ import adsrefpipe.utils as utils
 
 DEFAULT_EXTENSIONS = "*.raw,*.xml,*.txt,*.html,*.tex,*.refs,*.pairs"
 LOGGER = logging.getLogger(__name__)
+
+
+class SourceFileClassification(TypedDict):
+    source_filename: str
+    parser_name: Optional[str]
+    input_extension: Optional[str]
+    source_type: Optional[str]
 
 
 def _pipeline_run_module():
@@ -88,7 +95,10 @@ def collect_candidate_files(input_path: str, extensions: Iterable[str]) -> List[
     return sorted(set(matched))
 
 
-def classify_source_file(filename: str, parser_info: Optional[Dict[str, object]] = None) -> Dict[str, Optional[str]]:
+def classify_source_file(
+    filename: str,
+    parser_info: Optional[Dict[str, object]] = None,
+) -> SourceFileClassification:
     parser_info = parser_info or {}
     input_extension = parser_info.get("extension_pattern") or perf_metrics.source_type_from_filename(filename)
     source_type = input_extension or perf_metrics.source_type_from_filename(filename)
