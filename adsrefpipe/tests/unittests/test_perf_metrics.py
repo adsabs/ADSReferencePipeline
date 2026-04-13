@@ -1,7 +1,9 @@
 import json
 import os
 import tempfile
+import threading
 import unittest
+from unittest.mock import patch
 
 import adsrefpipe.perf_metrics as perf_metrics
 
@@ -102,6 +104,101 @@ class TestPerfMetrics(unittest.TestCase):
                 self.assertEqual(payloads[0]["stage"], "record_wall")
             finally:
                 os.environ.pop("PERF_METRICS_CONTEXT_DIR", None)
+
+    def test_emit_event_is_safe_under_concurrent_writes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            events_path = os.path.join(tmpdir, "events.jsonl")
+            context_dir = os.path.join(tmpdir, "context")
+            config = {
+                "PERF_METRICS_ENABLED": False,
+                "PERF_METRICS_CONTEXT_DIR": context_dir,
+            }
+            perf_metrics.register_run_metrics_context(
+                run_id="run-concurrent",
+                enabled=True,
+                path=events_path,
+                context_id="ctx-concurrent",
+                config=config,
+                context_dir=context_dir,
+            )
+
+            def worker(worker_id):
+                for event_id in range(25):
+                    perf_metrics.emit_event(
+                        stage="record_wall",
+                        run_id="run-concurrent",
+                        context_id="ctx-concurrent",
+                        record_id="worker-%d-event-%d" % (worker_id, event_id),
+                        duration_ms=float(event_id),
+                        extra={"source_type": ".raw"},
+                        config=config,
+                    )
+
+            threads = [threading.Thread(target=worker, args=(worker_id,)) for worker_id in range(8)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+            with open(events_path, "r") as handle:
+                lines = [line.strip() for line in handle if line.strip()]
+
+            self.assertEqual(len(lines), 200)
+            payloads = [json.loads(line) for line in lines]
+            self.assertEqual(len(payloads), 200)
+
+    def test_register_run_metrics_context_logs_on_failure(self):
+        with self.assertLogs("adsrefpipe.perf_metrics", level="DEBUG") as logs:
+            with patch("adsrefpipe.perf_metrics.json.dump", side_effect=OSError("boom")):
+                perf_metrics.register_run_metrics_context(
+                    run_id="run-1",
+                    enabled=True,
+                    path="/tmp/events.jsonl",
+                    context_id="ctx-1",
+                    context_dir="/tmp/perf-metrics-test-context",
+                )
+        self.assertIn("Failed to register metrics context", "\n".join(logs.output))
+
+    def test_emit_event_logs_on_failure(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            events_path = os.path.join(tmpdir, "events.jsonl")
+            context_dir = os.path.join(tmpdir, "context")
+            config = {
+                "PERF_METRICS_ENABLED": False,
+                "PERF_METRICS_CONTEXT_DIR": context_dir,
+            }
+            perf_metrics.register_run_metrics_context(
+                run_id="run-emit-fail",
+                enabled=True,
+                path=events_path,
+                context_id="ctx-emit-fail",
+                config=config,
+                context_dir=context_dir,
+            )
+            with self.assertLogs("adsrefpipe.perf_metrics", level="DEBUG") as logs:
+                with patch("adsrefpipe.perf_metrics._append_jsonl_record", side_effect=OSError("append failed")):
+                    perf_metrics.emit_event(
+                        stage="record_wall",
+                        run_id="run-emit-fail",
+                        context_id="ctx-emit-fail",
+                        record_id="rec-1",
+                        duration_ms=1.0,
+                        config=config,
+                    )
+            self.assertIn("Failed to emit metrics event", "\n".join(logs.output))
+
+    def test_load_events_logs_on_parse_failure(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            events_path = os.path.join(tmpdir, "events.jsonl")
+            with open(events_path, "w") as handle:
+                handle.write("{not-json}\n")
+                handle.write(json.dumps({"run_id": "run-1", "context_id": "ctx-1", "stage": "ok"}) + "\n")
+
+            with self.assertLogs("adsrefpipe.perf_metrics", level="DEBUG") as logs:
+                payloads = perf_metrics.load_events(events_path, run_id="run-1", context_id="ctx-1")
+
+            self.assertEqual(len(payloads), 1)
+            self.assertIn("Failed to parse metrics event line", "\n".join(logs.output))
 
     def test_aggregate_ads_events_groups_by_source_type(self):
         events = [
@@ -219,6 +316,35 @@ class TestPerfMetrics(unittest.TestCase):
                 self.assertIn("ADS Reference Benchmark Report", rendered)
                 self.assertIn("Mean Raw Load", rendered)
                 self.assertIn("Memory used", rendered)
+            with open(csv_path, "r") as handle:
+                csv_rendered = handle.read()
+                self.assertIn("source_type", csv_rendered)
+
+    def test_write_source_type_csv_blanks_missing_values(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            csv_path = os.path.join(tmpdir, "summary.source_types.csv")
+            perf_metrics.write_source_type_csv(
+                {
+                    "source_type_breakdown": {
+                        ".raw": {
+                            "file_count": 1,
+                            "record_count": 2,
+                            "wall_time_ms": {"mean": None, "p95": None},
+                            "parse_stage_ms": {"mean": None},
+                            "resolver_stage_ms": {"mean": None},
+                            "db_stage_ms": {"mean": None},
+                            "throughput_records_per_minute": None,
+                        }
+                    }
+                },
+                csv_path,
+            )
+            with open(csv_path, "r") as handle:
+                lines = [line.rstrip("\n") for line in handle]
+            self.assertEqual(
+                lines[1],
+                ".raw,1,2,,,,,,",
+            )
 
     def test_aggregate_system_samples_includes_raw_host_usage(self):
         samples = [

@@ -214,7 +214,7 @@ fi
 
 BENCHMARK_EXIT_CODE="${BENCHMARK_EXIT_CODE:-0}"
 
-python3 - "${STDOUT_PATH}" "${RESULT_PATH}" "${RUN_DIR}" "${RUN_LABEL}" "${BENCHMARK_EXIT_CODE}" <<'PY'
+if ! python3 - "${STDOUT_PATH}" "${RESULT_PATH}" "${RUN_DIR}" "${RUN_LABEL}" "${BENCHMARK_EXIT_CODE}" <<'PY'
 import json
 import shutil
 import sys
@@ -293,3 +293,6 @@ if payload.get("artifact_source_type_csv"):
     print("Container benchmark source-type CSV: %s" % payload["artifact_source_type_csv"])
 print("Container benchmark stdout log: %s" % stdout_path)
 PY
+then
+  exit 1
+fi

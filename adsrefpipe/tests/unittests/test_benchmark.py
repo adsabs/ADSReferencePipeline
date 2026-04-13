@@ -22,6 +22,7 @@ sys.modules.setdefault(
 )
 
 from adsrefpipe import benchmark
+from adsrefpipe import perf_metrics
 
 
 class TestBenchmark(unittest.TestCase):
@@ -54,25 +55,22 @@ class TestBenchmark(unittest.TestCase):
         self.assertEqual(resolved[0]["id"], "H1I1")
         self.assertEqual(resolved[0]["bibcode"], "2000mock........A")
 
-    def test_format_progress_line_from_log_line(self):
-        line = json.dumps({
-            "timestamp": "2026-04-10T18:29:31.196Z",
-            "message": (
-                "Source file /app/adsrefpipe/tests/unittests/stubdata/test.jats.xml "
-                "for bibcode 0000HiA.....Z with 16 references, processed successfully."
-            ),
-        })
-
-        rendered = benchmark.format_progress_line_from_log_line(line)
-
-        self.assertEqual(rendered, "18:29:31 test.jats.xml with 16 references")
-
-    def test_format_progress_line_from_log_line_ignores_non_matches(self):
-        self.assertIsNone(benchmark.format_progress_line_from_log_line("not-json"))
-        self.assertIsNone(benchmark.format_progress_line_from_log_line(json.dumps({
+    def test_progress_line_formatter_delegates_to_perf_metrics(self):
+        self.assertIsNone(perf_metrics.format_benchmark_progress_line_from_log_line("not-json"))
+        self.assertIsNone(perf_metrics.format_benchmark_progress_line_from_log_line(json.dumps({
             "timestamp": "2026-04-10T18:29:31.196Z",
             "message": "Updated 1 resolved reference records successfully.",
         })))
+        self.assertEqual(
+            perf_metrics.format_benchmark_progress_line_from_log_line(json.dumps({
+                "timestamp": "2026-04-10T18:29:31.196Z",
+                "message": (
+                    "Source file /app/adsrefpipe/tests/unittests/stubdata/test.jats.xml "
+                    "for bibcode 0000HiA.....Z with 16 references, processed successfully."
+                ),
+            })),
+            "18:29:31 test.jats.xml with 16 references",
+        )
 
     def test_run_case_mock_mode_collects_summary(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -158,6 +156,68 @@ class TestBenchmark(unittest.TestCase):
             self.assertIn('"status": "complete"', rendered)
             self.assertTrue(any(name.endswith(".json") for name in os.listdir(tmpdir)))
             self.assertTrue(any(name.endswith(".source_types.csv") for name in os.listdir(tmpdir)))
+
+    def test_build_parser_rejects_invalid_sample_interval(self):
+        parser = benchmark.build_parser()
+        with self.assertRaises(SystemExit):
+            parser.parse_args([
+                "run",
+                "--system-sample-interval", "0",
+            ])
+
+    def test_run_case_warns_when_sampler_thread_stays_alive(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sample_file = os.path.join(tmpdir, "sample.raw")
+            with open(sample_file, "w") as handle:
+                handle.write("content")
+            events_path = os.path.join(tmpdir, "events.jsonl")
+
+            def fake_process_files(files):
+                extra = {
+                    "source_filename": files[0],
+                    "source_type": ".raw",
+                    "input_extension": ".raw",
+                    "parser_name": "arXiv",
+                    "record_count": 1,
+                }
+                benchmark.perf_metrics.emit_event("ingest_enqueue", record_id=None, extra=extra)
+                benchmark.perf_metrics.emit_event("record_wall", record_id="rec-1", duration_ms=5.0, extra=extra)
+
+            class FakePipelineRun:
+                @staticmethod
+                def process_files(files):
+                    return fake_process_files(files)
+
+            class FakeSamplerThread:
+                def __init__(self, *args, **kwargs):
+                    self._alive = True
+
+                def start(self):
+                    return None
+
+                def join(self, timeout=None):
+                    return None
+
+                def is_alive(self):
+                    return self._alive
+
+            with patch.object(benchmark, "_pipeline_run_module", return_value=FakePipelineRun):
+                with patch.object(benchmark.threading, "Thread", return_value=FakeSamplerThread()):
+                    with patch.object(benchmark, "LOGGER") as mock_logger:
+                        summary = benchmark._run_case(
+                            input_path=tmpdir,
+                            extensions=["*.raw"],
+                            max_files=1,
+                            mode="mock",
+                            events_path=events_path,
+                            system_sample_interval_s=0.1,
+                            system_load_enabled=True,
+                            warmup=False,
+                            group_by="source_type",
+                        )
+
+            self.assertEqual(summary["status"], "complete")
+            mock_logger.warning.assert_called_once()
 
 
 if __name__ == "__main__":

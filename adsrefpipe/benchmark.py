@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import threading
 import time
@@ -23,6 +24,7 @@ import adsrefpipe.utils as utils
 
 
 DEFAULT_EXTENSIONS = "*.raw,*.xml,*.txt,*.html,*.tex,*.refs,*.pairs"
+LOGGER = logging.getLogger(__name__)
 
 
 def _pipeline_run_module():
@@ -35,15 +37,17 @@ def _utc_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
-def format_progress_line_from_log_line(line: str) -> Optional[str]:
-    """Return a compact benchmark progress line for one structured log line."""
-    return perf_metrics.format_benchmark_progress_line_from_log_line(line)
-
-
 def _parse_csv_list(value: str) -> List[str]:
     if not value:
         return []
     return [item.strip() for item in str(value).split(",") if item.strip()]
+
+
+def _sample_interval_arg(value: str) -> float:
+    parsed = float(value)
+    if parsed < 0.1:
+        raise argparse.ArgumentTypeError("--system-sample-interval must be >= 0.1 seconds")
+    return parsed
 
 
 def _safe_git_commit() -> Optional[str]:
@@ -202,7 +206,7 @@ def _run_case(
     system_load_enabled: bool,
     warmup: bool,
     group_by: str,
-) -> Dict[str, object]:
+) -> Dict[str, Any]:
     config = load_config(proj_home=os.path.realpath(os.path.join(os.path.dirname(__file__), "../")))
     all_files = collect_candidate_files(input_path, extensions)
     selected_files = all_files[:max_files] if max_files else all_files
@@ -238,6 +242,15 @@ def _run_case(
                 sampler_stop.set()
                 if sampler_thread is not None:
                     sampler_thread.join(timeout=max(0.1, system_sample_interval_s))
+                    if sampler_thread.is_alive():
+                        LOGGER.warning(
+                            "System load sampler thread did not terminate before aggregation",
+                            extra={
+                                "sample_interval_s": system_sample_interval_s,
+                                "run_id": run_id,
+                                "context_id": context_id,
+                            },
+                        )
                 system_samples.append(perf_metrics.collect_system_sample())
     end_wall = time.time()
 
@@ -286,7 +299,7 @@ def cmd_run(args) -> int:
         max_files=args.max_files,
         mode=args.mode,
         events_path=events_path,
-        system_sample_interval_s=float(args.system_sample_interval),
+        system_sample_interval_s=args.system_sample_interval,
         system_load_enabled=not bool(args.disable_system_load),
         warmup=bool(args.warmup),
         group_by=args.group_by,
@@ -320,11 +333,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--output-dir", default=None)
     run_parser.add_argument("--events-path", default=None)
     run_parser.add_argument("--timeout", type=int, default=900)
-    run_parser.add_argument("--system-sample-interval", type=float, default=1.0)
+    run_parser.add_argument("--system-sample-interval", type=_sample_interval_arg, default=1.0)
     run_parser.add_argument("--disable-system-load", action="store_true", default=False)
     run_parser.add_argument("--group-by", choices=["source_type", "parser", "none"], default="source_type")
-    run_parser.add_argument("--warmup", action="store_true", default=True)
     run_parser.add_argument("--no-warmup", dest="warmup", action="store_false")
+    run_parser.set_defaults(warmup=True)
     run_parser.set_defaults(func=cmd_run)
     return parser
 

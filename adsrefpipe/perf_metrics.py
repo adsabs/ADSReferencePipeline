@@ -7,14 +7,18 @@ instrumentation remains lightweight and safe to leave disabled by default.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import platform
 import re
-import subprocess
+import threading
 import time
 from contextlib import contextmanager
 from functools import wraps
 from typing import Any, Dict, Iterable, List, Optional
+
+LOGGER = logging.getLogger(__name__)
+_EVENT_WRITE_LOCK = threading.Lock()
 
 
 _PROGRESS_MESSAGE_RE = re.compile(
@@ -61,6 +65,25 @@ def _as_bool(value: Any) -> bool:
     if value is None:
         return False
     return str(value).strip().lower() in {"1", "true", "yes", "on", "active"}
+
+
+def _metrics_debug(message: str, **context: Any) -> None:
+    if context:
+        suffix = ", ".join("%s=%r" % (key, value) for key, value in sorted(context.items()))
+        LOGGER.debug("%s (%s)", message, suffix)
+        return
+    LOGGER.debug("%s", message)
+
+
+def _deep_get(data: Optional[Dict[str, Any]], *keys: str, default: Any = None) -> Any:
+    current: Any = data
+    for key in keys:
+        if not isinstance(current, dict):
+            return default
+        current = current.get(key)
+        if current is None:
+            return default
+    return current
 
 
 def metrics_enabled(config: Optional[dict] = None) -> bool:
@@ -268,7 +291,15 @@ def register_run_metrics_context(
                 os.makedirs(directory, exist_ok=True)
             with open(current_target, "w") as handle:
                 json.dump(payload, handle, sort_keys=True)
-    except Exception:
+    except Exception as exc:
+        _metrics_debug(
+            "Failed to register metrics context",
+            run_id=run_id,
+            context_id=context_id,
+            path=path,
+            context_dir=context_dir,
+            error=str(exc),
+        )
         return
 
 
@@ -290,8 +321,42 @@ def resolve_run_metrics_context(
             "path": payload.get("path"),
             "context_id": payload.get("context_id"),
         }
-    except Exception:
+    except Exception as exc:
+        _metrics_debug(
+            "Failed to resolve metrics context",
+            run_id=run_id,
+            context_id=context_id,
+            target=target,
+            error=str(exc),
+        )
         return {"enabled": None, "path": None, "context_id": None}
+
+
+def _append_jsonl_record(target_path: str, payload: Dict[str, Any]) -> None:
+    serialized_line = json.dumps(payload, sort_keys=True) + "\n"
+    with _EVENT_WRITE_LOCK:
+        with open(target_path, "a") as handle:
+            try:
+                import fcntl  # POSIX-only best effort.
+            except ImportError:
+                fcntl = None
+            if fcntl is not None:
+                try:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+                except OSError as exc:
+                    _metrics_debug(
+                        "Failed to acquire POSIX metrics file lock; continuing with in-process lock only",
+                        target_path=target_path,
+                        error=str(exc),
+                    )
+            try:
+                handle.write(serialized_line)
+            finally:
+                if fcntl is not None:
+                    try:
+                        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+                    except OSError:
+                        pass
 
 
 def emit_event(
@@ -338,10 +403,16 @@ def emit_event(
         if directory:
             os.makedirs(directory, exist_ok=True)
 
-        with open(target_path, "a") as handle:
-            handle.write(json.dumps(payload, sort_keys=True))
-            handle.write("\n")
-    except Exception:
+        _append_jsonl_record(target_path, payload)
+    except Exception as exc:
+        _metrics_debug(
+            "Failed to emit metrics event",
+            stage=stage,
+            run_id=run_id,
+            context_id=context_id,
+            path=path,
+            error=str(exc),
+        )
         return
 
 
@@ -447,20 +518,36 @@ def load_events(path: str, run_id: Optional[Any] = None, context_id: Optional[st
     run_id_str = str(run_id) if run_id is not None else None
     context_id_str = str(context_id) if context_id is not None else None
     output = []
-    with open(path, "r") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                payload = json.loads(line)
-            except Exception:
-                continue
-            if run_id_str is not None and str(payload.get("run_id")) != run_id_str:
-                continue
-            if context_id_str is not None and str(payload.get("context_id")) != context_id_str:
-                continue
-            output.append(payload)
+    try:
+        with open(path, "r") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    payload = json.loads(line)
+                except Exception as exc:
+                    _metrics_debug(
+                        "Failed to parse metrics event line",
+                        path=path,
+                        line_number=line_number,
+                        error=str(exc),
+                    )
+                    continue
+                if run_id_str is not None and payload.get("run_id") != run_id_str:
+                    continue
+                if context_id_str is not None and payload.get("context_id") != context_id_str:
+                    continue
+                output.append(payload)
+    except Exception as exc:
+        _metrics_debug(
+            "Failed to load metrics events",
+            path=path,
+            run_id=run_id_str,
+            context_id=context_id_str,
+            error=str(exc),
+        )
+        return []
     return output
 
 
@@ -529,12 +616,15 @@ def _read_linux_meminfo(path: str = "/proc/meminfo") -> Optional[Dict[str, float
             "memory_available_ratio": float(available_bytes) / float(total_bytes),
             "memory_probe": "linux_meminfo",
         }
-    except Exception:
+    except Exception as exc:
+        _metrics_debug("Failed to read Linux memory info", path=path, error=str(exc))
         return None
 
 
 def _read_macos_memory() -> Optional[Dict[str, float]]:
     try:
+        import subprocess
+
         total_proc = subprocess.run(
             ["sysctl", "-n", "hw.memsize"],
             capture_output=True,
@@ -569,7 +659,8 @@ def _read_macos_memory() -> Optional[Dict[str, float]]:
             "memory_available_ratio": float(available_bytes) / float(total_bytes) if total_bytes else None,
             "memory_probe": "macos_vm_stat",
         }
-    except Exception:
+    except Exception as exc:
+        _metrics_debug("Failed to read macOS memory info", error=str(exc))
         return None
 
 
@@ -607,7 +698,8 @@ def _host_load_snapshot() -> Dict[str, Optional[float]]:
     cpu_count = os.cpu_count()
     try:
         load1, load5, load15 = os.getloadavg()
-    except Exception:
+    except Exception as exc:
+        _metrics_debug("Failed to read host load average", error=str(exc))
         load1 = load5 = load15 = None
 
     def _normalize(value: Optional[float]) -> Optional[float]:
@@ -686,7 +778,7 @@ def aggregate_system_samples(samples: List[Dict[str, Any]], enabled: bool = True
 def apply_system_load_adjustment(summary: Dict[str, Any]) -> Dict[str, Any]:
     throughput = summary.setdefault("throughput", {})
     raw = throughput.get("overall_records_per_minute")
-    mean_load = ((((summary.get("system_load", {}) or {}).get("summary", {}) or {}).get("normalized_load_1m", {}) or {}).get("mean"))
+    mean_load = _deep_get(summary, "system_load", "summary", "normalized_load_1m", "mean")
     factor = max(1.0, float(mean_load)) if mean_load is not None else 1.0
     throughput["host_load_adjustment_factor"] = factor
     throughput["load_adjusted_records_per_minute"] = (float(raw) * factor) if raw is not None else None
@@ -898,6 +990,10 @@ def _fmt_bytes(value: Optional[float]) -> str:
         current /= 1024.0
 
 
+def _blank_if_none(value: Any) -> Any:
+    return "" if value is None else value
+
+
 def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
     counts = summary.get("counts", {}) or {}
     throughput = summary.get("throughput", {}) or {}
@@ -927,7 +1023,7 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
         "- **Records Processed**: `%s`" % counts.get("records_processed", 0),
         "- **Throughput**: `%s records/min`" % _fmt(throughput.get("overall_records_per_minute")),
         "- **Load-Adjusted Throughput**: `%s records/min`" % _fmt(throughput.get("load_adjusted_records_per_minute")),
-        "- **Wall Duration**: `%s s`" % _fmt((summary.get("duration_s", {}) or {}).get("wall_clock")),
+        "- **Wall Duration**: `%s s`" % _fmt(_deep_get(summary, "duration_s", "wall_clock")),
         "",
         "## Per-Record Metrics (ms)",
         "",
@@ -993,8 +1089,8 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
                     source_type=source_type,
                     files=stats.get("file_count", 0),
                     records=stats.get("record_count", 0),
-                    wall_p95=_fmt(((stats.get("wall_time_ms") or {}).get("p95"))),
-                    wall_mean=_fmt(((stats.get("wall_time_ms") or {}).get("mean"))),
+                    wall_p95=_fmt(_deep_get(stats, "wall_time_ms", "p95")),
+                    wall_mean=_fmt(_deep_get(stats, "wall_time_ms", "mean")),
                     throughput=_fmt(stats.get("throughput_records_per_minute")),
                 )
             )
@@ -1014,10 +1110,10 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
                     source_type=source_type,
                     files=stats.get("file_count", 0),
                     records=stats.get("record_count", 0),
-                    wall=_fmt(((stats.get("wall_time_ms") or {}).get("mean"))),
-                    parse=_fmt(((stats.get("parse_stage_ms") or {}).get("mean"))),
-                    resolver=_fmt(((stats.get("resolver_stage_ms") or {}).get("mean"))),
-                    db=_fmt(((stats.get("db_stage_ms") or {}).get("mean"))),
+                    wall=_fmt(_deep_get(stats, "wall_time_ms", "mean")),
+                    parse=_fmt(_deep_get(stats, "parse_stage_ms", "mean")),
+                    resolver=_fmt(_deep_get(stats, "resolver_stage_ms", "mean")),
+                    db=_fmt(_deep_get(stats, "db_stage_ms", "mean")),
                     throughput=_fmt(stats.get("throughput_records_per_minute")),
                 )
             )
@@ -1039,7 +1135,7 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
                     parser_name=parser_name,
                     files=stats.get("file_count", 0),
                     records=stats.get("record_count", 0),
-                    wall=_fmt(((stats.get("wall_time_ms") or {}).get("mean"))),
+                    wall=_fmt(_deep_get(stats, "wall_time_ms", "mean")),
                 )
             )
 
@@ -1063,8 +1159,8 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
                     raw_subfamily=raw_subfamily,
                     files=stats.get("file_count", 0),
                     records=stats.get("record_count", 0),
-                    wall_mean=_fmt(((stats.get("wall_time_ms") or {}).get("mean"))),
-                    wall_p95=_fmt(((stats.get("wall_time_ms") or {}).get("p95"))),
+                    wall_mean=_fmt(_deep_get(stats, "wall_time_ms", "mean")),
+                    wall_p95=_fmt(_deep_get(stats, "wall_time_ms", "p95")),
                     throughput=_fmt(stats.get("throughput_records_per_minute")),
                 )
             )
@@ -1072,21 +1168,21 @@ def render_markdown(summary: Dict[str, Any], output_path: str) -> None:
     if system_load:
         collection = system_load.get("collection", {}) or {}
         load_summary = system_load.get("summary", {}) or {}
-        mean_load_1m = ((load_summary.get("loadavg_1m") or {}).get("mean"))
-        mean_load_5m = ((load_summary.get("loadavg_5m") or {}).get("mean"))
-        mean_load_15m = ((load_summary.get("loadavg_15m") or {}).get("mean"))
-        max_load_1m = ((load_summary.get("loadavg_1m") or {}).get("max"))
-        mean_norm_1m = ((load_summary.get("normalized_load_1m") or {}).get("mean"))
-        max_norm_1m = ((load_summary.get("normalized_load_1m") or {}).get("max"))
-        mean_mem_total = ((load_summary.get("memory_total_bytes") or {}).get("mean"))
-        mean_mem_available = ((load_summary.get("memory_available_bytes") or {}).get("mean"))
-        min_mem_available = ((load_summary.get("memory_available_bytes") or {}).get("min"))
-        mean_mem_used = ((load_summary.get("memory_used_bytes") or {}).get("mean"))
-        max_mem_used = ((load_summary.get("memory_used_bytes") or {}).get("max"))
-        mean_mem_available_ratio = ((load_summary.get("memory_available_ratio") or {}).get("mean"))
-        min_mem_available_ratio = ((load_summary.get("memory_available_ratio") or {}).get("min"))
-        mean_mem_used_ratio = ((load_summary.get("memory_used_ratio") or {}).get("mean"))
-        max_mem_used_ratio = ((load_summary.get("memory_used_ratio") or {}).get("max"))
+        mean_load_1m = _deep_get(load_summary, "loadavg_1m", "mean")
+        mean_load_5m = _deep_get(load_summary, "loadavg_5m", "mean")
+        mean_load_15m = _deep_get(load_summary, "loadavg_15m", "mean")
+        max_load_1m = _deep_get(load_summary, "loadavg_1m", "max")
+        mean_norm_1m = _deep_get(load_summary, "normalized_load_1m", "mean")
+        max_norm_1m = _deep_get(load_summary, "normalized_load_1m", "max")
+        mean_mem_total = _deep_get(load_summary, "memory_total_bytes", "mean")
+        mean_mem_available = _deep_get(load_summary, "memory_available_bytes", "mean")
+        min_mem_available = _deep_get(load_summary, "memory_available_bytes", "min")
+        mean_mem_used = _deep_get(load_summary, "memory_used_bytes", "mean")
+        max_mem_used = _deep_get(load_summary, "memory_used_bytes", "max")
+        mean_mem_available_ratio = _deep_get(load_summary, "memory_available_ratio", "mean")
+        min_mem_available_ratio = _deep_get(load_summary, "memory_available_ratio", "min")
+        mean_mem_used_ratio = _deep_get(load_summary, "memory_used_ratio", "mean")
+        max_mem_used_ratio = _deep_get(load_summary, "memory_used_ratio", "max")
         lines.extend([
             "",
             "## System Load",
@@ -1165,12 +1261,12 @@ def write_source_type_csv(summary: Dict[str, Any], output_path: str) -> None:
             "source_type": source_type,
             "file_count": stats.get("file_count", 0),
             "record_count": stats.get("record_count", 0),
-            "wall_mean_ms": ((stats.get("wall_time_ms") or {}).get("mean")),
-            "wall_p95_ms": ((stats.get("wall_time_ms") or {}).get("p95")),
-            "parse_mean_ms": ((stats.get("parse_stage_ms") or {}).get("mean")),
-            "resolver_mean_ms": ((stats.get("resolver_stage_ms") or {}).get("mean")),
-            "db_mean_ms": ((stats.get("db_stage_ms") or {}).get("mean")),
-            "throughput_records_per_minute": stats.get("throughput_records_per_minute"),
+            "wall_mean_ms": _blank_if_none(_deep_get(stats, "wall_time_ms", "mean")),
+            "wall_p95_ms": _blank_if_none(_deep_get(stats, "wall_time_ms", "p95")),
+            "parse_mean_ms": _blank_if_none(_deep_get(stats, "parse_stage_ms", "mean")),
+            "resolver_mean_ms": _blank_if_none(_deep_get(stats, "resolver_stage_ms", "mean")),
+            "db_mean_ms": _blank_if_none(_deep_get(stats, "db_stage_ms", "mean")),
+            "throughput_records_per_minute": _blank_if_none(stats.get("throughput_records_per_minute")),
         })
 
     fieldnames = [

@@ -324,7 +324,7 @@ if [[ -n "${PROGRESS_PID}" ]]; then
   rm -f "${PROGRESS_STOP_PATH}"
 fi
 
-python3 - "${RESULT_PATH_HOST}" "${CONTAINER_STDOUT_PATH}" "${MANIFEST_PATH}" "${SUMMARY_PATH}" "${HOST_CONTEXT_PATH}" "${TARGET_CONTAINER}" "${APP_HOST_DIR}" "${LOGS_HOST_DIR}" "${CONTAINER_EXIT_CODE}" <<'PY'
+if ! python3 - "${RESULT_PATH_HOST}" "${CONTAINER_STDOUT_PATH}" "${MANIFEST_PATH}" "${SUMMARY_PATH}" "${HOST_CONTEXT_PATH}" "${TARGET_CONTAINER}" "${APP_HOST_DIR}" "${LOGS_HOST_DIR}" "${CONTAINER_EXIT_CODE}" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
@@ -399,6 +399,9 @@ lines = [
 ]
 summary_path.write_text("\n".join(lines) + "\n")
 PY
+then
+  exit 1
+fi
 
 log "Attached benchmark manifest: ${MANIFEST_PATH}"
 log "Attached benchmark summary: ${SUMMARY_PATH}"
