@@ -48,7 +48,7 @@ The `Top-Line Results` section summarizes the overall run.
 
 Important fields:
 
-- `Status`: `complete` means the benchmark completed its expected processing path. `incomplete` or `failed` means the run should be inspected before comparing performance.
+- `Status`: `complete` means the benchmark completed its expected processing path. `incomplete` means the run should be inspected before comparing performance.
 - `Files Processed`: Number of source files that emitted timing events.
 - `Records Processed`: Number of reference records observed in the per-record timing events.
 - `Throughput`: Overall processed records per minute, based on wall-clock benchmark duration.

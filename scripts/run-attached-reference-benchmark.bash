@@ -3,13 +3,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR_REL="Reference/logs/benchmarks/attached_reference_benchmark_runs"
-INPUT_PATH="/app/adsrefpipe/tests/unittests/stubdata"
+CONTAINER_APP_ROOT="${CONTAINER_APP_ROOT:-/app}"
+INPUT_PATH="${INPUT_PATH:-${CONTAINER_APP_ROOT}/adsrefpipe/tests/unittests/stubdata}"
 EXTENSIONS="*.raw,*.xml,*.txt,*.html,*.tex,*.refs,*.pairs"
 MODE="mock"
 MAX_FILES=""
 TIMEOUT="900"
 READINESS_TIMEOUT="180"
-RUNNER_PATH="/app/scripts/run-in-container-benchmark.bash"
+RUNNER_PATH="${RUNNER_PATH:-${CONTAINER_APP_ROOT}/scripts/run-in-container-benchmark.bash}"
 TARGET_CONTAINER="reference_pipeline"
 SYSTEM_SAMPLE_INTERVAL="1.0"
 GROUP_BY="source_type"
@@ -229,11 +230,11 @@ PY
 }
 
 resolve_app_mount() {
-  docker inspect --format '{{range .Mounts}}{{if eq .Destination "/app"}}{{println .Source}}{{end}}{{end}}' "${TARGET_CONTAINER}" 2>/dev/null | awk 'NF {print; exit}'
+  docker inspect --format '{{range .Mounts}}{{if eq .Destination "'"${CONTAINER_APP_ROOT}"'"}}{{println .Source}}{{end}}{{end}}' "${TARGET_CONTAINER}" 2>/dev/null | awk 'NF {print; exit}'
 }
 
 APP_HOST_DIR="$(resolve_app_mount || true)"
-CONTAINER_OUTPUT_DIR="/app/logs/benchmarks/attached_reference_benchmark_runs"
+CONTAINER_OUTPUT_DIR="${BENCHMARK_OUTPUT_DIR:-${CONTAINER_APP_ROOT}/logs/benchmarks/attached_reference_benchmark_runs}"
 CONTAINER_LABEL="attached_${RUN_STAMP}"
 LOGS_HOST_DIR="${SCRIPT_DIR}/Reference/logs"
 
@@ -324,7 +325,7 @@ if [[ -n "${PROGRESS_PID}" ]]; then
   rm -f "${PROGRESS_STOP_PATH}"
 fi
 
-if ! python3 - "${RESULT_PATH_HOST}" "${CONTAINER_STDOUT_PATH}" "${MANIFEST_PATH}" "${SUMMARY_PATH}" "${HOST_CONTEXT_PATH}" "${TARGET_CONTAINER}" "${APP_HOST_DIR}" "${LOGS_HOST_DIR}" "${CONTAINER_EXIT_CODE}" <<'PY'
+if ! python3 - "${RESULT_PATH_HOST}" "${CONTAINER_STDOUT_PATH}" "${MANIFEST_PATH}" "${SUMMARY_PATH}" "${HOST_CONTEXT_PATH}" "${TARGET_CONTAINER}" "${APP_HOST_DIR}" "${LOGS_HOST_DIR}" "${CONTAINER_EXIT_CODE}" "${CONTAINER_APP_ROOT}" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
@@ -339,6 +340,7 @@ target_container = sys.argv[6]
 app_host_dir = sys.argv[7]
 logs_host_dir = sys.argv[8]
 container_exit_code = int(sys.argv[9])
+container_app_root = sys.argv[10]
 
 result = None
 if result_path.exists():
@@ -365,10 +367,12 @@ payload = {
 if result and app_host_dir:
     for key in ["artifact_json", "artifact_markdown", "artifact_source_type_csv", "stdout_log", "run_dir"]:
         value = result.get(key)
-        if isinstance(value, str) and value.startswith("/app/logs/"):
-            result[f"{key}_host"] = str(Path(logs_host_dir) / value[len('/app/logs/'):])
-        elif isinstance(value, str) and value.startswith("/app/"):
-            result[f"{key}_host"] = str(Path(app_host_dir) / value[len('/app/'):])
+        container_logs_prefix = f"{container_app_root}/logs/"
+        container_app_prefix = f"{container_app_root}/"
+        if isinstance(value, str) and value.startswith(container_logs_prefix):
+            result[f"{key}_host"] = str(Path(logs_host_dir) / value[len(container_logs_prefix):])
+        elif isinstance(value, str) and value.startswith(container_app_prefix):
+            result[f"{key}_host"] = str(Path(app_host_dir) / value[len(container_app_prefix):])
 
 manifest_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 

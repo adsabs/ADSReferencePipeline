@@ -200,6 +200,40 @@ class TestPerfMetrics(unittest.TestCase):
             self.assertEqual(len(payloads), 1)
             self.assertIn("Failed to parse metrics event line", "\n".join(logs.output))
 
+    def test_load_events_missing_file_returns_empty_list(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            missing_path = os.path.join(tmpdir, "missing.jsonl")
+            payloads = perf_metrics.load_events(missing_path, run_id="run-1", context_id="ctx-1")
+            self.assertEqual(payloads, [])
+
+    def test_emit_event_file_permission_failure_logs_and_does_not_raise(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            events_path = os.path.join(tmpdir, "events.jsonl")
+            context_dir = os.path.join(tmpdir, "context")
+            config = {
+                "PERF_METRICS_ENABLED": False,
+                "PERF_METRICS_CONTEXT_DIR": context_dir,
+            }
+            perf_metrics.register_run_metrics_context(
+                run_id="run-permission-fail",
+                enabled=True,
+                path=events_path,
+                context_id="ctx-permission-fail",
+                config=config,
+                context_dir=context_dir,
+            )
+            with self.assertLogs("adsrefpipe.perf_metrics", level="DEBUG") as logs:
+                with patch("adsrefpipe.perf_metrics._append_jsonl_record", side_effect=PermissionError("denied")):
+                    perf_metrics.emit_event(
+                        stage="record_wall",
+                        run_id="run-permission-fail",
+                        context_id="ctx-permission-fail",
+                        record_id="rec-1",
+                        duration_ms=1.0,
+                        config=config,
+                    )
+            self.assertIn("Failed to emit metrics event", "\n".join(logs.output))
+
     def test_aggregate_ads_events_groups_by_source_type(self):
         events = [
             {

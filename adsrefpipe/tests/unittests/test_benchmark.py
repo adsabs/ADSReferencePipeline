@@ -157,6 +157,63 @@ class TestBenchmark(unittest.TestCase):
             self.assertTrue(any(name.endswith(".json") for name in os.listdir(tmpdir)))
             self.assertTrue(any(name.endswith(".source_types.csv") for name in os.listdir(tmpdir)))
 
+    def test_cmd_run_with_fake_pipeline_generates_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = os.path.join(tmpdir, "input")
+            os.makedirs(input_path)
+            sample_path = os.path.join(input_path, "sample.raw")
+            with open(sample_path, "w") as handle:
+                handle.write("content")
+            events_path = os.path.join(tmpdir, "events.jsonl")
+
+            class FakePipelineRun:
+                @staticmethod
+                def process_files(files):
+                    for index, filename in enumerate(files, start=1):
+                        extra = {
+                            "source_filename": filename,
+                            "source_type": ".raw",
+                            "input_extension": ".raw",
+                            "parser_name": "arXiv",
+                            "record_count": 1,
+                        }
+                        benchmark.perf_metrics.emit_event("ingest_enqueue", record_id=None, extra=extra)
+                        benchmark.perf_metrics.emit_event("parse_dispatch", record_id=None, duration_ms=5.0, extra=extra)
+                        benchmark.perf_metrics.emit_event("resolver_http", record_id="rec-%s" % index, duration_ms=4.0, extra=extra)
+                        benchmark.perf_metrics.emit_event("post_resolved_db", record_id="rec-%s" % index, duration_ms=3.0, extra=extra)
+                        benchmark.perf_metrics.emit_event("record_wall", record_id="rec-%s" % index, duration_ms=12.0, extra=extra)
+                        benchmark.perf_metrics.emit_event("file_wall", record_id=None, duration_ms=12.0, extra=extra)
+
+            args = benchmark.build_parser().parse_args([
+                "run",
+                "--input-path", input_path,
+                "--output-dir", tmpdir,
+                "--events-path", events_path,
+                "--no-warmup",
+                "--disable-system-load",
+            ])
+
+            with patch.object(benchmark, "_pipeline_run_module", return_value=FakePipelineRun):
+                with patch.object(benchmark, "_safe_git_commit", return_value="deadbeef"):
+                    with patch("sys.stdout.write") as mock_write:
+                        rc = benchmark.cmd_run(args)
+
+            self.assertEqual(rc, 0)
+            rendered = "".join(call.args[0] for call in mock_write.call_args_list)
+            self.assertIn('"status": "complete"', rendered)
+            created_files = os.listdir(tmpdir)
+            json_artifacts = [name for name in created_files if name.endswith(".json")]
+            markdown_artifacts = [name for name in created_files if name.endswith(".md")]
+            csv_artifacts = [name for name in created_files if name.endswith(".source_types.csv")]
+            self.assertTrue(json_artifacts)
+            self.assertTrue(markdown_artifacts)
+            self.assertTrue(csv_artifacts)
+            benchmark_json = os.path.join(tmpdir, sorted(json_artifacts)[0])
+            with open(benchmark_json, "r") as handle:
+                summary = json.load(handle)
+            self.assertEqual(summary["status"], "complete")
+            self.assertIn(".raw", summary["source_type_breakdown"])
+
     def test_build_parser_rejects_invalid_sample_interval(self):
         parser = benchmark.build_parser()
         with self.assertRaises(SystemExit):

@@ -3,15 +3,17 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+DEFAULT_APP_ROOT="${APP_DIR:-/app}"
+APP_ROOT="${CONTAINER_APP_ROOT:-${DEFAULT_APP_ROOT}}"
 export PYTHONPATH="${APP_DIR}:${PYTHONPATH:-}"
 
-INPUT_PATH="/app/adsrefpipe/tests/unittests/stubdata"
+INPUT_PATH="${BENCHMARK_INPUT_PATH:-${APP_ROOT}/adsrefpipe/tests/unittests/stubdata}"
 EXTENSIONS="*.raw,*.xml,*.txt,*.html,*.tex,*.refs,*.pairs"
 MODE="mock"
 MAX_FILES=""
 TIMEOUT="900"
-OUTPUT_DIR="/app/logs/benchmarks/container_benchmark_runs"
-EVENTS_PATH="/app/logs/benchmarks/perf_events.jsonl"
+OUTPUT_DIR="${BENCHMARK_OUTPUT_DIR:-${APP_ROOT}/logs/benchmarks/container_benchmark_runs}"
+EVENTS_PATH="${BENCHMARK_EVENTS_PATH:-${APP_ROOT}/logs/benchmarks/perf_events.jsonl}"
 LABEL=""
 RUN_STAMP=""
 SYSTEM_SAMPLE_INTERVAL="1.0"
@@ -22,7 +24,7 @@ PROGRESS="true"
 
 usage() {
   cat <<'EOF'
-Usage: /app/scripts/run-in-container-benchmark.bash [options]
+Usage: ${CONTAINER_APP_ROOT:-/app}/scripts/run-in-container-benchmark.bash [options]
 
 Options:
   --input-path PATH                  File or directory inside the container
