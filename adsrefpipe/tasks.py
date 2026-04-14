@@ -36,7 +36,15 @@ def task_process_reference(reference_task: dict) -> bool:
     :param reference_task: dictionary containing reference details and service url
     :return: True if processing is successful, False otherwise
     """
-    reference = reference_task.get('reference', {}) or {}
+    reference_payload = reference_task.get('reference', {}) or {}
+    # Older tests and some call sites provide a single-item reference list,
+    # while the task instrumentation only needs one dict for metadata lookup.
+    if isinstance(reference_payload, dict):
+        reference_record = reference_payload
+    elif isinstance(reference_payload, list) and reference_payload and isinstance(reference_payload[0], dict):
+        reference_record = reference_payload[0]
+    else:
+        reference_record = {}
     event_extra = perf_metrics.build_event_extra(
         source_filename=reference_task.get('source_filename'),
         parser_name=reference_task.get('parser_name'),
@@ -45,7 +53,7 @@ def task_process_reference(reference_task: dict) -> bool:
         source_type=reference_task.get('source_type'),
         record_count=1,
     )
-    record_id = reference.get('id')
+    record_id = reference_record.get('id')
     try:
         with perf_metrics.timed_stage(
             stage='record_wall',
@@ -57,7 +65,7 @@ def task_process_reference(reference_task: dict) -> bool:
                 record_id=record_id,
                 extra=event_extra,
             ):
-                resolved = utils.post_request_resolved_reference(reference_task['reference'], reference_task['resolver_service_url'])
+                resolved = utils.post_request_resolved_reference(reference_payload, reference_task['resolver_service_url'])
             # if failed to connect to reference service, raise a exception to requeue, for max_retries times
             if not resolved:
                 raise FailedRequest
