@@ -10,6 +10,7 @@ from adsputils import ADSCelery
 from datetime import datetime, timedelta
 from typing import List, Dict
 
+from adsrefpipe import perf_metrics
 from adsrefpipe.models import Action, Parser, ReferenceSource, ProcessedHistory, ResolvedReference, CompareClassic
 from adsrefpipe.utils import get_date_created, get_date_modified, get_date_now, get_resolved_filename, \
     compare_classic_and_service, ReprocessQueryType
@@ -116,40 +117,45 @@ class ADSReferencePipelineCelery(ADSCelery):
         :param source_filename: filename of the source reference
         :return: parser details as a dictionary
         """
-        if not self.default_parsers:
-            self.init_default_parsers()
+        event_extra = perf_metrics.build_event_extra(source_filename=source_filename)
+        with perf_metrics.timed_profile(
+            category='app_timing',
+            name='get_parser',
+            extra=event_extra,
+        ):
+            if not self.default_parsers:
+                self.init_default_parsers()
 
-        journal, volume, basefile = source_filename.split('/')[-3:]
-        if journal and volume and basefile:
-            match = self.RE_MATCH_EXT.search(basefile)
-            if match:
-                # with multiple extensions
-                extension = match.group(1)
-            else:
-                # with single extension
-                extension = ".%s"%basefile.rsplit('.', 1)[-1]
+            journal, volume, basefile = source_filename.split('/')[-3:]
+            if journal and volume and basefile:
+                match = self.RE_MATCH_EXT.search(basefile)
+                if match:
+                    # with multiple extensions
+                    extension = match.group(1)
+                else:
+                    # with single extension
+                    extension = ".%s"%basefile.rsplit('.', 1)[-1]
 
-            # if one of the default ones
-            if self.default_parsers.get(extension, None):
-                return self.default_parsers[extension]
+                # if one of the default ones
+                if self.default_parsers.get(extension, None):
+                    return self.default_parsers[extension]
 
-            with self.session_scope() as session:
-                # start_time = time.time()
-                rows = session.query(Parser).filter(and_(Parser.extension_pattern == extension,
-                                                         Parser.matches.contains([{"journal": journal}]))).all()
-                # if no records, try with single extension, if possible
-                if not rows and extension.count('.') >= 2:
-                    rows = session.query(Parser).filter(and_(Parser.extension_pattern == extension[extension.rfind('.'):],
+                with self.session_scope() as session:
+                    rows = session.query(Parser).filter(and_(Parser.extension_pattern == extension,
                                                              Parser.matches.contains([{"journal": journal}]))).all()
-                if len(rows) == 1:
-                    return rows[0].toJSON()
-                if len(rows) > 1:
-                    match = self.match_parser(rows, journal, volume)
-                    if match:
-                        return match
-        else:
-            self.logger.error("Unrecognizable source file %s."%source_filename)
-        return {}
+                    # if no records, try with single extension, if possible
+                    if not rows and extension.count('.') >= 2:
+                        rows = session.query(Parser).filter(and_(Parser.extension_pattern == extension[extension.rfind('.'):],
+                                                                 Parser.matches.contains([{"journal": journal}]))).all()
+                    if len(rows) == 1:
+                        return rows[0].toJSON()
+                    if len(rows) > 1:
+                        match = self.match_parser(rows, journal, volume)
+                        if match:
+                            return match
+            else:
+                self.logger.error("Unrecognizable source file %s."%source_filename)
+            return {}
 
     def get_reference_service_endpoint(self, parsername: str) -> str:
         """
@@ -496,30 +502,41 @@ class ADSReferencePipelineCelery(ADSCelery):
         :param references: List of references
         :return: List of processed references
         """
-        with self.session_scope() as session:
-            try:
-                reference_record = ReferenceSource(bibcode=source_bibcode,
-                                             source_filename=source_filename,
-                                             resolved_filename=get_resolved_filename(source_filename),
-                                             parser_name=parsername)
-                bibcode, filename = self.insert_reference_source_record(session, reference_record)
-                if bibcode and filename:
-                    history_record = ProcessedHistory(bibcode=bibcode,
-                                             source_filename=source_filename,
-                                             source_modified=get_date_modified(source_filename),
-                                             status=Action().get_status_new(),
-                                             date=get_date_now(),
-                                             total_ref=len(references))
-                    history_id = self.insert_history_record(session, history_record)
-                    resolved_records, references = self.populate_resolved_reference_records_pre_resolved(references, history_id)
-                    self.insert_resolved_reference_records(session, resolved_records)
-                    session.commit()
-                    self.logger.info("Source file %s for bibcode %s with %d references, processed successfully." % (source_filename, source_bibcode, len(references)))
-                    return references
-            except SQLAlchemyError as e:
-                session.rollback()
-                self.logger.error("Source file %s information failed to get added to database. Error: %s" % (source_filename, str(e)))
-                return []
+        event_extra = perf_metrics.build_event_extra(
+            source_filename=source_filename,
+            parser_name=parsername,
+            source_bibcode=source_bibcode,
+            record_count=len(references),
+        )
+        with perf_metrics.timed_profile(
+            category='app_timing',
+            name='populate_tables_pre_resolved_initial_status',
+            extra=event_extra,
+        ):
+            with self.session_scope() as session:
+                try:
+                    reference_record = ReferenceSource(bibcode=source_bibcode,
+                                                 source_filename=source_filename,
+                                                 resolved_filename=get_resolved_filename(source_filename),
+                                                 parser_name=parsername)
+                    bibcode, filename = self.insert_reference_source_record(session, reference_record)
+                    if bibcode and filename:
+                        history_record = ProcessedHistory(bibcode=bibcode,
+                                                 source_filename=source_filename,
+                                                 source_modified=get_date_modified(source_filename),
+                                                 status=Action().get_status_new(),
+                                                 date=get_date_now(),
+                                                 total_ref=len(references))
+                        history_id = self.insert_history_record(session, history_record)
+                        resolved_records, references = self.populate_resolved_reference_records_pre_resolved(references, history_id)
+                        self.insert_resolved_reference_records(session, resolved_records)
+                        session.commit()
+                        self.logger.info("Source file %s for bibcode %s with %d references, processed successfully." % (source_filename, source_bibcode, len(references)))
+                        return references
+                except SQLAlchemyError as e:
+                    session.rollback()
+                    self.logger.error("Source file %s information failed to get added to database. Error: %s" % (source_filename, str(e)))
+                    return []
 
     def populate_tables_pre_resolved_retry_status(self, source_bibcode: str, source_filename: str, source_modified: str, retry_records: List[Dict]) -> List[Dict]:
         """
@@ -531,24 +548,34 @@ class ADSReferencePipelineCelery(ADSCelery):
         :param retry_records: List of references to be reprocessed
         :return: List of processed references
         """
-        with self.session_scope() as session:
-            try:
-                history_record = ProcessedHistory(bibcode=source_bibcode,
-                                         source_filename=source_filename,
-                                         source_modified=source_modified,
-                                         status=Action().get_status_retry(),
-                                         date=get_date_now(),
-                                         total_ref=len(retry_records))
-                history_id = self.insert_history_record(session, history_record)
-                resolved_records, references = self.populate_resolved_reference_records_pre_resolved(retry_records, history_id)
-                self.insert_resolved_reference_records(session, resolved_records)
-                session.commit()
-                self.logger.info("Source file %s for bibcode %s with %d references, for reprocessing added successfully." % (source_filename, source_bibcode, len(references)))
-                return references
-            except SQLAlchemyError as e:
-                session.rollback()
-                self.logger.error("Source file %s information for reprocessing failed to get added to database. Error: %s" % (source_filename, str(e)))
-                return []
+        event_extra = perf_metrics.build_event_extra(
+            source_filename=source_filename,
+            source_bibcode=source_bibcode,
+            record_count=len(retry_records),
+        )
+        with perf_metrics.timed_profile(
+            category='app_timing',
+            name='populate_tables_pre_resolved_retry_status',
+            extra=event_extra,
+        ):
+            with self.session_scope() as session:
+                try:
+                    history_record = ProcessedHistory(bibcode=source_bibcode,
+                                             source_filename=source_filename,
+                                             source_modified=source_modified,
+                                             status=Action().get_status_retry(),
+                                             date=get_date_now(),
+                                             total_ref=len(retry_records))
+                    history_id = self.insert_history_record(session, history_record)
+                    resolved_records, references = self.populate_resolved_reference_records_pre_resolved(retry_records, history_id)
+                    self.insert_resolved_reference_records(session, resolved_records)
+                    session.commit()
+                    self.logger.info("Source file %s for bibcode %s with %d references, for reprocessing added successfully." % (source_filename, source_bibcode, len(references)))
+                    return references
+                except SQLAlchemyError as e:
+                    session.rollback()
+                    self.logger.error("Source file %s information for reprocessing failed to get added to database. Error: %s" % (source_filename, str(e)))
+                    return []
 
     def populate_tables_post_resolved(self, resolved_reference: List, source_bibcode: str, classic_resolved_filename: str) -> bool:
         """
@@ -559,15 +586,25 @@ class ADSReferencePipelineCelery(ADSCelery):
         :param classic_resolved_filename: filename of classic resolved references
         :return: True if successful
         """
-        with self.session_scope() as session:
-            try:
-                # if the filename for classic resolver output is supplied, read the resolved information
-                # make sure that the length matches resolved, classic does some breaking a reference into two
-                # and hence messes up the order if we want to compare one-to-one, if that is the case, just
-                # ignore the result
-                resolved_classic = None
-                if classic_resolved_filename:
-                    resolved_classic = compare_classic_and_service(resolved_reference, source_bibcode, classic_resolved_filename)
+        event_extra = perf_metrics.build_event_extra(
+            source_bibcode=source_bibcode,
+            record_count=len(resolved_reference),
+            source_filename=classic_resolved_filename,
+        )
+        with perf_metrics.timed_profile(
+            category='app_timing',
+            name='populate_tables_post_resolved',
+            extra=event_extra,
+        ):
+            with self.session_scope() as session:
+                try:
+                    # if the filename for classic resolver output is supplied, read the resolved information
+                    # make sure that the length matches resolved, classic does some breaking a reference into two
+                    # and hence messes up the order if we want to compare one-to-one, if that is the case, just
+                    # ignore the result
+                    resolved_classic = None
+                    if classic_resolved_filename:
+                        resolved_classic = compare_classic_and_service(resolved_reference, source_bibcode, classic_resolved_filename)
 
                     resolved_records = []
                     compare_records = []
@@ -594,18 +631,16 @@ class ADSReferencePipelineCelery(ADSCelery):
                                                      score=int(resolved_classic[i][2]),
                                                      state=resolved_classic[i][3])
                             compare_records.append(compare_record)
+                    self.update_resolved_reference_records(session, resolved_records)
                     if resolved_classic:
-                        self.update_resolved_reference_records(session, resolved_records)
                         self.insert_compare_records(session, compare_records)
-                    else:
-                        self.update_resolved_reference_records(session, resolved_records)
                     session.commit()
                     self.logger.info("Updated %d resolved reference records successfully." % len(resolved_reference))
                     return True
-            except SQLAlchemyError as e:
-                session.rollback()
-                self.logger.error("Failed to update %d resolved reference records successfully. Error %s" % (len(resolved_reference), str(e)))
-                return False
+                except SQLAlchemyError as e:
+                    session.rollback()
+                    self.logger.error("Failed to update %d resolved reference records successfully. Error %s" % (len(resolved_reference), str(e)))
+                    return False
 
     def get_count_reference_source_records(self, session: object) -> int:
         """
