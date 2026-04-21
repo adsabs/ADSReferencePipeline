@@ -244,8 +244,10 @@ class UnicodeHandler(UserDict):
             elif entno < 255:
                 return self.u2asc(chr(entno))
         except IndexError:
-            logger.error(UnicodeHandlerError('Unknown hexadecimal entity: %s' % match.group(0)))
-            return ""
+            try:
+                return unicodedata.normalize('NFKD', chr(entno))
+            except (OverflowError, ValueError):
+                raise UnicodeHandlerError('Unknown hexadecimal entity: %s' % match.group(0))
 
     def __sub_hexnum_toent(self, match: re.Match) -> str:
         """

@@ -304,11 +304,20 @@ class TestUnicodeHandler(unittest.TestCase):
         handler.unicode = MagicMock()
         handler.unicode.__getitem__.side_effect = IndexError
 
-        # large invalid hex value to trigger returning and empty string ""
-        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x99999;")
+        # supplementary-plane hex value should normalize instead of being dropped
+        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x1D463;")
         if match:
-            result = handler._UnicodeHandler__sub_hexnumasc_entity(match)
-            self.assertEqual(result, "")
+            with patch("unicodedata.normalize", return_value="v") as mock_normalize:
+                result = handler._UnicodeHandler__sub_hexnumasc_entity(match)
+                self.assertEqual(result, "v")
+                mock_normalize.assert_called_once_with("NFKD", "𝑣")
+
+        # oversized hex value should still raise UnicodeHandlerError
+        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x110000;")
+        if match:
+            with self.assertRaises(UnicodeHandlerError) as context:
+                handler._UnicodeHandler__sub_hexnumasc_entity(match)
+            self.assertEqual(str(context.exception), "Unknown hexadecimal entity: &#x110000;")
 
     def test_sub_hexnum_toent(self):
         """ test __sub_hexnum_toent method """
