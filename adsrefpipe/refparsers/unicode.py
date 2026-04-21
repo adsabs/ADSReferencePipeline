@@ -228,7 +228,8 @@ class UnicodeHandler(UserDict):
             try:
                 return unicodedata.normalize('NFKD', chr(entno))
             except OverflowError:
-                raise UnicodeHandlerError('Unknown numeric entity: %s' % match.group(0))
+                logger.error(UnicodeHandlerError('Unknown numeric entity: %s, replacing by WHITE SQUARE' % match.group(0)))
+                return self.unicode[9633].ascii
 
     def __sub_hexnumasc_entity(self, match: re.Match) -> str:
         """
@@ -247,7 +248,7 @@ class UnicodeHandler(UserDict):
             try:
                 return unicodedata.normalize('NFKD', chr(entno))
             except (OverflowError, ValueError):
-                raise UnicodeHandlerError('Unknown hexadecimal entity: %s' % match.group(0))
+                logger.error(UnicodeHandlerError('Unknown hexadecimal entity: %s, replacing by WHITE SQUARE' % match.group(0)))
 
     def __sub_hexnum_toent(self, match: re.Match) -> str:
         """
@@ -264,7 +265,7 @@ class UnicodeHandler(UserDict):
         if self.unicode[entno]:
             return '&%s;' % self.unicode[entno].entity
         else:
-            raise UnicodeHandlerError('Unknown hexadecimal entity: %s' % entno)
+            logger.error(UnicodeHandlerError('Unknown hexadecimal entity: %s, replacing by WHITE SQUARE' % entno))
 
     def __sub_asc_entity(self, match: re.Match) -> str:
         """
