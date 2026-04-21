@@ -26,6 +26,8 @@ from adsrefpipe.refparsers.AIPxml import AIPtoREFs
 from adsrefpipe.refparsers.WileyXML import WILEYtoREFs
 from adsrefpipe.refparsers.NLM3xml import NLMtoREFs
 from adsrefpipe.refparsers.AGUxml import AGUtoREFs, AGUreference
+from adsrefpipe.refparsers.EGUxml import EGUtoREFs
+from adsrefpipe.refparsers.OUPFTxml import OUPFTtoREFs
 from adsrefpipe.refparsers.arXivTXT import ARXIVtoREFs
 from adsrefpipe.refparsers.handler import verify
 from adsrefpipe.tests.unittests.stubdata.dbdata import actions_records, parsers_records
@@ -390,6 +392,7 @@ class TestDatabase(unittest.TestCase):
             'CrossRef': ['/PLoSO/0007/10.1371_journal.pone.0048146.xref.xml', CrossRefToREFs],
             'ELSEVIER': ['/AtmEn/0230/iss.elsevier.xml', ELSEVIERtoREFs],
             'JATS': ['/NatSR/0009/iss36.jats.xml', JATStoREFs],
+            'JATSE2': ['/IEEE/0001/iss1.ieee.xml', JATStoREFs],
             'IOP': ['/JPhCS/1085/iss4.iop.xml', IOPtoREFs],
             'SPRINGER': ['/JHEP/2019/iss06.springer.xml', SPRINGERtoREFs],
             'APS': ['/PhRvB/0081/2010PhRvB..81r4520P.ref.xml', APStoREFs],
@@ -398,6 +401,8 @@ class TestDatabase(unittest.TestCase):
             'WILEY': ['/JGR/0101/issD14.wiley2.xml', WILEYtoREFs],
             'NLM': ['/PNAS/0109/iss17.nlm3.xml', NLMtoREFs],
             'AGU': ['/JGR/0101/issD14.agu.xml', AGUtoREFs],
+            'EGUE2': ['/EGUSp/0001/iss1.copernicus.xml', EGUtoREFs],
+            'OUPFT': ['/MNRAS/0001/iss1.oupft.xml', OUPFTtoREFs],
             'arXiv': ['/arXiv/2011/00324.raw', ARXIVtoREFs],
         }
 
