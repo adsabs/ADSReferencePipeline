@@ -281,8 +281,8 @@ class UnicodeHandler(UserDict):
             ret = self[ent].ascii
             return ret
         else:
-            logger.error(UnicodeHandlerError('Unknown named entity: %s, replacing by WHITE SQUARE' % match.group(0)))
-            return self.unicode[9633].ascii
+            logger.error(UnicodeHandlerError('Unknown named entity: %s, replacing by ""' % match.group(0)))
+            return ""
 
     def __toascii(self, char: str) -> str:
         """
@@ -299,8 +299,8 @@ class UnicodeHandler(UserDict):
         if self.unicode[ascii_value]:
             return self.unicode[ascii_value].ascii
         else:
-            logger.error(UnicodeHandlerError('Unknown character code: %d, replacing by WHITE SQUARE' % ascii_value))
-            return self.unicode[9633].ascii
+            logger.error(UnicodeHandlerError('Unknown character code: %d, replacing by ""' % ascii_value))
+            return ""
 
     def __toentity(self, char: str) -> str:
         """

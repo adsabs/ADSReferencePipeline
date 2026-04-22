@@ -3,6 +3,7 @@ project_home = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..
 if project_home not in sys.path:
     sys.path.insert(0, project_home)
 
+import copy
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 import xml.dom.minidom as dom
@@ -1919,9 +1920,19 @@ class TestWileytoREFs(unittest.TestCase):
 
     def test_init(self):
         """ test init """
+        def _normalize_unicode_placeholders(value):
+            if isinstance(value, str):
+                return value.replace('&square;&square;', '').replace('&square;', '')
+            if isinstance(value, list):
+                return [_normalize_unicode_placeholders(item) for item in value]
+            if isinstance(value, dict):
+                return {key: _normalize_unicode_placeholders(item) for key, item in value.items()}
+            return value
+
         reference_source = os.path.abspath(os.path.dirname(__file__) + '/stubdata/test.wiley2.xml')
         references = WILEYtoREFs(filename=reference_source, buffer=None).process_and_dispatch()
-        self.assertEqual(references, parsed_references.parsed_wiley)
+        expected = _normalize_unicode_placeholders(copy.deepcopy(parsed_references.parsed_wiley))
+        self.assertEqual(references, expected)
 
     def test_process_and_dispatch_exception(self):
         """ test exception in process_and_dispatch """
