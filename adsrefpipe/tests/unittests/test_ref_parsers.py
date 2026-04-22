@@ -273,13 +273,11 @@ class TestUnicodeHandler(unittest.TestCase):
             with patch("unicodedata.normalize", return_value="normalized_value"):
                 self.assertEqual(handler._UnicodeHandler__sub_numasc_entity(match), "normalized_value")
 
-        # test OverflowError handling (raises UnicodeHandlerError)
+        # test OverflowError handling (logs and replaces with empty string)
         match = re.match(r'&#(?P<number>\d+);', "&#9999999999;")
         if match:
             with patch("unicodedata.normalize", side_effect=OverflowError):
-                with self.assertRaises(UnicodeHandlerError) as context:
-                    handler._UnicodeHandler__sub_numasc_entity(match)
-                self.assertEqual(str(context.exception), "Unknown numeric entity: &#9999999999;")
+                self.assertEqual(handler._UnicodeHandler__sub_numasc_entity(match), "")
 
     def test_sub_hexnumasc_entity(self):
         """ test __sub_hexnumasc_entity method """
@@ -312,12 +310,10 @@ class TestUnicodeHandler(unittest.TestCase):
                 self.assertEqual(result, "v")
                 mock_normalize.assert_called_once_with("NFKD", "𝑣")
 
-        # oversized hex value should still raise UnicodeHandlerError
+        # oversized hex value should log and replace with empty string
         match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x110000;")
         if match:
-            with self.assertRaises(UnicodeHandlerError) as context:
-                handler._UnicodeHandler__sub_hexnumasc_entity(match)
-            self.assertEqual(str(context.exception), "Unknown hexadecimal entity: &#x110000;")
+            self.assertEqual(handler._UnicodeHandler__sub_hexnumasc_entity(match), "")
 
     def test_sub_hexnum_toent(self):
         """ test __sub_hexnum_toent method """
