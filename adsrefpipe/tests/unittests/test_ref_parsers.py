@@ -335,15 +335,12 @@ class TestUnicodeHandler(unittest.TestCase):
         if match:
             self.assertEqual(handler._UnicodeHandler__sub_hexnum_toent(match), "&pound;")
 
-        # test UnicodeHandlerError for unknown entity by ensuring index is in range but has no entity
+        # test unknown entity handling by ensuring index is in range but has no entity
         handler.unicode = MagicMock()
         handler.unicode.__getitem__.return_value = None
         match = re.match(r'&#x(?P<number>[0-9A-Fa-f]+);', "&#x99999;")
         if match:
-            with self.assertRaises(UnicodeHandlerError) as context:
-                handler._UnicodeHandler__sub_hexnum_toent(match)
-            # ensure the exception message is correct
-            self.assertEqual(str(context.exception), "Unknown hexadecimal entity: 629145")
+            self.assertEqual(handler._UnicodeHandler__sub_hexnum_toent(match), "")
 
     def test_toentity(self):
         """ test __toentity method """
