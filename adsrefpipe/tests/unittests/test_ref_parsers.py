@@ -273,13 +273,11 @@ class TestUnicodeHandler(unittest.TestCase):
             with patch("unicodedata.normalize", return_value="normalized_value"):
                 self.assertEqual(handler._UnicodeHandler__sub_numasc_entity(match), "normalized_value")
 
-        # test OverflowError handling (raises UnicodeHandlerError)
+        # test OverflowError handling (logs and replaces with empty string)
         match = re.match(r'&#(?P<number>\d+);', "&#9999999999;")
         if match:
             with patch("unicodedata.normalize", side_effect=OverflowError):
-                with self.assertRaises(UnicodeHandlerError) as context:
-                    handler._UnicodeHandler__sub_numasc_entity(match)
-                self.assertEqual(str(context.exception), "Unknown numeric entity: &#9999999999;")
+                self.assertEqual(handler._UnicodeHandler__sub_numasc_entity(match), "")
 
     def test_sub_hexnumasc_entity(self):
         """ test __sub_hexnumasc_entity method """
@@ -304,11 +302,18 @@ class TestUnicodeHandler(unittest.TestCase):
         handler.unicode = MagicMock()
         handler.unicode.__getitem__.side_effect = IndexError
 
-        # large invalid hex value to trigger returning and empty string ""
-        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x99999;")
+        # supplementary-plane hex value should normalize instead of being dropped
+        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x1D463;")
         if match:
-            result = handler._UnicodeHandler__sub_hexnumasc_entity(match)
-            self.assertEqual(result, "")
+            with patch("unicodedata.normalize", return_value="v") as mock_normalize:
+                result = handler._UnicodeHandler__sub_hexnumasc_entity(match)
+                self.assertEqual(result, "v")
+                mock_normalize.assert_called_once_with("NFKD", "𝑣")
+
+        # oversized hex value should log and replace with empty string
+        match = re.match(r'&#x(?P<hexnum>[0-9A-Fa-f]+);', "&#x110000;")
+        if match:
+            self.assertEqual(handler._UnicodeHandler__sub_hexnumasc_entity(match), "")
 
     def test_sub_hexnum_toent(self):
         """ test __sub_hexnum_toent method """
@@ -330,15 +335,12 @@ class TestUnicodeHandler(unittest.TestCase):
         if match:
             self.assertEqual(handler._UnicodeHandler__sub_hexnum_toent(match), "&pound;")
 
-        # test UnicodeHandlerError for unknown entity by ensuring index is in range but has no entity
+        # test unknown entity handling by ensuring index is in range but has no entity
         handler.unicode = MagicMock()
         handler.unicode.__getitem__.return_value = None
         match = re.match(r'&#x(?P<number>[0-9A-Fa-f]+);', "&#x99999;")
         if match:
-            with self.assertRaises(UnicodeHandlerError) as context:
-                handler._UnicodeHandler__sub_hexnum_toent(match)
-            # ensure the exception message is correct
-            self.assertEqual(str(context.exception), "Unknown hexadecimal entity: 629145")
+            self.assertEqual(handler._UnicodeHandler__sub_hexnum_toent(match), "")
 
     def test_toentity(self):
         """ test __toentity method """

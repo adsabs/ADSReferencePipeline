@@ -22,6 +22,7 @@ from adsrefpipe.refparsers.MDPIxml import MDPItoREFs
 from adsrefpipe.refparsers.NatureXML import NATUREtoREFs
 from adsrefpipe.refparsers.NLM3xml import NLMtoREFs
 from adsrefpipe.refparsers.ONCPxml import ONCPtoREFs
+from adsrefpipe.refparsers.OUPFTxml import OUPFTtoREFs
 from adsrefpipe.refparsers.OUPxml import OUPtoREFs
 from adsrefpipe.refparsers.PASAxml import PASAtoREFs
 from adsrefpipe.refparsers.RSCxml import RSCtoREFs
@@ -77,6 +78,7 @@ name_to_parser_dict = {
     'CUP': CUPtoREFs,
     'EDP': EDPtoREFs,
     'EGU': EGUtoREFs,
+    'EGUE2': EGUtoREFs,
     'ELSEVIER': ELSEVIERtoREFs,
     'ELSEVIERE2': ELSEVIERtoREFs, # with multiple extensions
     'ICARUS': ICARUStoREFs,
@@ -86,6 +88,7 @@ name_to_parser_dict = {
     'IOPFT': IOPFTtoREFs,
     'IPAP': IPAPtoREFs,
     'JATS': JATStoREFs,
+    'JATSE2': JATStoREFs,
     'JLVEnHTML': JLVEnHTMLtoREFs,
     'JSTAGE': JSTAGEtoREFs,
     'LivingReviews': LivingReviewsToREFs,
@@ -97,6 +100,7 @@ name_to_parser_dict = {
     'ObsOCR': ObsOCRtoREFs,
     'ONCP': ONCPtoREFs,
     'OUP': OUPtoREFs,
+    'OUPFT': OUPFTtoREFs,
     'PairsTXT': PairsTXTtoREFs,
     'PairsTXTE2': PairsTXTtoREFs,
     'PairsTXTE3': PairsTXTtoREFs,
